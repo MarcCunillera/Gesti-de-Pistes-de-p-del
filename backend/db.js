@@ -1,8 +1,11 @@
 const Database = require("better-sqlite3");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
 
-const db = new Database(path.join(__dirname, "padel.db"));
+const dbDir = process.env.DB_DIR || __dirname;
+fs.mkdirSync(dbDir, { recursive: true });
+const db = new Database(path.join(dbDir, "padel.db"));
 
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
