@@ -1,0 +1,33 @@
+{
+  "name": "Pista de Pàdel Torrelameu",
+  "short_name": "Pàdel",
+  "description": "Reserva la teva pista de pàdel a Torrelameu",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f5",
+  "theme_color": "#1a472a",
+  "lang": "ca",
+  "icons": [
+    {
+      "src": "/Escut_de_Torrelameu.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["sports", "lifestyle"]
+}
