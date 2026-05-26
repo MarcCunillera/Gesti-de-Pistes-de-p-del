@@ -32,11 +32,17 @@ router.get("/", authMiddleware, (req, res) => {
   res.json(rows.map(enrichReserva));
 });
 
-// GET /api/reservas/all — públiques obertes + les del user
+// GET /api/reservas/all — totes obertes (per al calendari) + les pròpies
 router.get("/all", authMiddleware, (req, res) => {
   const rows = db
-    .prepare("SELECT * FROM reservas WHERE estado = 'confirmada' ORDER BY fecha, hora")
-    .all();
+    .prepare(
+      `SELECT DISTINCT r.* FROM reservas r
+       LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
+       WHERE r.estado = 'confirmada'
+         AND (r.abierto = 1 OR r.user_id = ? OR rj.user_id = ?)
+       ORDER BY r.fecha, r.hora`
+    )
+    .all(req.user.id, req.user.id);
   res.json(rows.map(enrichReserva));
 });
 
@@ -142,12 +148,12 @@ router.patch("/solicituds/:id", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(sp.reserva_id);
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
 
-  var esOrganitzador = r.user_id === req.user.id;
-  var esInvitat = sp.de_user_id === req.user.id && sp.estat === "invitat";
+  const esOrganitzador = r.user_id === req.user.id;
+  const esInvitat = sp.de_user_id === req.user.id && sp.estat === "invitat";
   if (!esOrganitzador && !esInvitat)
     return res.status(403).json({ error: "Sense permís" });
 
-  var { estat } = req.body; // 'acceptada' | 'rebutjada'
+  const { estat } = req.body; // 'acceptada' | 'rebutjada'
   if (estat !== "acceptada" && estat !== "rebutjada")
     return res.status(400).json({ error: "Estat invàlid" });
 
@@ -160,10 +166,10 @@ router.patch("/solicituds/:id", authMiddleware, (req, res) => {
   db.prepare("UPDATE solicituds_partida SET estat = ? WHERE id = ?").run(estat, sp.id);
 
   if (estat === "acceptada") {
-    var jugadors = getJugadors(r.id);
+    const jugadors = getJugadors(r.id);
     if (jugadors.length >= 4)
       return res.status(409).json({ error: "Partida ja completa" });
-    var jaEsta = jugadors.find(function(j) { return j.id === sp.de_user_id; });
+    const jaEsta = jugadors.find((j) => j.id === sp.de_user_id);
     if (!jaEsta) {
       db.prepare("INSERT INTO reserva_jugadores (reserva_id, user_id) VALUES (?, ?)").run(r.id, sp.de_user_id);
     }
@@ -183,10 +189,10 @@ router.post("/:id/unirse", authMiddleware, (req, res) => {
 
   const jugadors = getJugadors(r.id);
   if (jugadors.length >= 4) return res.status(409).json({ error: "Partida completa" });
-  var jaEsta = jugadors.find(function(j) { return j.id === req.user.id; });
+  const jaEsta = jugadors.find((j) => j.id === req.user.id);
   if (jaEsta) return res.status(409).json({ error: "Ja ets a la partida" });
 
-  var existent = db.prepare("SELECT id FROM solicituds_partida WHERE reserva_id = ? AND de_user_id = ?").get(r.id, req.user.id);
+  const existent = db.prepare("SELECT id FROM solicituds_partida WHERE reserva_id = ? AND de_user_id = ?").get(r.id, req.user.id);
   if (existent) return res.status(409).json({ error: "Ja has enviat una sol·licitud" });
 
   db.prepare("INSERT INTO solicituds_partida (reserva_id, de_user_id, estat) VALUES (?, ?, 'pendent')").run(r.id, req.user.id);
@@ -209,7 +215,7 @@ router.delete("/:id/jugadors/:userId", authMiddleware, (req, res) => {
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin")
     return res.status(403).json({ error: "Sense permís — no ets l'organitzador" });
-  var userId = parseInt(req.params.userId);
+  const userId = parseInt(req.params.userId);
   if (userId === r.user_id)
     return res.status(400).json({ error: "No pots expulsar l'organitzador" });
   db.prepare("DELETE FROM reserva_jugadores WHERE reserva_id = ? AND user_id = ?").run(r.id, userId);
@@ -225,16 +231,16 @@ router.post("/:id/invitar", authMiddleware, (req, res) => {
   if (r.user_id !== req.user.id && req.user.rol !== "admin")
     return res.status(403).json({ error: "Sense permís — no ets l'organitzador" });
   if (!r.abierto) return res.status(400).json({ error: "El partit no és obert" });
-  var { user_id } = req.body;
+  const { user_id } = req.body;
   if (!user_id) return res.status(400).json({ error: "user_id requerit" });
 
-  var jugadors = getJugadors(r.id);
+  const jugadors = getJugadors(r.id);
   if (jugadors.length >= 4) return res.status(409).json({ error: "Partida completa" });
-  var jaEsta = jugadors.find(function(j) { return j.id === user_id; });
+  const jaEsta = jugadors.find((j) => j.id === user_id);
   if (jaEsta) return res.status(409).json({ error: "El jugador ja és al partit" });
 
   // Crea una invitació pendent (l'amic ha d'acceptar)
-  var existent = db.prepare("SELECT id, estat FROM solicituds_partida WHERE reserva_id = ? AND de_user_id = ?").get(r.id, user_id);
+  const existent = db.prepare("SELECT id, estat FROM solicituds_partida WHERE reserva_id = ? AND de_user_id = ?").get(r.id, user_id);
   if (existent) {
     if (existent.estat === "invitat") return res.status(409).json({ error: "Ja tens una invitació pendent per a aquest jugador" });
     if (existent.estat === "acceptada") return res.status(409).json({ error: "El jugador ja és al partit" });

@@ -20,6 +20,10 @@ async function req(method, path, body) {
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    // Token expirat o invàlid — notificar l'app perquè faci logout
+    window.dispatchEvent(new CustomEvent("padel:unauthorized"));
+  }
   if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
   return data;
 }

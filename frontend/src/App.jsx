@@ -52,16 +52,16 @@ export default function App() {
   const [solicitudsPartidaInvitades, setSolicitudsPartidaInvitades] = useState([]);
   const [amics, setAmics] = useState([]);
 
-  const showToast = (msg, tipo) => {
+  const showToast = (msg, tipo, duracio) => {
     setToast({ msg, tipo: tipo || "ok" });
-    setTimeout(() => setToast(null), 3000);
+    setTimeout(() => setToast(null), duracio || 3000);
   };
 
   const normalizeReserva = (r) => ({
     ...r,
     userId: r.user_id !== undefined ? r.user_id : r.userId,
     jugadores: (r.jugadors || r.jugadores || []).map((j) => (typeof j === "object" ? j.id : j)),
-    jugadorsData: r.jugards || r.jugadors || [],
+    jugadorsData: r.jugadors || [],
   });
 
   const cargarDades = useCallback(function() {
@@ -111,6 +111,62 @@ export default function App() {
       .finally(function() { setCargando(false); });
   }, []);
 
+  // Auto-logout si el token expira mentre s'usa l'app
+  useEffect(function() {
+    function handleUnauthorized() {
+      setToken(null);
+      setSession(null);
+      setUsers([]);
+      setReservas([]);
+      setBloqueados([]);
+    }
+    window.addEventListener("padel:unauthorized", handleUnauthorized);
+    return function() { window.removeEventListener("padel:unauthorized", handleUnauthorized); };
+  }, []);
+
+  // Notificació quan el service worker té una nova versió llesta
+  useEffect(function() {
+    function handleSwUpdate() {
+      showToast("Nova versió disponible — recarrega per actualitzar 🔄", "info", 8000);
+    }
+    window.addEventListener("padel:sw-update", handleSwUpdate);
+    return function() { window.removeEventListener("padel:sw-update", handleSwUpdate); };
+  }, []);
+
+  // Polling lleuger: actualitza sol·licituds cada 30s sense recarregar tot
+  const pollSolicituds = useCallback(function() {
+    if (!getToken()) return;
+    Promise.all([
+      api.getSolicituds(),
+      api.getSolicitudsPartidaMeues(),
+      api.getSolicitudsPartidaPendent(),
+      api.getSolicitudsPartidaInvitades(),
+      api.getReservas(),
+    ]).then(function(results) {
+      var amicSols = results[0], meues = results[1], pendent = results[2], inv = results[3], rs = results[4];
+      setSolicitudsAmicCount(amicSols.length);
+      setSolicitudsPartidaMeues(meues);
+      setSolicitudsPartidaPendent(pendent);
+      setSolicitudsPartidaInvitades(inv);
+      setReservas(rs.map(normalizeReserva));
+    }).catch(function() { /* silenciós — no interrompre l'usuari */ });
+  }, []);
+
+  useEffect(function() {
+    if (!session) return;
+    var interval = setInterval(pollSolicituds, 30000);
+    return function() { clearInterval(interval); };
+  }, [session, pollSolicituds]);
+
+  // Badge al títol del navegador amb el total de sol·licituds pendents
+  useEffect(function() {
+    var total = solicitudsAmicCount
+      + solicitudsPartidaPendent.length
+      + solicitudsPartidaInvitades.length
+      + solicitudsPartidaMeues.filter(function(s) { return s.estat === 'pendent'; }).length;
+    document.title = total > 0 ? "(" + total + ") Pàdel" : "Pàdel";
+  }, [solicitudsAmicCount, solicitudsPartidaPendent, solicitudsPartidaInvitades, solicitudsPartidaMeues]);
+
   const login = function() {
     api.login(loginForm.email, loginForm.password)
       .then(function(data) {
@@ -144,6 +200,7 @@ export default function App() {
     setUsers([]);
     setReservas([]);
     setBloqueados([]);
+    document.title = "Pàdel";
   };
 
   const hacerReserva = function(fecha, hora, abierto) {
@@ -198,9 +255,8 @@ export default function App() {
     api.respondSolicitudPartida(solId, estat)
       .then(function() {
         showToast(estat === "acceptada" ? "Jugador acceptat al partit ✓" : "Sol·licitud rebutjada", estat === "acceptada" ? "ok" : "info");
-        return Promise.all([api.getSolicitudsPartidaPendent(), cargarDades()]);
+        return cargarDades();
       })
-      .then(function(r) { setSolicitudsPartidaPendent(r[0]); })
       .catch(function(e) { showToast(e.message, "error"); });
   };
 

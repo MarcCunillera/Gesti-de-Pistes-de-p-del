@@ -18,11 +18,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } });
 
-const safeUser = (u) => {
-  const { password, ...rest } = u;
-  return rest;
-};
-
 // GET /api/users — tots (admin) o llista pública
 router.get("/", authMiddleware, (req, res) => {
   const rows = db
@@ -45,21 +40,31 @@ router.patch("/me", authMiddleware, (req, res) => {
   const { nombre, email, avatar_color, currentPassword, newPassword } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
 
+  // Validar abans d'executar res
   if (newPassword) {
     if (!currentPassword) return res.status(400).json({ error: "Cal la contrasenya actual" });
     if (!bcrypt.compareSync(currentPassword, user.password))
       return res.status(401).json({ error: "Contrasenya actual incorrecta" });
     if (newPassword.length < 6)
       return res.status(400).json({ error: "Mínimo 6 caràcters" });
-    db.prepare("UPDATE users SET password = ? WHERE id = ?").run(bcrypt.hashSync(newPassword, 10), user.id);
   }
-  if (nombre) db.prepare("UPDATE users SET nombre = ? WHERE id = ?").run(nombre, user.id);
-  if (email) {
+  if (email && email !== user.email) {
     const exists = db.prepare("SELECT id FROM users WHERE email = ? AND id != ?").get(email, user.id);
     if (exists) return res.status(400).json({ error: "Aquest email ja està en ús" });
-    db.prepare("UPDATE users SET email = ? WHERE id = ?").run(email, user.id);
   }
-  if (avatar_color) db.prepare("UPDATE users SET avatar_color = ? WHERE id = ?").run(avatar_color, user.id);
+
+  // Aplicar tots els canvis dins una transacció
+  const applyUpdates = db.transaction(() => {
+    if (newPassword)
+      db.prepare("UPDATE users SET password = ? WHERE id = ?").run(bcrypt.hashSync(newPassword, 10), user.id);
+    if (nombre)
+      db.prepare("UPDATE users SET nombre = ? WHERE id = ?").run(nombre, user.id);
+    if (email && email !== user.email)
+      db.prepare("UPDATE users SET email = ? WHERE id = ?").run(email, user.id);
+    if (avatar_color)
+      db.prepare("UPDATE users SET avatar_color = ? WHERE id = ?").run(avatar_color, user.id);
+  });
+  applyUpdates();
 
   const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?").get(user.id);
   res.json(updated);
