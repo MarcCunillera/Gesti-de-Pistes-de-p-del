@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { generarHorarios, hoy, fechasDesde } from "./utils/helpers";
+import { generarHorarios, hoy, fechasDesde, googleCalendarUrl } from "./utils/helpers";
 import { DEFAULT_CONFIG } from "./data/initialData";
 import { useTheme } from "./theme/ThemeContext";
 import { api, getToken, setToken } from "./utils/api";
@@ -17,6 +17,7 @@ import ReservationModal from "./components/modals/ReservationModal";
 import MatchModal from "./components/modals/MatchModal";
 import AdminModal from "./components/modals/AdminModal";
 import ConfirmModal from "./components/modals/ConfirmModal";
+import ReservaConfirmModal from "./components/modals/ReservaConfirmModal";
 import Friends from "./components/views/Friends";
 import Skeleton from "./components/Skeleton";
 import Toast from "./components/Toast";
@@ -41,6 +42,7 @@ export default function App() {
   const [adminModal, setAdminModal] = useState(null);
   const [partidoModal, setPartidoModal] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
+  const [confirmReserva, setConfirmReserva] = useState(null);
   const [toast, setToast] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [perfilEdit, setPerfilEdit] = useState(null);
@@ -208,7 +210,11 @@ export default function App() {
       .then(function(r) {
         setReservas(function(rs) { return rs.concat([normalizeReserva(r)]); });
         setReservaModal(null); setAdminModal(null);
-        showToast(abierto ? "Partido abierto creado" : "Reserva confirmada");
+        if (abierto) {
+          showToast("Partido abierto creado");
+        } else {
+          setConfirmReserva({ fecha, hora, abierto });
+        }
       })
       .catch(function(e) { showToast(e.message, "error"); setReservaModal(null); setAdminModal(null); });
   };
@@ -306,7 +312,11 @@ export default function App() {
     api.toggleAbierto(rid, nuevoAbierto)
       .then(function() {
         setReservas(function(rs) { return rs.map(function(x) { return x.id === rid ? Object.assign({}, x, { abierto: nuevoAbierto }) : x; }); });
-        showToast(nuevoAbierto ? "Partido abierto — otros jugadores pueden unirse" : "Reserva cerrada — modo privado", "info");
+        if (!nuevoAbierto) {
+          showToast("Reserva cerrada", "info");
+        } else {
+          showToast("Partido abierto — otros jugadores pueden unirse", "info");
+        }
       })
       .catch(function(e) { showToast(e.message, "error"); });
   };
@@ -490,7 +500,8 @@ export default function App() {
             baseDate={baseDate} setBaseDate={setBaseDate}
             esBloqueado={esBloqueado} getReserva={getReserva}
             setAdminModal={setAdminModal} setReservaModal={setReservaModal} setPartidoModal={setPartidoModal}
-            reservas={reservas} t={t}
+            reservas={reservas} users={users} amics={amics}
+            pedirUnirse={pedirUnirse} t={t}
           />
         )}
         {vista === "misreservas" && (
@@ -539,8 +550,9 @@ export default function App() {
 
       <ReservationModal reservaModal={reservaModal} setReservaModal={setReservaModal} config={config} session={session} hacerReserva={hacerReserva} t={t} />
       <MatchModal partidoModal={partidoModal} setPartidoModal={setPartidoModal} users={users} session={session} unirsePartido={pedirUnirse} salirPartido={pedirSalir} solicitudsPartidaMeues={solicitudsPartidaMeues} respondreInvitacio={respondreInvitacioPartida} t={t} />
-      <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function(id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} t={t} />
+      <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function(id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} config={config} session={session} t={t} />
       <ConfirmModal confirmModal={confirmModal} setConfirmModal={setConfirmModal} t={t} />
+      <ReservaConfirmModal data={confirmReserva} onClose={() => setConfirmReserva(null)} config={config} t={t} />
       <Toast toast={toast} />
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { hoy } from "../../utils/helpers";
+import { hoy, formatFecha } from "../../utils/helpers";
+import UserAvatar from "../UserAvatar";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
@@ -70,7 +71,7 @@ function Celda({ estado, sublabel, onClick, esHoy }) {
   );
 }
 
-export default function Calendar({ session, fechas, HORARIOS, config, esBloqueado, getReserva, setBaseDate, baseDate, setAdminModal, setReservaModal, setPartidoModal, reservas, t }) {
+export default function Calendar({ session, fechas, HORARIOS, config, esBloqueado, getReserva, setBaseDate, baseDate, setAdminModal, setReservaModal, setPartidoModal, reservas, users, amics, pedirUnirse, t }) {
   const width = useWindowWidth();
   const esMobil = width < 640;
   const [diaAbierto, setDiaAbierto] = useState(null);
@@ -195,6 +196,85 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
     </div>
   );
 
+  // ── Partits oberts ──────────────────────────────────────
+  const ara = new Date();
+  const amicIds = new Set((amics || []).map(a => a.id));
+  const partitsOberts = (reservas || [])
+    .filter(r => r.abierto && r.estado === "confirmada" && new Date(`${r.fecha}T${r.hora}`) >= ara && r.userId !== session.id && !(r.jugadores || []).includes(session.id))
+    .sort((a, b) => (a.fecha + a.hora) > (b.fecha + b.hora) ? 1 : -1);
+  const partitsAmics = partitsOberts.filter(r => amicIds.has(r.userId));
+  const partitsResta = partitsOberts.filter(r => !amicIds.has(r.userId));
+  const partitsOrdenats = [...partitsAmics, ...partitsResta];
+
+  const PartitsOberts = partitsOrdenats.length === 0 ? null : (
+    <div style={{ marginTop: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: textMain }}>Partidos abiertos</h3>
+        <span style={{ fontSize: 11, fontWeight: 700, background: "#e0f2fe", color: "#0284c7", border: "1px solid #7dd3fc", borderRadius: 20, padding: "2px 9px" }}>{partitsOrdenats.length}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {partitsOrdenats.map(function(r) {
+          var org = (users || []).find(function(u) { return u.id === r.userId; });
+          var esAmic = amicIds.has(r.userId);
+          var lliures = 4 - (r.jugadores?.length || 0);
+          return (
+            <div key={r.id} style={{ background: surface, borderRadius: 12, border: `1px solid ${border}`, boxShadow: "0 1px 3px rgba(0,0,0,.05)", overflow: "hidden" }}>
+              <div style={{ height: 2, background: "#38bdf8" }} />
+              <div style={{ padding: "14px 18px" }}>
+                {/* Fila superior: info + botó */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginBottom: 3 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: textMain }}>{formatFecha(r.fecha)}</span>
+                      <span style={{ fontWeight: 500, fontSize: 14, color: textMuted }}>{r.hora}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 6, padding: "2px 8px" }}>Abierto</span>
+                      {esAmic && <span style={{ fontSize: 11, fontWeight: 600, background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 6, padding: "2px 8px" }}>Amigo</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: textMuted }}>
+                      Organiza <strong style={{ color: textMain, fontWeight: 600 }}>{org?.nombre || "?"}</strong>
+                      <span style={{ margin: "0 5px" }}>·</span>
+                      <span style={{ fontWeight: 600, color: lliures > 0 ? "#0284c7" : textMuted }}>{r.jugadores?.length}/4</span>
+                      {lliures > 0 && <span style={{ color: "#0284c7" }}> · {lliures} {lliures === 1 ? "plaza libre" : "plazas libres"}</span>}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => pedirUnirse(r.id, formatFecha(r.fecha), r.hora)}
+                    style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 8, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, transition: "opacity 0.12s" }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
+                    onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                  >
+                    Solicitar Unirse
+                  </button>
+                </div>
+                {/* Avatars jugadors */}
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  {(r.jugadores || []).map(function(id) {
+                    var u = (users || []).find(function(x) { return x.id === id; });
+                    var esOrg = id === r.userId;
+                    return (
+                      <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                        <UserAvatar user={u || { id, nombre: "?" }} size={32} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} />
+                        <span style={{ fontSize: 9, color: esOrg ? "#374151" : textMuted, fontWeight: esOrg ? 700 : 400 }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
+                      </div>
+                    );
+                  })}
+                  {Array.from({ length: lliures }).map(function(_, i) {
+                    return (
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.4 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#e0f2fe", border: "1.5px dashed #7dd3fc", display: "flex", alignItems: "center", justifyContent: "center", color: "#7dd3fc", fontSize: 14 }}>+</div>
+                        <span style={{ fontSize: 9, color: textMuted }}>Libre</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   // ── Vista móvil ───────────────────────────────────────
   if (esMobil) {
     return (
@@ -259,6 +339,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
           })}
         </div>
         {Leyenda}
+        {PartitsOberts}
       </>
     );
   }
@@ -319,6 +400,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
         </div>
       </div>
       {Leyenda}
+      {PartitsOberts}
     </>
   );
 }

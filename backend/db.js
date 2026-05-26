@@ -93,8 +93,8 @@ db.exec(`
 const insertConfig = db.prepare(
   "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)"
 );
-insertConfig.run("horaInicio", "09:00");
-insertConfig.run("horaFin", "22:00");
+insertConfig.run("horaInicio", "08:00");
+insertConfig.run("horaFin", "23:00");
 insertConfig.run("duracion", "90");
 insertConfig.run("diasVista", "7");
 insertConfig.run("maxReservas", "3");

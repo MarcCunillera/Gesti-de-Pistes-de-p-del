@@ -63,10 +63,10 @@ export default function AdminReservations({ reservas, users, cancelarReserva, t 
 
   const estadoBadge = (r) => {
     const dt = new Date(`${r.fecha}T${r.hora}`);
-    if (r.estado === "cancelada") return { label: "Cancelada", bg: "#fef2f2", color: "#c0392b", border: "#fecaca" };
-    if (dt < ahora) return { label: "Completada", bg: "#f0fdf4", color: "#16a34a", border: "#86efac" };
-    if (r.abierto) return { label: `Abierto ${r.jugadores?.length}/4`, bg: "#e8f0fe", color: "#1a73e8", border: "#c5d5f5" };
-    return { label: "Próxima", bg: "#e8f5e9", color: "#1a472a", border: "#c8e6c9" };
+    if (r.estado === "cancelada") return { label: "Cancelada", bg: "#fef2f2", color: "#dc2626", border: "#fecaca", bar: "#f87171" };
+    if (dt < ahora) return { label: "Completada", bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", bar: "#4ade80" };
+    if (r.abierto) return { label: `Abierto ${r.jugadores?.length}/4`, bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", bar: "#60a5fa" };
+    return { label: "Privado", bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", bar: "#4ade80" };
   };
 
   return (
@@ -116,42 +116,39 @@ export default function AdminReservations({ reservas, users, cancelarReserva, t 
             const badge = estadoBadge(r);
             const esPasadaOCancelada = r.estado === "cancelada" || new Date(`${r.fecha}T${r.hora}`) < ahora;
             return (
-              <div key={r.id} style={{ background: surface, borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,.06)", marginBottom: 10, border: `1px solid ${border}`, opacity: esPasadaOCancelada ? 0.8 : 1 }}>
-                <div style={{ display: "flex" }}>
-                  <div style={{ width: 4, flexShrink: 0, background: badge.color }} />
-                  <div style={{ flex: 1, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                    <div style={{ flex: 1, minWidth: 200 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                        <span style={{ fontWeight: 800, color: primary, fontSize: 14 }}>{formatFecha(r.fecha)}</span>
-                        <span style={{ color: textMuted }}>·</span>
-                        <span style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>{r.hora}</span>
-                        <span style={{ fontSize: 11, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 20, padding: "2px 9px", fontWeight: 700 }}>
-                          {badge.label}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: textMuted }}>
-                          <UserAvatar user={r.usuario || { id: r.userId, nombre: "?" }} size={22} />
-                        <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuario eliminado"}</span>
-                        {r.jugadores?.length > 1 && (
-                          <span style={{ color: textMuted, fontSize: 12 }}>
-                            · {r.jugadores.map((id) => users.find((u) => u.id === id)?.nombre).filter(Boolean).join(", ")}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {r.estado === "confirmada" && new Date(`${r.fecha}T${r.hora}`) >= ahora ? (
-                      <button
-                        onClick={() => cancelarReserva(r.id, r)}
-                        style={{ background: "#fef2f2", color: "#c0392b", border: "1px solid #fecaca", borderRadius: 8, padding: "6px 16px", cursor: "pointer", fontWeight: 700, fontSize: 12, flexShrink: 0 }}
-                      >
-                        Cancelar
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: 13, color: "#ccc", flexShrink: 0 }}>
-                        {r.estado === "cancelada" ? "✕" : "✓"}
+              <div key={r.id} style={{ background: surface, borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.05)", marginBottom: 10, border: `1px solid ${border}`, opacity: esPasadaOCancelada ? 0.8 : 1 }}>
+                <div style={{ height: 2, background: badge.bar }} />
+                <div style={{ padding: "18px 20px", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: textMain }}>{formatFecha(r.fecha)}</span>
+                      <span style={{ fontWeight: 500, fontSize: 14, color: textMuted }}>{r.hora}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 6, padding: "2px 8px", letterSpacing: 0.1 }}>
+                        {badge.label}
                       </span>
-                    )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textMuted }}>
+                      <UserAvatar user={r.usuario || { id: r.userId, nombre: "?" }} size={22} />
+                      <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuario eliminado"}</span>
+                      {r.jugadores?.length > 1 && (
+                        <span style={{ color: textMuted, fontSize: 12 }}>
+                          · {r.jugadores.map((id) => users.find((u) => u.id === id)?.nombre).filter(Boolean).join(", ")}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {r.estado === "confirmada" && new Date(`${r.fecha}T${r.hora}`) >= ahora ? (
+                    <button
+                      onClick={() => cancelarReserva(r.id, r)}
+                      style={{ background: "#fff", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontWeight: 600, fontSize: 12, flexShrink: 0 }}
+                    >
+                      Cancelar
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: 13, color: "#ccc", flexShrink: 0 }}>
+                      {r.estado === "cancelada" ? "✕" : "✓"}
+                    </span>
+                  )}
                 </div>
               </div>
             );

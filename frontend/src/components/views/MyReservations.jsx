@@ -81,7 +81,6 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
     inputBg:    t?.inputBg    || "#fff",
     primary:    t?.primary    || "#1a2e1a",
   };
-  const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(null);
   const totalActivas = misReservas.length + misPartidos.length;
 
@@ -352,33 +351,7 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
         </>
       )}
 
-      {/* Historial (solo admin) */}
-      {session?.rol === "admin" && historialReservas?.length > 0 && (
-        <div style={{ marginTop: 8, borderTop: "1px solid #f3f4f6", paddingTop: 16 }}>
-          <button
-            onClick={() => setMostrarHistorial(v => !v)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontWeight: 600, fontSize: 12, padding: "4px 0", display: "flex", alignItems: "center", gap: 6 }}
-          >
-            {mostrarHistorial ? "▾" : "▸"} Historial ({historialReservas.length})
-          </button>
-          {mostrarHistorial && (
-            <div style={{ marginTop: 10 }}>
-              {[...historialReservas].sort((a, b) => (a.fecha + a.hora < b.fecha + b.hora ? 1 : -1)).map(function(r) {
-                return (
-                  <div key={r.id} style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 8, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, opacity: 0.6 }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: "#374151", fontSize: 13 }}>{formatFecha(r.fecha)} — {r.hora}</div>
-                      <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
-                        {r.estado === "cancelada" ? "Cancelada" : "Completada"} · {r.abierto ? `Partido (${r.jugadores?.length}/4)` : "Privado"}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+
     </div>
   );
 }

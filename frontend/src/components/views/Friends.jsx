@@ -179,6 +179,46 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
               })}
             </div>
           )}
+
+          {/* Sugerencias */}
+          {(function() {
+            var sugerencias = users.filter(function(u) {
+              return u.id !== session.id &&
+                u.activo !== false &&
+                amicIds.indexOf(u.id) === -1 &&
+                enviadesIds.indexOf(u.id) === -1 &&
+                solicituds.every(function(s) { return s.de_id !== u.id; });
+            }).slice(0, 5);
+            if (sugerencias.length === 0) return null;
+            return (
+              <div style={{ marginTop: 28 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
+                  Quizás los conozcas
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {sugerencias.map(function(u) {
+                    return (
+                      <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <Avatar user={u} size={38} />
+                          <div>
+                            <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
+                          </div>
+                        </div>
+                        <Btn
+                          onClick={function() { enviarSolicitud(u.id); }}
+                          variant="confirm"
+                          style={{ opacity: enviandoId === u.id ? 0.5 : 1, pointerEvents: enviandoId ? "none" : "auto" }}
+                        >
+                          {enviandoId === u.id ? "Enviando…" : "+ Añadir"}
+                        </Btn>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
