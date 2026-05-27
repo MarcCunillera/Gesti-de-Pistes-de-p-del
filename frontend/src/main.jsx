@@ -1,20 +1,30 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ThemeProvider } from "./theme/ThemeContext";
 import "./styles/global.css";
 
-ReactDOM.render(
+createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
       <App />
     </ThemeProvider>
-  </React.StrictMode>,
-  document.getElementById("root")
+  </React.StrictMode>
 );
 
 // ── Registre del Service Worker (PWA) ─────────────────────────────────────────
 if ("serviceWorker" in navigator) {
+  // Des-registrar qualsevol SW antic d'altres ports (p.ex. 5173) per evitar
+  // que interceptin peticions i redireccionin a un port que ja no existeix
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const reg of registrations) {
+      if (reg.scope && !reg.scope.includes(location.origin)) {
+        reg.unregister();
+        console.log("[PWA] SW obsolet des-registrat:", reg.scope);
+      }
+    }
+  });
+
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")
