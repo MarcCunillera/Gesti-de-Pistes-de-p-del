@@ -66,17 +66,15 @@ router.get("/", authMiddleware, (req, res) => {
   res.json(rows.map(enrichReserva));
 });
 
-// GET /api/reservas/all
+// GET /api/reservas/all — totes les reserves confirmades per al calendari
 router.get("/all", authMiddleware, (req, res) => {
   const rows = db
     .prepare(
-      `SELECT DISTINCT r.* FROM reservas r
-       LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
+      `SELECT r.* FROM reservas r
        WHERE r.estado = 'confirmada'
-         AND (r.abierto = 1 OR r.user_id = ? OR rj.user_id = ?)
        ORDER BY r.fecha, r.hora`
     )
-    .all(req.user.id, req.user.id);
+    .all();
 
   res.json(rows.map(enrichReserva));
 });
