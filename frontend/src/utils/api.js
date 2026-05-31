@@ -30,8 +30,14 @@ async function req(method, path, body) {
 
 export const api = {
   // Auth
-  login: (email, password) => req("POST", "/auth/login", { email, password }),
-  register: (nombre, email, password) => req("POST", "/auth/register", { nombre, email, password }),
+  login: (email, password) =>
+    req("POST", "/auth/login", { email, password }),
+
+  register: (nombre, email, password) =>
+    req("POST", "/auth/register", { nombre, email, password }),
+
+  loginGoogle: (credential) =>
+    req("POST", "/auth/google", { credential }),
 
   // Users
   getUsers: () => req("GET", "/users"),

@@ -50,3 +50,13 @@ function authMiddleware(req, res, next) {
     });
   }
 }
+
+function adminMiddleware(req, res, next) {
+  if (!req.user || req.user.rol !== "admin") {
+    return res.status(403).json({ error: "Només administradors" });
+  }
+
+  next();
+}
+
+module.exports = { authMiddleware, adminMiddleware, SECRET };

@@ -66,13 +66,13 @@ export default function App() {
     jugadorsData: r.jugadors || [],
   });
 
-  const cargarDades = useCallback(function() {
+  const cargarDades = useCallback(function () {
     return Promise.all([
       api.getReservas(),
       api.getUsers(),
       api.getBloqueados(),
       api.getConfig(),
-    ]).then(function(results) {
+    ]).then(function (results) {
       var rs = results[0], us = results[1], bl = results[2], cfg = results[3];
       setReservas(rs.map(normalizeReserva));
       setUsers(us);
@@ -87,34 +87,34 @@ export default function App() {
       setConfig(cfgObj);
       setConfigEdit(cfgObj);
       return api.getSolicituds();
-    }).then(function(sols) {
+    }).then(function (sols) {
       setSolicitudsAmicCount(sols.length);
       return Promise.all([
         api.getSolicitudsPartidaMeues(),
         api.getSolicitudsPartidaPendent(),
         api.getSolicitudsPartidaInvitades(),
       ]);
-    }).then(function(sp) {
+    }).then(function (sp) {
       setSolicitudsPartidaMeues(sp[0]);
       setSolicitudsPartidaPendent(sp[1]);
       setSolicitudsPartidaInvitades(sp[2]);
       return api.getAmics();
-    }).then(function(am) {
+    }).then(function (am) {
       setAmics(am);
-    }).catch(function(e) { console.error("Error carregant dades:", e); });
+    }).catch(function (e) { console.error("Error carregant dades:", e); });
   }, []);
 
-  useEffect(function() {
+  useEffect(function () {
     var token = getToken();
     if (!token) { setCargando(false); return; }
     api.getMe()
-      .then(function(me) { setSession(me); return cargarDades(); })
-      .catch(function() { setToken(null); })
-      .finally(function() { setCargando(false); });
+      .then(function (me) { setSession(me); return cargarDades(); })
+      .catch(function () { setToken(null); })
+      .finally(function () { setCargando(false); });
   }, []);
 
   // Auto-logout si el token expira mentre s'usa l'app
-  useEffect(function() {
+  useEffect(function () {
     function handleUnauthorized() {
       setToken(null);
       setSession(null);
@@ -123,20 +123,20 @@ export default function App() {
       setBloqueados([]);
     }
     window.addEventListener("padel:unauthorized", handleUnauthorized);
-    return function() { window.removeEventListener("padel:unauthorized", handleUnauthorized); };
+    return function () { window.removeEventListener("padel:unauthorized", handleUnauthorized); };
   }, []);
 
   // Notificació quan el service worker té una nova versió llesta
-  useEffect(function() {
+  useEffect(function () {
     function handleSwUpdate() {
       showToast("Nova versió disponible — recarrega per actualitzar 🔄", "info", 8000);
     }
     window.addEventListener("padel:sw-update", handleSwUpdate);
-    return function() { window.removeEventListener("padel:sw-update", handleSwUpdate); };
+    return function () { window.removeEventListener("padel:sw-update", handleSwUpdate); };
   }, []);
 
   // Polling lleuger: actualitza sol·licituds cada 30s sense recarregar tot
-  const pollSolicituds = useCallback(function() {
+  const pollSolicituds = useCallback(function () {
     if (!getToken()) return;
     Promise.all([
       api.getSolicituds(),
@@ -144,59 +144,78 @@ export default function App() {
       api.getSolicitudsPartidaPendent(),
       api.getSolicitudsPartidaInvitades(),
       api.getReservas(),
-    ]).then(function(results) {
+    ]).then(function (results) {
       var amicSols = results[0], meues = results[1], pendent = results[2], inv = results[3], rs = results[4];
       setSolicitudsAmicCount(amicSols.length);
       setSolicitudsPartidaMeues(meues);
       setSolicitudsPartidaPendent(pendent);
       setSolicitudsPartidaInvitades(inv);
       setReservas(rs.map(normalizeReserva));
-    }).catch(function() { /* silenciós — no interrompre l'usuari */ });
+    }).catch(function () { /* silenciós — no interrompre l'usuari */ });
   }, []);
 
-  useEffect(function() {
+  useEffect(function () {
     if (!session) return;
     var interval = setInterval(pollSolicituds, 30000);
-    return function() { clearInterval(interval); };
+    return function () { clearInterval(interval); };
   }, [session, pollSolicituds]);
 
   // Badge al títol del navegador amb el total de sol·licituds pendents
-  useEffect(function() {
+  useEffect(function () {
     var total = solicitudsAmicCount
       + solicitudsPartidaPendent.length
       + solicitudsPartidaInvitades.length
-      + solicitudsPartidaMeues.filter(function(s) { return s.estat === 'pendent'; }).length;
+      + solicitudsPartidaMeues.filter(function (s) { return s.estat === 'pendent'; }).length;
     document.title = total > 0 ? "(" + total + ") Pàdel" : "Pàdel";
   }, [solicitudsAmicCount, solicitudsPartidaPendent, solicitudsPartidaInvitades, solicitudsPartidaMeues]);
 
-  const login = function() {
+  const login = function () {
     api.login(loginForm.email, loginForm.password)
-      .then(function(data) {
+      .then(function (data) {
         setToken(data.token);
         setSession(data.user);
         setAuthError("");
         setVista("calendario");
         return cargarDades();
       })
-      .catch(function(e) { setAuthError(e.message); });
+      .catch(function (e) { setAuthError(e.message); });
   };
 
-  const registro = function() {
+  const registro = function () {
     if (!regForm.nombre || !regForm.email || !regForm.password) {
       setAuthError("Rellena todos los campos."); return;
     }
     api.register(regForm.nombre, regForm.email, regForm.password)
-      .then(function(data) {
+      .then(function (data) {
         setToken(data.token);
         setSession(data.user);
         setAuthError("");
         setVista("calendario");
         return cargarDades();
       })
-      .catch(function(e) { setAuthError(e.message); });
+      .catch(function (e) { setAuthError(e.message); });
   };
 
-  const logout = function() {
+  const loginGoogle = function (credential) {
+    if (!credential) {
+      setAuthError("No s'ha rebut la credencial de Google.");
+      return;
+    }
+
+    api.loginGoogle(credential)
+      .then(function (data) {
+        setToken(data.token);
+        setSession(data.user);
+        setAuthError("");
+        setVista("calendario");
+        return cargarDades();
+      })
+      .catch(function (e) {
+        setAuthError(e.message || "Error iniciant sessió amb Google");
+      });
+  };
+
+  const logout = function () {
     setToken(null);
     setSession(null);
     setUsers([]);
@@ -205,10 +224,10 @@ export default function App() {
     document.title = "Pàdel";
   };
 
-  const hacerReserva = function(fecha, hora, abierto) {
+  const hacerReserva = function (fecha, hora, abierto) {
     api.crearReserva(fecha, hora, abierto)
-      .then(function(r) {
-        setReservas(function(rs) { return rs.concat([normalizeReserva(r)]); });
+      .then(function (r) {
+        setReservas(function (rs) { return rs.concat([normalizeReserva(r)]); });
         setReservaModal(null); setAdminModal(null);
         if (abierto) {
           showToast("Partido abierto creado");
@@ -216,243 +235,243 @@ export default function App() {
           setConfirmReserva({ fecha, hora, abierto });
         }
       })
-      .catch(function(e) { showToast(e.message, "error"); setReservaModal(null); setAdminModal(null); });
+      .catch(function (e) { showToast(e.message, "error"); setReservaModal(null); setAdminModal(null); });
   };
 
-  const cancelarReserva = function(id) {
+  const cancelarReserva = function (id) {
     api.cancelarReserva(id)
-      .then(function() {
-        setReservas(function(rs) { return rs.map(function(r) { return r.id === id ? Object.assign({}, r, { estado: "cancelada" }) : r; }); });
+      .then(function () {
+        setReservas(function (rs) { return rs.map(function (r) { return r.id === id ? Object.assign({}, r, { estado: "cancelada" }) : r; }); });
         setAdminModal(null); setPartidoModal(null);
         showToast("Reserva cancelada", "warn");
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const pedirCancelar = function(id, nom) {
+  const pedirCancelar = function (id, nom) {
     setConfirmModal({
       titulo: "Cancelar reserva",
       mensaje: "¿Seguro que quieres cancelar la reserva del " + nom + "? Esta acción no se puede deshacer.",
       accion: "Sí, cancelar",
-      onConfirm: function() { cancelarReserva(id); },
+      onConfirm: function () { cancelarReserva(id); },
     });
   };
 
-  const unirsePartido = function(rid) {
+  const unirsePartido = function (rid) {
     api.unirse(rid)
-      .then(function(result) {
+      .then(function (result) {
         showToast("Sol·licitud enviada — l'organitzador ha de confirmar", "info");
         return api.getSolicitudsPartidaMeues();
       })
-      .then(function(meues) { setSolicitudsPartidaMeues(meues); })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .then(function (meues) { setSolicitudsPartidaMeues(meues); })
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const pedirUnirse = function(rid, fecha, hora) {
+  const pedirUnirse = function (rid, fecha, hora) {
     setConfirmModal({
       titulo: "Unirse al partido",
       mensaje: "¿Confirmas que quieres unirte al partido del " + fecha + " a las " + hora + "?",
       accion: "Sí, unirme",
-      onConfirm: function() { unirsePartido(rid); },
+      onConfirm: function () { unirsePartido(rid); },
     });
   };
 
-  const respondSolicitudPartida = function(solId, estat) {
+  const respondSolicitudPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
-      .then(function() {
+      .then(function () {
         showToast(estat === "acceptada" ? "Jugador acceptat al partit ✓" : "Sol·licitud rebutjada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const expulsarJugador = function(reservaId, userId, nomJugador) {
+  const expulsarJugador = function (reservaId, userId, nomJugador) {
     setConfirmModal({
       titulo: "Expulsar jugador",
       mensaje: "¿Seguro que quieres quitar a " + nomJugador + " del partido?",
       accion: "Sí, quitar",
-      onConfirm: function() {
+      onConfirm: function () {
         api.expulsarJugador(reservaId, userId)
-          .then(function(r) {
+          .then(function (r) {
             var rn = normalizeReserva(r);
-            setReservas(function(rs) { return rs.map(function(x) { return x.id === reservaId ? rn : x; }); });
+            setReservas(function (rs) { return rs.map(function (x) { return x.id === reservaId ? rn : x; }); });
             showToast(nomJugador + " ha estat eliminat del partit", "info");
             return api.getSolicitudsPartidaPendent();
           })
-          .then(function(sp) { setSolicitudsPartidaPendent(sp); })
-          .catch(function(e) { showToast(e.message, "error"); });
+          .then(function (sp) { setSolicitudsPartidaPendent(sp); })
+          .catch(function (e) { showToast(e.message, "error"); });
       },
     });
   };
 
-  const invitarJugador = function(reservaId, userId) {
+  const invitarJugador = function (reservaId, userId) {
     api.invitarJugador(reservaId, userId)
-      .then(function() {
-        var u = users.find(function(x) { return x.id === userId; });
+      .then(function () {
+        var u = users.find(function (x) { return x.id === userId; });
         showToast("Invitació enviada a " + (u ? u.nombre : "l'amic") + " — ha d'acceptar", "info");
         return api.getSolicitudsPartidaInvitades();
       })
-      .then(function(inv) { setSolicitudsPartidaInvitades(inv); })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .then(function (inv) { setSolicitudsPartidaInvitades(inv); })
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const respondreInvitacioPartida = function(solId, estat) {
+  const respondreInvitacioPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
-      .then(function() {
+      .then(function () {
         showToast(estat === "acceptada" ? "T'has unit al partit ✓" : "Invitació rebutjada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const toggleAbierto = function(rid) {
-    var r = reservas.find(function(x) { return x.id === rid; });
+  const toggleAbierto = function (rid) {
+    var r = reservas.find(function (x) { return x.id === rid; });
     if (!r) return;
     var nuevoAbierto = !r.abierto;
     api.toggleAbierto(rid, nuevoAbierto)
-      .then(function() {
-        setReservas(function(rs) { return rs.map(function(x) { return x.id === rid ? Object.assign({}, x, { abierto: nuevoAbierto }) : x; }); });
+      .then(function () {
+        setReservas(function (rs) { return rs.map(function (x) { return x.id === rid ? Object.assign({}, x, { abierto: nuevoAbierto }) : x; }); });
         if (!nuevoAbierto) {
           showToast("Reserva cerrada", "info");
         } else {
           showToast("Partido abierto — otros jugadores pueden unirse", "info");
         }
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const salirPartido = function(rid) {
+  const salirPartido = function (rid) {
     api.sortir(rid)
-      .then(function(r) {
+      .then(function (r) {
         var rn = normalizeReserva(r);
-        setReservas(function(rs) { return rs.map(function(x) { return x.id === rid ? rn : x; }); });
+        setReservas(function (rs) { return rs.map(function (x) { return x.id === rid ? rn : x; }); });
         setPartidoModal(null);
         showToast("Saliste del partido", "info");
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const pedirSalir = function(rid, fecha, hora) {
+  const pedirSalir = function (rid, fecha, hora) {
     setConfirmModal({
       titulo: "Salir del partido",
       mensaje: "¿Seguro que quieres salir del partido del " + fecha + " a las " + hora + "?",
       accion: "Sí, salir",
-      onConfirm: function() { salirPartido(rid); },
+      onConfirm: function () { salirPartido(rid); },
     });
   };
 
-  const toggleBloqueo = function(fecha, hora) {
-    var bl = bloqueados.find(function(b) { return b.fecha === fecha && b.hora === hora; });
+  const toggleBloqueo = function (fecha, hora) {
+    var bl = bloqueados.find(function (b) { return b.fecha === fecha && b.hora === hora; });
     if (bl) {
       api.delBloqueado(bl.id)
-        .then(function() {
-          setBloqueados(function(bs) { return bs.filter(function(b) { return b.id !== bl.id; }); });
+        .then(function () {
+          setBloqueados(function (bs) { return bs.filter(function (b) { return b.id !== bl.id; }); });
           showToast("Horario desbloqueado");
         })
-        .catch(function(e) { showToast(e.message, "error"); });
+        .catch(function (e) { showToast(e.message, "error"); });
     } else {
       api.addBloqueado(fecha, hora)
-        .then(function(nou) {
-          setBloqueados(function(bs) { return bs.concat([nou]); });
+        .then(function (nou) {
+          setBloqueados(function (bs) { return bs.concat([nou]); });
           showToast("Horario bloqueado");
         })
-        .catch(function(e) { showToast(e.message, "error"); });
+        .catch(function (e) { showToast(e.message, "error"); });
     }
     setAdminModal(null);
   };
 
-  const bloquearRango = function(fechaInicio, fechaFin, horas) {
+  const bloquearRango = function (fechaInicio, fechaFin, horas) {
     var d = new Date(fechaInicio);
     var fin = new Date(fechaFin);
     var promises = [];
     while (d <= fin) {
       var f = d.toISOString().split("T")[0];
-      horas.forEach(function(h) {
-        if (!bloqueados.some(function(b) { return b.fecha === f && b.hora === h; })) {
+      horas.forEach(function (h) {
+        if (!bloqueados.some(function (b) { return b.fecha === f && b.hora === h; })) {
           promises.push(api.addBloqueado(f, h));
         }
       });
       d.setDate(d.getDate() + 1);
     }
-    Promise.all(promises).then(function(nous) {
-      setBloqueados(function(bs) { return bs.concat(nous); });
+    Promise.all(promises).then(function (nous) {
+      setBloqueados(function (bs) { return bs.concat(nous); });
       showToast(nous.length + " franjas bloqueadas");
-    }).catch(function(e) { showToast(e.message, "error"); });
+    }).catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const guardarConfig = function() {
+  const guardarConfig = function () {
     var h = generarHorarios(configEdit.horaInicio, configEdit.horaFin, configEdit.duracion);
     if (!h.length) { showToast("Configuración inválida", "error"); return; }
     api.saveConfig(configEdit)
-      .then(function() { setConfig(configEdit); showToast("Ajustes guardados"); })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .then(function () { setConfig(configEdit); showToast("Ajustes guardados"); })
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const guardarPerfil = function() {
+  const guardarPerfil = function () {
     if (!perfilEdit.nombre.trim()) return;
     api.updateMe({ nombre: perfilEdit.nombre, email: perfilEdit.email, avatar_color: perfilEdit.avatar_color })
-      .then(function(updated) {
-        setSession(function(s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color }); });
+      .then(function (updated) {
+        setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color }); });
         setPerfilEdit(null);
         showToast("Perfil actualizado");
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const subirAvatarFoto = function(file) {
+  const subirAvatarFoto = function (file) {
     api.uploadAvatar(file)
-      .then(function(data) {
-        setSession(function(s) { return Object.assign({}, s, { avatar: data.avatar }); });
+      .then(function (data) {
+        setSession(function (s) { return Object.assign({}, s, { avatar: data.avatar }); });
         showToast("Foto actualizada");
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const eliminarAvatarFoto = function() {
+  const eliminarAvatarFoto = function () {
     api.deleteAvatar()
-      .then(function(updated) {
-        setSession(function(s) { return Object.assign({}, s, { avatar: null }); });
+      .then(function (updated) {
+        setSession(function (s) { return Object.assign({}, s, { avatar: null }); });
         showToast("Foto eliminada");
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const cambiarPassword = function() {
+  const cambiarPassword = function () {
     if (pwdForm.nueva.length < 6) { setPwdError("Mínimo 6 caracteres."); return; }
     if (pwdForm.nueva !== pwdForm.repetir) { setPwdError("Las contraseñas no coinciden."); return; }
     api.updateMe({ currentPassword: pwdForm.actual, newPassword: pwdForm.nueva })
-      .then(function() {
+      .then(function () {
         setPwdForm({ actual: "", nueva: "", repetir: "" });
         setPwdError("");
         showToast("Contraseña actualizada");
       })
-      .catch(function(e) { setPwdError(e.message); });
+      .catch(function (e) { setPwdError(e.message); });
   };
 
-  const desbloquearTodo = function() {
-    Promise.all(bloqueados.map(function(b) { return api.delBloqueado(b.id); }))
-      .then(function() { setBloqueados([]); showToast("Todas las franjas desbloqueadas"); })
-      .catch(function(e) { showToast(e.message, "error"); });
+  const desbloquearTodo = function () {
+    Promise.all(bloqueados.map(function (b) { return api.delBloqueado(b.id); }))
+      .then(function () { setBloqueados([]); showToast("Todas las franjas desbloqueadas"); })
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const toggleActivoUser = function(id, activo) {
+  const toggleActivoUser = function (id, activo) {
     api.toggleActivo(id, activo)
-      .then(function(updated) {
-        setUsers(function(us) { return us.map(function(u) { return u.id === id ? Object.assign({}, u, { activo: updated.activo }) : u; }); });
+      .then(function (updated) {
+        setUsers(function (us) { return us.map(function (u) { return u.id === id ? Object.assign({}, u, { activo: updated.activo }) : u; }); });
       })
-      .catch(function(e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
-  const HORARIOS = useMemo(function() { return generarHorarios(config.horaInicio, config.horaFin, config.duracion); }, [config]);
-  const fechas = useMemo(function() { return fechasDesde(baseDate, config.diasVista); }, [baseDate, config.diasVista]);
-  const esBloqueado = function(f, h) { return bloqueados.some(function(b) { return b.fecha === f && b.hora === h; }); };
-  const getReserva = function(f, h) { return reservas.find(function(r) { return r.fecha === f && r.hora === h && r.estado === "confirmada"; }); };
+  const HORARIOS = useMemo(function () { return generarHorarios(config.horaInicio, config.horaFin, config.duracion); }, [config]);
+  const fechas = useMemo(function () { return fechasDesde(baseDate, config.diasVista); }, [baseDate, config.diasVista]);
+  const esBloqueado = function (f, h) { return bloqueados.some(function (b) { return b.fecha === f && b.hora === h; }); };
+  const getReserva = function (f, h) { return reservas.find(function (r) { return r.fecha === f && r.hora === h && r.estado === "confirmada"; }); };
 
   var now = new Date();
   var sid = session ? session.id : null;
-  var misReservas = reservas.filter(function(r) { return r.userId === sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
-  var misPartidos = reservas.filter(function(r) { return r.jugadores && r.jugadores.indexOf(sid) !== -1 && r.userId !== sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
-  var historialReservas = reservas.filter(function(r) { return r.userId === sid && (r.estado === "cancelada" || new Date(r.fecha + "T" + r.hora) < now); });
+  var misReservas = reservas.filter(function (r) { return r.userId === sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
+  var misPartidos = reservas.filter(function (r) { return r.jugadores && r.jugadores.indexOf(sid) !== -1 && r.userId !== sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
+  var historialReservas = reservas.filter(function (r) { return r.userId === sid && (r.estado === "cancelada" || new Date(r.fecha + "T" + r.hora) < now); });
 
   if (cargando) {
     return (
@@ -469,6 +488,7 @@ export default function App() {
         loginForm={loginForm} setLoginForm={setLoginForm}
         regForm={regForm} setRegForm={setRegForm}
         authError={authError} login={login} registro={registro}
+        loginGoogle={loginGoogle}
         dark={dark}
       />
     );
@@ -534,7 +554,7 @@ export default function App() {
           <Friends session={session} users={users} showToast={showToast} onSolicitudsChange={setSolicitudsAmicCount} t={t} />
         )}
         {vista === "admin_reservas" && session.rol === "admin" && (
-          <AdminReservations reservas={reservas} users={users} cancelarReserva={function(id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} t={t} />
+          <AdminReservations reservas={reservas} users={users} cancelarReserva={function (id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} t={t} />
         )}
         {vista === "admin_usuarios" && session.rol === "admin" && (
           <AdminUsers users={users} toggleActivo={toggleActivoUser} reservas={reservas} t={t} />
@@ -550,7 +570,7 @@ export default function App() {
 
       <ReservationModal reservaModal={reservaModal} setReservaModal={setReservaModal} config={config} session={session} hacerReserva={hacerReserva} t={t} />
       <MatchModal partidoModal={partidoModal} setPartidoModal={setPartidoModal} users={users} session={session} unirsePartido={pedirUnirse} salirPartido={pedirSalir} solicitudsPartidaMeues={solicitudsPartidaMeues} respondreInvitacio={respondreInvitacioPartida} t={t} />
-      <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function(id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} config={config} session={session} t={t} />
+      <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function (id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} config={config} session={session} t={t} />
       <ConfirmModal confirmModal={confirmModal} setConfirmModal={setConfirmModal} t={t} />
       <ReservaConfirmModal data={confirmReserva} onClose={() => setConfirmReserva(null)} config={config} t={t} />
       <Toast toast={toast} />

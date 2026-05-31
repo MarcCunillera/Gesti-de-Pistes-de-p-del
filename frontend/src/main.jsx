@@ -1,21 +1,24 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App";
 import { ThemeProvider } from "./theme/ThemeContext";
 import "./styles/global.css";
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );
 
 // ── Registre del Service Worker (PWA) ─────────────────────────────────────────
 if ("serviceWorker" in navigator) {
-  // Des-registrar qualsevol SW antic d'altres ports (p.ex. 5173) per evitar
-  // que interceptin peticions i redireccionin a un port que ja no existeix
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const reg of registrations) {
       if (reg.scope && !reg.scope.includes(location.origin)) {
@@ -31,14 +34,20 @@ if ("serviceWorker" in navigator) {
       .then((reg) => {
         console.log("[PWA] Service Worker registrat:", reg.scope);
 
-        // Detecta quan hi ha una nova versió disponible
         reg.addEventListener("updatefound", () => {
           const newWorker = reg.installing;
+
+          if (!newWorker) return;
+
           newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              // Hi ha una nova versió instal·lada — notificar l'usuari
-              console.log("[PWA] Nova versió disponible. Recarrega per actualitzar.");
-              // Opcional: pots mostrar un banner aquí disparant un CustomEvent
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
+              console.log(
+                "[PWA] Nova versió disponible. Recarrega per actualitzar."
+              );
+
               window.dispatchEvent(new CustomEvent("padel:sw-update"));
             }
           });

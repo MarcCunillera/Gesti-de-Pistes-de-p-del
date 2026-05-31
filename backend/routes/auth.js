@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const db = require("../db");
 const { SECRET } = require("../middleware/auth");
+const { OAuth2Client } = require("google-auth-library");
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // POST /api/auth/login
 router.post("/login", (req, res) => {
@@ -50,6 +52,62 @@ router.post("/register", (req, res) => {
     { expiresIn: "7d" }
   );
   res.status(201).json({ token, user });
+});
+
+router.post("/google", async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ error: "Credential de Google requerida" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    const email = payload.email;
+    const nombre = payload.name || email;
+    const avatar = payload.picture || null;
+
+    if (!email || !payload.email_verified) {
+      return res.status(401).json({ error: "Compte de Google no verificat" });
+    }
+
+    let user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+
+    if (user && !user.activo) {
+      return res.status(403).json({ error: "Compte desactivat" });
+    }
+
+    if (!user) {
+      const result = db
+        .prepare(
+          "INSERT INTO users (nombre, email, password, rol, activo, avatar) VALUES (?, ?, ?, 'usuario', 1, ?)"
+        )
+        .run(nombre, email, "GOOGLE_LOGIN", avatar);
+
+      user = db
+        .prepare("SELECT * FROM users WHERE id = ?")
+        .get(result.lastInsertRowid);
+    }
+
+    const token = jwt.sign(
+      { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
+      SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const { password: _, ...userData } = user;
+
+    res.json({ token, user: userData });
+  } catch (err) {
+    console.error("Error login Google:", err);
+    res.status(401).json({ error: "Login amb Google invàlid" });
+  }
 });
 
 module.exports = router;

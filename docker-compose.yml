@@ -12,12 +12,12 @@ services:
     environment:
       - PORT=4000
       - DB_DIR=/app/data
-      # IMPORTANT: Defineix JWT_SECRET com a variable d'entorn real al servidor
-      # Mai posis el secret real aquí si el fitxer va al repositori!
-      # Opció 1: crea un fitxer .env al servidor amb JWT_SECRET=el_teu_secret
-      # Opció 2: usa secrets de Docker o variables d'entorn del servidor
       - JWT_SECRET=${JWT_SECRET}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3003}
+      - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
+      - INITIAL_ADMIN_NAME=${INITIAL_ADMIN_NAME}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     healthcheck:
       test:
         [
