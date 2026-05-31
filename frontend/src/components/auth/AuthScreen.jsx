@@ -131,7 +131,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle }) {
   );
 }
 
-function RegisterForm({ form, setForm, onSubmit }) {
+function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
   const [showPwdReqs, setShowPwdReqs] = useState(false);
 
   return (
@@ -170,6 +170,7 @@ function RegisterForm({ form, setForm, onSubmit }) {
       <button className="auth-primary" type="button" onClick={onSubmit}>
         Crear compte
       </button>
+      <GoogleLoginBlock loginGoogle={loginGoogle} />
     </>
   );
 }
@@ -198,7 +199,7 @@ export default function AuthScreen({
           </div>
 
           <div>
-            <h1>Pistes de Pàdel</h1>
+            <h1>Pista de Pàdel</h1>
             <p>Torrelameu</p>
           </div>
 
@@ -236,6 +237,7 @@ export default function AuthScreen({
                 form={regForm}
                 setForm={setRegForm}
                 onSubmit={registro}
+                loginGoogle={loginGoogle}
               />
             )}
 

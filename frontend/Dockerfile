@@ -3,7 +3,13 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json ./
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_API_BASE_URL
+
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
+COPY package.json package-lock.json ./
 RUN npm install
 
 COPY . .
@@ -14,7 +20,6 @@ FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Configuración nginx para SPA (redirige rutas al index.html)
 RUN printf 'server {\n\
     listen 80;\n\
     root /usr/share/nginx/html;\n\

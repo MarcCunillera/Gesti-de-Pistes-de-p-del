@@ -36,6 +36,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000/api}
     container_name: padel-frontend
     ports:
       - "3003:80"
