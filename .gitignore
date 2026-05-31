@@ -1,3 +1,30 @@
-node_modules
-dist
+# Dependències
+node_modules/
+dist/
+ 
+# Variables d'entorn (mai al repo!)
 .env
+.env.local
+.env.production
+ 
+# Base de dades SQLite (mai al repo — conté dades reals)
+backend/padel.db
+backend/padel.db-shm
+backend/padel.db-wal
+*.db
+*.db-shm
+*.db-wal
+ 
+# Arxius d'uploads (fotos d'usuaris — dades personals)
+backend/uploads/*
+!backend/uploads/.gitkeep
+ 
+# Vite cache
+frontend/.vite/
+ 
+# Logs
+*.log
+npm-debug.log*
+ 
+# macOS
+.DS_Store
