@@ -33,6 +33,7 @@ db.exec(`
     estado TEXT NOT NULL DEFAULT 'confirmada',
     abierto INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(fecha, hora, estado),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 
@@ -89,6 +90,20 @@ db.exec(`
   );
 `);
 
+// ── Índexs i migracions ──────────────────────────────────────────────────────
+// Aquest índex evita que es puguin crear dues reserves confirmades
+// per a la mateixa data i hora, encara que dues persones reservin alhora.
+try {
+  db.prepare(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_estado ON reservas(fecha, hora, estado)"
+  ).run();
+} catch (err) {
+  console.error(
+    "No s'ha pogut crear l'índex únic de reserves:",
+    err.message
+  );
+}
+
 // ── Configuració per defecte ──────────────────────────────────────────────────
 const insertConfig = db.prepare(
   "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)"
@@ -99,50 +114,43 @@ insertConfig.run("duracion", "90");
 insertConfig.run("diasVista", "7");
 insertConfig.run("maxReservas", "3");
 
-// ── Usuaris inicials (si la taula és buida) ───────────────────────────────────
+// ── Administrador inicial (si la taula és buida) ──────────────────────────────
 const countUsers = db.prepare("SELECT COUNT(*) as n FROM users").get();
+
 if (countUsers.n === 0) {
-  const hashAdmin = bcrypt.hashSync("Admin123", 10);
-  const hashUser = bcrypt.hashSync("Padel1", 10);
+  const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL;
+  const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD;
+  const initialAdminName =
+    process.env.INITIAL_ADMIN_NAME || "Administrador";
 
-  const ins = db.prepare(
-    "INSERT INTO users (nombre, email, password, rol, activo) VALUES (?, ?, ?, ?, 1)"
-  );
+  if (initialAdminEmail && initialAdminPassword) {
+    const hashAdmin = bcrypt.hashSync(initialAdminPassword, 10);
 
-  const adminId = ins.run("Admin", "admin@padel.com", hashAdmin, "admin").lastInsertRowid;
-  const u1 = ins.run("Marc", "marc@padel.com", hashUser, "usuario").lastInsertRowid;
-  const u2 = ins.run("Maria Lopez", "maria@padel.com", hashUser, "usuario").lastInsertRowid;
-  const u3 = ins.run("Juan Garcia", "juan@padel.com", hashUser, "usuario").lastInsertRowid;
-  const u4 = ins.run("Carlos Roca", "carlos@padel.com", hashUser, "usuario").lastInsertRowid;
-  const u5 = ins.run("Ana Ferrer", "ana@padel.com", hashUser, "usuario").lastInsertRowid;
+    db.prepare(`
+      INSERT INTO users
+      (nombre, email, password, rol, activo)
+      VALUES (?, ?, ?, 'admin', 1)
+    `).run(
+      initialAdminName,
+      initialAdminEmail,
+      hashAdmin
+    );
 
-  // Reserves de demo
-  const manana = new Date();
-  manana.setDate(manana.getDate() + 1);
-  const pasado = new Date();
-  pasado.setDate(pasado.getDate() + 2);
-  const fmt = (d) => d.toISOString().split("T")[0];
+    console.log(
+      `Administrador inicial creado: ${initialAdminEmail}`
+    );
+  } else {
+    console.warn(`
+No existe ningún usuario en la base de datos.
+Define las variables:
 
-  const insR = db.prepare(
-    "INSERT INTO reservas (user_id, fecha, hora, estado, abierto) VALUES (?, ?, ?, 'confirmada', ?)"
-  );
-  const insJ = db.prepare(
-    "INSERT INTO reserva_jugadores (reserva_id, user_id) VALUES (?, ?)"
-  );
+INITIAL_ADMIN_EMAIL
+INITIAL_ADMIN_PASSWORD
+INITIAL_ADMIN_NAME
 
-  // Reserva privada marc
-  const r1 = insR.run(u1, fmt(manana), "10:30", 0).lastInsertRowid;
-  insJ.run(r1, u1);
-
-  // Partido abierto marc
-  const r2 = insR.run(u1, fmt(manana), "13:30", 1).lastInsertRowid;
-  insJ.run(r2, u1);
-  insJ.run(r2, u2);
-
-  // Partido abierto maria
-  const r3 = insR.run(u2, fmt(pasado), "10:30", 1).lastInsertRowid;
-  insJ.run(r3, u2);
-  insJ.run(r3, u3);
+para crear automáticamente el primer administrador.
+`);
+  }
 }
 
 module.exports = db;
