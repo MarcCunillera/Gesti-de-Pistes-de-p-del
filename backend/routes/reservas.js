@@ -263,17 +263,7 @@ router.patch("/:id/abierto", authMiddleware, (req, res) => {
   res.json(enrichReserva(db.prepare("SELECT * FROM reservas WHERE id = ?").get(r.id)));
 });
 
-// DELETE /api/reservas/:id — cancel·lar
-router.delete("/:id", authMiddleware, (req, res) => {
-  const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
-  if (r.user_id !== req.user.id && req.user.rol !== "admin")
-    return res.status(403).json({ error: "Sense permís" });
-  db.prepare("UPDATE reservas SET estado = 'cancelada' WHERE id = ?").run(r.id);
-  res.json({ ok: true });
-});
-
-// ── Bloqueats (admin) ─────────────────────────────────────────────────────────
+// ── Bloqueats (admin) — IMPORTANT: han d'anar ABANS de /:id ──────────────────
 
 // GET /api/reservas/bloqueados
 router.get("/bloqueados", authMiddleware, (req, res) => {
@@ -298,7 +288,7 @@ router.delete("/bloqueados/:id", authMiddleware, adminMiddleware, (req, res) => 
   res.json({ ok: true });
 });
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Config — IMPORTANT: ha d'anar ABANS de /:id ───────────────────────────────
 
 // GET /api/reservas/config
 router.get("/config", authMiddleware, (req, res) => {
@@ -315,6 +305,16 @@ router.put("/config", authMiddleware, adminMiddleware, (req, res) => {
     Object.entries(data).forEach(([k, v]) => upsert.run(k, String(v)));
   });
   update(req.body);
+  res.json({ ok: true });
+});
+
+// DELETE /api/reservas/:id — cancel·lar (ha d'anar DESPRÉS de /bloqueados i /config)
+router.delete("/:id", authMiddleware, (req, res) => {
+  const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
+  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (r.user_id !== req.user.id && req.user.rol !== "admin")
+    return res.status(403).json({ error: "Sense permís" });
+  db.prepare("UPDATE reservas SET estado = 'cancelada' WHERE id = ?").run(r.id);
   res.json({ ok: true });
 });
 

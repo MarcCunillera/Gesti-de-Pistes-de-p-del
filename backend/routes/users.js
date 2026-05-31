@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const db = require("../db");
+const path   = require("path");
+const fs     = require("fs");
+const db     = require("../db");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -18,10 +18,19 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } });
 
-// GET /api/users — tots (admin) o llista pública
+// GET /api/users — tots els usuaris
+// Admin: rep tots els camps. Usuari normal: rep llista reduïda (sense email dels altres)
 router.get("/", authMiddleware, (req, res) => {
+  if (req.user.rol === "admin") {
+    const rows = db
+      .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users ORDER BY id")
+      .all();
+    return res.json(rows);
+  }
+  // Usuaris normals: veuen id, nombre, avatar, avatar_color (per a amistats/partits)
+  // però NO l'email dels altres usuaris
   const rows = db
-    .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users ORDER BY id")
+    .prepare("SELECT id, nombre, avatar, avatar_color FROM users WHERE activo = 1 ORDER BY nombre")
     .all();
   res.json(rows);
 });
@@ -40,7 +49,6 @@ router.patch("/me", authMiddleware, (req, res) => {
   const { nombre, email, avatar_color, currentPassword, newPassword } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
 
-  // Validar abans d'executar res
   if (newPassword) {
     if (!currentPassword) return res.status(400).json({ error: "Cal la contrasenya actual" });
     if (!bcrypt.compareSync(currentPassword, user.password))
@@ -53,7 +61,6 @@ router.patch("/me", authMiddleware, (req, res) => {
     if (exists) return res.status(400).json({ error: "Aquest email ja està en ús" });
   }
 
-  // Aplicar tots els canvis dins una transacció
   const applyUpdates = db.transaction(() => {
     if (newPassword)
       db.prepare("UPDATE users SET password = ? WHERE id = ?").run(bcrypt.hashSync(newPassword, 10), user.id);
@@ -78,7 +85,7 @@ router.post("/me/avatar", authMiddleware, upload.single("avatar"), (req, res) =>
   res.json({ avatar: url });
 });
 
-// DELETE /api/users/me/avatar — eliminar foto de perfil
+// DELETE /api/users/me/avatar
 router.delete("/me/avatar", authMiddleware, (req, res) => {
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
   if (user.avatar) {
@@ -95,17 +102,44 @@ router.patch("/:id", authMiddleware, adminMiddleware, (req, res) => {
   const { rol, activo } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.params.id);
   if (!user) return res.status(404).json({ error: "Usuari no trobat" });
-  if (rol) db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, user.id);
+  if (rol)             db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, user.id);
   if (activo !== undefined) db.prepare("UPDATE users SET activo = ? WHERE id = ?").run(activo ? 1 : 0, user.id);
   const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?").get(user.id);
   res.json(updated);
 });
 
 // DELETE /api/users/:id — admin only
+// Elimina totes les dades relacionades en cascada dins una transacció
 router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => {
-  const u = db.prepare("SELECT id FROM users WHERE id = ?").get(req.params.id);
+  const userId = parseInt(req.params.id);
+  const u = db.prepare("SELECT id, avatar FROM users WHERE id = ?").get(userId);
   if (!u) return res.status(404).json({ error: "Usuari no trobat" });
-  db.prepare("DELETE FROM users WHERE id = ?").run(req.params.id);
+
+  // Evitar eliminar el propi compte admin
+  if (userId === req.user.id)
+    return res.status(400).json({ error: "No pots eliminar el teu propi compte" });
+
+  const deleteUser = db.transaction(() => {
+    // Eliminar foto d'avatar del disc
+    if (u.avatar) {
+      const filePath = path.join(__dirname, "..", u.avatar);
+      try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch {}
+    }
+    // Eliminar sol·licituds d'amic
+    db.prepare("DELETE FROM solicituds_amic WHERE de_user_id = ? OR a_user_id = ?").run(userId, userId);
+    // Eliminar amistats
+    db.prepare("DELETE FROM amics WHERE user_id = ? OR amic_id = ?").run(userId, userId);
+    // Eliminar sol·licituds de partida
+    db.prepare("DELETE FROM solicituds_partida WHERE de_user_id = ?").run(userId);
+    // Treure de partits on participa com a jugador
+    db.prepare("DELETE FROM reserva_jugadores WHERE user_id = ?").run(userId);
+    // Cancel·lar reserves que ha creat
+    db.prepare("UPDATE reservas SET estado = 'cancelada' WHERE user_id = ?").run(userId);
+    // Finalment eliminar l'usuari
+    db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  });
+
+  deleteUser();
   res.json({ ok: true });
 });
 

@@ -1,5 +1,12 @@
-const jwt = require("jsonwebtoken");
-const SECRET = process.env.JWT_SECRET || "padel_secret_dev_2024";
+const jwt    = require("jsonwebtoken");
+
+// El secret SEMPRE ve de la variable d'entorn.
+// Si no existeix, el procés s'atura per evitar desplegar amb secret insegur.
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  console.error("❌  ERROR: JWT_SECRET no definit. Defineix-lo al fitxer .env");
+  process.exit(1);
+}
 
 function authMiddleware(req, res, next) {
   const header = req.headers["authorization"];

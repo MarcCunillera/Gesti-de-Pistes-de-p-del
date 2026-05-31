@@ -7,15 +7,25 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      # Persistir la base de datos SQLite y los uploads
       - padel-db:/app/data
       - padel-uploads:/app/uploads
     environment:
       - PORT=4000
       - DB_DIR=/app/data
-      - JWT_SECRET=padel_secret_dev_2024
+      # IMPORTANT: Defineix JWT_SECRET com a variable d'entorn real al servidor
+      # Mai posis el secret real aquí si el fitxer va al repositori!
+      # Opció 1: crea un fitxer .env al servidor amb JWT_SECRET=el_teu_secret
+      # Opció 2: usa secrets de Docker o variables d'entorn del servidor
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3003}
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/api/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:4000/api/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
