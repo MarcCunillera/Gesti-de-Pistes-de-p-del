@@ -249,22 +249,22 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                   </button>
                 </div>
                 {/* Avatars jugadors */}
-                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "12px 14px 8px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   {(r.jugadores || []).map(function(id) {
                     var u = (users || []).find(function(x) { return x.id === id; });
                     var esOrg = id === r.userId;
                     return (
                       <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                        <UserAvatar user={u || { id, nombre: "?" }} size={32} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} />
-                        <span style={{ fontSize: 9, color: esOrg ? "#374151" : textMuted, fontWeight: esOrg ? 700 : 400 }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
+                        <UserAvatar user={u || { id, nombre: "?" }} size={36} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} />
+                        <span style={{ fontSize: 10, color: esOrg ? "#374151" : textMuted, fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
                       </div>
                     );
                   })}
                   {Array.from({ length: lliures }).map(function(_, i) {
                     return (
-                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.4 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#e0f2fe", border: "1.5px dashed #7dd3fc", display: "flex", alignItems: "center", justifyContent: "center", color: "#7dd3fc", fontSize: 14 }}>+</div>
-                        <span style={{ fontSize: 9, color: textMuted }}>Libre</span>
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.35 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
+                        <span style={{ fontSize: 10, color: "#64748b" }}>Libre</span>
                       </div>
                     );
                   })}

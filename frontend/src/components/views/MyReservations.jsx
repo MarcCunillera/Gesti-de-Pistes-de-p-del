@@ -233,8 +233,8 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                             {Array.from({ length: lliures }).map(function(_, i) {
                               return (
                                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
-                                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#f3f4f6", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", fontSize: 16 }}>+</div>
-                                  <span style={{ fontSize: 11, color: "#9ca3af" }}>Libre</span>
+                                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
+                                  <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
                                 </div>
                               );
                             })}
@@ -346,8 +346,8 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                           {Array.from({ length: 4 - (r.jugadores?.length || 0) }).map(function(_, i) {
                             return (
                               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
-                                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#f3f4f6", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", fontSize: 16 }}>+</div>
-                                <span style={{ fontSize: 11, color: "#9ca3af" }}>Libre</span>
+                                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
+                                <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
                               </div>
                             );
                           })}

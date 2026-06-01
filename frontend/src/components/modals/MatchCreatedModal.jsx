@@ -43,6 +43,10 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
               <span style={{ fontSize: 11, fontWeight: 700, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #93c5fd", borderRadius: 20, padding: "2px 10px" }}>Abierto</span>
             </div>
             <div style={{ fontSize: 12, color: "#9ca3af" }}>{jaAlPartit.length}/4 jugadores</div>
+            <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span style={{ fontSize: 12, color: "#9ca3af" }}>Pista pàdel Torrelameu - La pleta</span>
+            </div>
           </div>
 
           {/* Jugadores */}
@@ -62,15 +66,15 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
               })}
               {Array.from({ length: lliures }).map((_, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#f3f4f6", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", fontSize: 16 }}>+</div>
-                  <span style={{ fontSize: 11, color: "#9ca3af" }}>Libre</span>
+                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Invitar */}
-          {lliures > 0 && (amicsDisponibles.length > 0 || amicsInvitats.length > 0) && (
+          {lliures > 0 && (
             <div style={{ marginBottom: 16 }}>
               <button
                 onClick={() => setInviteOpen(o => !o)}
