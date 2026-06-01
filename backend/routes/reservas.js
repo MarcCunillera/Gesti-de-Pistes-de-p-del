@@ -175,7 +175,7 @@ router.get("/solicituds/meues", authMiddleware, (req, res) => {
        FROM solicituds_partida sp
        JOIN reservas r ON r.id = sp.reserva_id
        JOIN users u ON u.id = r.user_id
-       WHERE sp.de_user_id = ? AND sp.estat IN ('pendent', 'invitat')
+       WHERE sp.de_user_id = ? AND sp.estat IN ('pendent', 'invitat') AND r.estado = 'confirmada'
        ORDER BY r.fecha, r.hora`
     )
     .all(req.user.id);
@@ -193,7 +193,7 @@ router.get("/solicituds/invitades", authMiddleware, (req, res) => {
        FROM solicituds_partida sp
        JOIN reservas r ON r.id = sp.reserva_id
        JOIN users u ON u.id = sp.de_user_id
-       WHERE r.user_id = ? AND sp.estat = 'invitat'
+       WHERE r.user_id = ? AND sp.estat = 'invitat' AND r.estado = 'confirmada'
        ORDER BY sp.created_at`
     )
     .all(req.user.id);
@@ -211,7 +211,7 @@ router.get("/solicituds/pendent", authMiddleware, (req, res) => {
        FROM solicituds_partida sp
        JOIN reservas r ON r.id = sp.reserva_id
        JOIN users u ON u.id = sp.de_user_id
-       WHERE r.user_id = ? AND sp.estat = 'pendent'
+       WHERE r.user_id = ? AND sp.estat = 'pendent' AND r.estado = 'confirmada'
        ORDER BY sp.created_at`
     )
     .all(req.user.id);
@@ -518,7 +518,19 @@ router.delete("/:id", authMiddleware, (req, res) => {
     return res.status(403).json({ error: "Sense permís" });
   }
 
-  db.prepare("UPDATE reservas SET estado = 'cancelada' WHERE id = ?").run(r.id);
+  const cancelReserva = db.transaction(() => {
+    db.prepare("UPDATE reservas SET estado = 'cancelada', abierto = 0 WHERE id = ?").run(r.id);
+    db.prepare(
+      "UPDATE solicituds_partida SET estat = 'rebutjada' WHERE reserva_id = ? AND estat IN ('pendent', 'invitat')"
+    ).run(r.id);
+  });
+
+  try {
+    cancelReserva();
+  } catch (err) {
+    console.error("Error cancelant reserva:", err);
+    return res.status(500).json({ error: "Error intern cancelant la reserva" });
+  }
 
   res.json({ ok: true });
 });
