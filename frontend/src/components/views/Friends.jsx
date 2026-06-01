@@ -19,7 +19,7 @@ function Btn({ onClick, variant, children, style }) {
   );
 }
 
-export default function Friends({ session, users, showToast, onSolicitudsChange, t }) {
+export default function Friends({ session, users, showToast, onSolicitudsChange, refreshKey, t }) {
   const [tab, setTab] = useState("amics");
   const [amics, setAmics] = useState([]);
   const [solicituds, setSolicituds] = useState([]);
@@ -39,7 +39,8 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
   };
 
   useEffect(function() {
-    setLoading(true);
+    var firstLoad = amics.length === 0 && solicituds.length === 0 && enviades.length === 0;
+    if (firstLoad) setLoading(true);
     Promise.all([api.getAmics(), api.getSolicituds(), api.getEnviades()])
       .then(function(res) {
         setAmics(res[0]);
@@ -48,8 +49,8 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
         if (onSolicitudsChange) onSolicitudsChange(res[1].length);
       })
       .catch(function(e) { showToast(e.message, "error"); })
-      .finally(function() { setLoading(false); });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      .finally(function() { if (firstLoad) setLoading(false); });
+  }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounce del buscador — espera 300ms tras dejar de escribir
   useEffect(function() {

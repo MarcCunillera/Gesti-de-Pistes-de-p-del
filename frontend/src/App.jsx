@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { generarHorarios, hoy, fechasDesde } from "./utils/helpers";
 import { DEFAULT_CONFIG } from "./data/initialData";
 import { useTheme } from "./theme/ThemeContext";
@@ -55,18 +55,20 @@ export default function App() {
   const [solicitudsPartidaPendent, setSolicitudsPartidaPendent] = useState([]);
   const [solicitudsPartidaInvitades, setSolicitudsPartidaInvitades] = useState([]);
   const [amics, setAmics] = useState([]);
+  const [friendsRefreshKey, setFriendsRefreshKey] = useState(0);
+  const syncInFlightRef = useRef(false);
 
   const showToast = (msg, tipo, duracio) => {
     setToast({ msg, tipo: tipo || "ok" });
     setTimeout(() => setToast(null), duracio || 3000);
   };
 
-  const normalizeReserva = (r) => ({
+  const normalizeReserva = useCallback((r) => ({
     ...r,
     userId: r.user_id !== undefined ? r.user_id : r.userId,
     jugadores: (r.jugadors || r.jugadores || []).map((j) => (typeof j === "object" ? j.id : j)),
     jugadorsData: r.jugadors || [],
-  });
+  }), []);
 
   const cargarDades = useCallback(function () {
     return Promise.all([
@@ -104,7 +106,7 @@ export default function App() {
     }).then(function (am) {
       setAmics(am);
     }).catch(function (e) { console.error("Error carregant dades:", e); });
-  }, []);
+  }, [normalizeReserva]);
 
   useEffect(function () {
     var token = getToken();
@@ -137,30 +139,88 @@ export default function App() {
     return function () { window.removeEventListener("padel:sw-update", handleSwUpdate); };
   }, []);
 
-  // Polling lleuger: actualitza sol·licituds cada 30s sense recarregar tot
-  const pollSolicituds = useCallback(function () {
-    if (!getToken()) return;
-    Promise.all([
+  const syncLiveData = useCallback(function () {
+    if (!getToken() || syncInFlightRef.current) return Promise.resolve();
+    syncInFlightRef.current = true;
+
+    return Promise.all([
+      api.getMe(),
+      api.getReservas(),
+      api.getUsers(),
+      api.getBloqueados(),
+      api.getConfig(),
       api.getSolicituds(),
       api.getSolicitudsPartidaMeues(),
       api.getSolicitudsPartidaPendent(),
       api.getSolicitudsPartidaInvitades(),
-      api.getReservas(),
+      api.getAmics(),
     ]).then(function (results) {
-      var amicSols = results[0], meues = results[1], pendent = results[2], inv = results[3], rs = results[4];
+      var me = results[0], rs = results[1], us = results[2], bl = results[3], cfg = results[4];
+      var amicSols = results[5], meues = results[6], pendent = results[7], inv = results[8], am = results[9];
+
+      setSession(function (prev) {
+        if (
+          prev &&
+          prev.id === me.id &&
+          prev.nombre === me.nombre &&
+          prev.email === me.email &&
+          prev.rol === me.rol &&
+          prev.avatar === me.avatar &&
+          prev.avatar_color === me.avatar_color &&
+          prev.telefono === me.telefono &&
+          prev.lado === me.lado &&
+          prev.mano === me.mano
+        ) {
+          return prev;
+        }
+        return me;
+      });
+      setReservas(rs.map(normalizeReserva));
+      setUsers(us);
+      setBloqueados(bl);
+      setConfig({
+        horaInicio: cfg.horaInicio || "09:00",
+        horaFin: cfg.horaFin || "22:00",
+        duracion: parseInt(cfg.duracion) || 90,
+        diasVista: parseInt(cfg.diasVista) || 7,
+        maxReservas: parseInt(cfg.maxReservas) || 3,
+      });
       setSolicitudsAmicCount(amicSols.length);
       setSolicitudsPartidaMeues(meues);
       setSolicitudsPartidaPendent(pendent);
       setSolicitudsPartidaInvitades(inv);
-      setReservas(rs.map(normalizeReserva));
-    }).catch(function () { /* silenciós — no interrompre l'usuari */ });
-  }, []);
+      setAmics(am);
+      setFriendsRefreshKey(function (k) { return k + 1; });
+    }).catch(function () { /* silenciós — no interrompre l'usuari */ })
+      .finally(function () { syncInFlightRef.current = false; });
+  }, [normalizeReserva]);
 
   useEffect(function () {
-    if (!session) return;
-    var interval = setInterval(pollSolicituds, 30000);
-    return function () { clearInterval(interval); };
-  }, [session, pollSolicituds]);
+    if (!session?.id) return;
+
+    syncLiveData();
+
+    var interval = setInterval(function () {
+      if (document.visibilityState === "visible") syncLiveData();
+    }, 15000);
+
+    function handleFocus() {
+      syncLiveData();
+    }
+
+    function handleVisibility() {
+      if (document.visibilityState === "visible") syncLiveData();
+    }
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return function () {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [session?.id, syncLiveData]);
 
   // Badge al títol del navegador amb el total de sol·licituds pendents
   useEffect(function () {
@@ -550,7 +610,14 @@ export default function App() {
           />
         )}
         {vista === "amics" && (
-          <Friends session={session} users={users} showToast={showToast} onSolicitudsChange={setSolicitudsAmicCount} t={t} />
+          <Friends
+            session={session}
+            users={users}
+            showToast={showToast}
+            onSolicitudsChange={setSolicitudsAmicCount}
+            refreshKey={friendsRefreshKey}
+            t={t}
+          />
         )}
         {vista === "admin_reservas" && session.rol === "admin" && (
           <AdminReservations reservas={reservas} users={users} cancelarReserva={function (id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} t={t} />
