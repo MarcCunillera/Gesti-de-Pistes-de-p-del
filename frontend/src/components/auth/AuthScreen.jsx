@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PasswordStrength from "./PasswordStrength";
 import { GoogleLogin } from "@react-oauth/google";
 
@@ -73,13 +73,31 @@ function TabBar({ activeTab, onTabChange }) {
 function GoogleLoginBlock({ loginGoogle }) {
   if (!loginGoogle) return null;
 
+  const containerRef = useRef(null);
+  const [buttonWidth, setButtonWidth] = useState(320);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      const nextWidth = Math.max(
+        220,
+        Math.min(360, Math.floor(containerRef.current?.offsetWidth || 320))
+      );
+      setButtonWidth(nextWidth);
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
   return (
     <>
       <div className="auth-separator">
         <span>o continua amb</span>
       </div>
 
-      <div className="auth-google">
+      <div className="auth-google" ref={containerRef}>
         <GoogleLogin
           onSuccess={(credentialResponse) => {
             if (credentialResponse.credential) {
@@ -93,7 +111,7 @@ function GoogleLoginBlock({ loginGoogle }) {
           size="large"
           text="signin_with"
           shape="pill"
-          width="100%"
+          width={buttonWidth}
         />
       </div>
     </>

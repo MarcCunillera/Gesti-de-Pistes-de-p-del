@@ -5,7 +5,7 @@ import App from "./App";
 import { ThemeProvider } from "./theme/ThemeContext";
 import "./styles/global.css";
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

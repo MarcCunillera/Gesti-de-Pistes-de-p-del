@@ -217,6 +217,8 @@ export default function App() {
       });
   };
 
+  const allowGoogleLogin = Boolean((import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim());
+
   const logout = function () {
     setToken(null);
     setSession(null);
@@ -486,7 +488,7 @@ export default function App() {
         loginForm={loginForm} setLoginForm={setLoginForm}
         regForm={regForm} setRegForm={setRegForm}
         authError={authError} login={login} registro={registro}
-        loginGoogle={loginGoogle}
+        loginGoogle={allowGoogleLogin ? loginGoogle : null}
         dark={dark}
       />
     );
