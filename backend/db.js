@@ -33,7 +33,6 @@ db.exec(`
     estado TEXT NOT NULL DEFAULT 'confirmada',
     abierto INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
-    UNIQUE(fecha, hora, estado),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 
@@ -89,49 +88,6 @@ db.exec(`
     FOREIGN KEY (de_user_id) REFERENCES users(id)
   );
 `);
-
-// ── Migració de l'esquema de reserves ───────────────────────────────────────
-// La versió inicial tenia UNIQUE(fecha, hora, estado) dins la taula `reservas`.
-// Això provoca errors en cancel·lar dues reserves diferents del mateix slot,
-// perquè totes dues intenten passar a estat "cancelada".
-// Ho substituïm per un índex parcial només per a reserves confirmades.
-const reservasTable = db
-  .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'reservas'")
-  .get();
-
-if (reservasTable?.sql && reservasTable.sql.includes("UNIQUE(fecha, hora, estado)")) {
-  try {
-    db.pragma("foreign_keys = OFF");
-
-    const migrateReservas = db.transaction(() => {
-      db.exec(`
-        CREATE TABLE reservas_new (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          fecha TEXT NOT NULL,
-          hora TEXT NOT NULL,
-          estado TEXT NOT NULL DEFAULT 'confirmada',
-          abierto INTEGER NOT NULL DEFAULT 0,
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (user_id) REFERENCES users(id)
-        );
-
-        INSERT INTO reservas_new (id, user_id, fecha, hora, estado, abierto, created_at)
-        SELECT id, user_id, fecha, hora, estado, abierto, created_at
-        FROM reservas;
-
-        DROP TABLE reservas;
-        ALTER TABLE reservas_new RENAME TO reservas;
-      `);
-    });
-
-    migrateReservas();
-  } catch (err) {
-    console.error("Error migrant l'esquema de reserves:", err.message);
-  } finally {
-    db.pragma("foreign_keys = ON");
-  }
-}
 
 // ── Índexs i migracions ──────────────────────────────────────────────────────
 // Eliminem l'índex antic (fecha, hora, estado) que bloquejava cancel·lacions
@@ -189,18 +145,18 @@ if (countUsers.n === 0) {
     );
 
     console.log(
-      `Administrador inicial creado: ${initialAdminEmail}`
+      `Administrador inicial creat: ${initialAdminEmail}`
     );
   } else {
     console.warn(`
-No existe ningún usuario en la base de datos.
-Define las variables:
+No hi ha cap usuari a la base de dades.
+Defineix les variables d'entorn:
 
 INITIAL_ADMIN_EMAIL
 INITIAL_ADMIN_PASSWORD
 INITIAL_ADMIN_NAME
 
-para crear automáticamente el primer administrador.
+per crear automàticament el primer administrador.
 `);
   }
 }

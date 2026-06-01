@@ -178,7 +178,7 @@ export default function Profile({
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>
-          Mi perfil
+          El meu perfil
         </h2>
       </div>
 
@@ -198,7 +198,7 @@ export default function Profile({
                 onMouseEnter={() => setAvatarHover(true)}
                 onMouseLeave={() => setAvatarHover(false)}
                 onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                title="Cambiar foto de perfil"
+                title="Canviar foto de perfil"
               >
                 <AvatarDisplay session={session} size={80} />
                 <div style={{
@@ -220,11 +220,11 @@ export default function Profile({
                   Eliminar foto
                 </button>
               ) : (
-                <span style={{ fontSize: 10, color: C.muted }}>Subir foto</span>
+                <span style={{ fontSize: 10, color: C.muted }}>Pujar foto</span>
               )}
             </div>
 
-            {/* Nombre + email */}
+            {/* Nom + email */}
             <div style={{ flex: 1, minWidth: 140 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
                 <span style={{ fontWeight: 800, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>{session.nombre}</span>
@@ -256,15 +256,15 @@ export default function Profile({
 
           {/* Stats row */}
           <div style={{ display: "flex", gap: 0, flexWrap: "wrap" }}>
-            {/* Reservas */}
+            {/* Reserves */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px", borderRight: "1px solid " + C.border }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: "#1a2e1a", lineHeight: 1 }}>{misReservas.length}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Reservas</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Reserves</div>
             </div>
-            {/* Partidos */}
+            {/* Partits */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px", borderRight: "1px solid " + C.border }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: "#2563eb", lineHeight: 1 }}>{misPartidos.length}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Partidos</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Partits</div>
             </div>
             {/* Amigos */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px" }}>
@@ -324,7 +324,7 @@ export default function Profile({
             <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 20 }}>Editar perfil</div>
 
             <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Nombre</label>
+              <label style={labelStyle}>Nom</label>
               <input value={perfilEdit.nombre}
                 onChange={e => setPerfilEdit(p => ({ ...p, nombre: e.target.value }))}
                 style={inputStyle} />
@@ -390,7 +390,7 @@ export default function Profile({
             {/* Color avatar */}
             {!session.avatar && (
               <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Color del avatar</label>
+                <label style={labelStyle}>Color de l'avatar</label>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
                   {PALETTE.map(color => (
                     <button key={color} onClick={() => setPerfilEdit(p => ({ ...p, avatar_color: color }))}
@@ -410,45 +410,45 @@ export default function Profile({
                   }}>
                     {iniciales(perfilEdit.nombre || session.nombre)}
                   </div>
-                  <span style={{ fontSize: 12, color: C.muted }}>Vista previa</span>
+                  <span style={{ fontSize: 12, color: C.muted }}>Previsualització</span>
                 </div>
               </div>
             )}
 
             <div style={{ display: "flex", gap: 8 }}>
-              <Btn onClick={guardarPerfil} variant="primary">Guardar</Btn>
-              <Btn onClick={() => setPerfilEdit(null)}>Cancelar</Btn>
+              <Btn onClick={guardarPerfil} variant="primary">Desar</Btn>
+              <Btn onClick={() => setPerfilEdit(null)}>Cancel·lar</Btn>
             </div>
           </div>
         )}
 
-        {/* ── Cambiar contraseña ────────────────────────── */}
+        {/* ── Canviar contrasenya ────────────────────────── */}
         <div style={{
           background: C.surface, borderRadius: 12, padding: 24,
           border: "1px solid " + C.border, boxShadow: "0 1px 3px rgba(0,0,0,.04)", flex: "1 1 270px",
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 18 }}>Cambiar contraseña</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 18 }}>Canviar contrasenya</div>
           <div style={{ marginBottom: 12 }}>
-            <label style={labelStyle}>Contraseña actual</label>
+            <label style={labelStyle}>Contrasenya actual</label>
             <input type="password" value={pwdForm.actual}
               onChange={e => setPwdForm(p => ({ ...p, actual: e.target.value }))}
               style={inputStyle} />
           </div>
           <div style={{ marginBottom: 8 }}>
-            <label style={labelStyle}>Nueva contraseña</label>
+            <label style={labelStyle}>Nova contrasenya</label>
             <input type="password" value={pwdForm.nueva}
               onChange={e => setPwdForm(p => ({ ...p, nueva: e.target.value }))}
               style={inputStyle} />
           </div>
           {pwdForm.nueva ? <PasswordStrength password={pwdForm.nueva} /> : <div style={{ marginBottom: 14 }} />}
           <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Repetir nueva contraseña</label>
+            <label style={labelStyle}>Repetir nova contrasenya</label>
             <input type="password" value={pwdForm.repetir}
               onChange={e => setPwdForm(p => ({ ...p, repetir: e.target.value }))}
               style={inputStyle} />
           </div>
           {pwdError && <p style={{ color: "#dc2626", fontSize: 12, margin: "0 0 12px" }}>{pwdError}</p>}
-          <Btn onClick={cambiarPassword} variant="primary">Actualizar contraseña</Btn>
+          <Btn onClick={cambiarPassword} variant="primary">Actualitzar contrasenya</Btn>
         </div>
       </div>
     </div>

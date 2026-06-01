@@ -5,12 +5,12 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
   if (!data) return null;
   const { fecha, hora, abierto } = data;
   const duracion = config?.duracion || 90;
-  const titulo = abierto ? "Partido abierto de pàdel" : "Reserva pista pàdel - Torrelameu";
+  const titulo = abierto ? "Partit obert de pàdel" : "Reserva pista pàdel - Torrelameu";
   const desc = "Pista pàdel Torrelameu - La pleta";
   const [h, m] = hora.split(":").map(Number);
   const tot = h * 60 + m + duracion;
   const horaFi = `${String(Math.floor(tot / 60)).padStart(2, "0")}:${String(tot % 60).padStart(2, "0")}`;
-  const mes = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][parseInt(fecha.split("-")[1]) - 1];
+  const mes = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"][parseInt(fecha.split("-")[1]) - 1];
 
   return (
     <div style={modalOverlay} onClick={onClose}>
@@ -22,17 +22,17 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
         <div style={{ height: 4, background: "linear-gradient(90deg,#4ade80,#22c55e)" }} />
 
         <div style={{ padding: "24px 24px 20px" }}>
-          {/* Cerrar */}
+          {/* Tancar */}
           <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, background: "#f3f4f6", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontSize: 18, color: "#6b7280", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
 
-          {/* Cabecera */}
+          {/* Capçalera */}
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Reserva confirmada</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
               <span style={{ fontWeight: 700, fontSize: 16, color: t?.text || "#111827" }}>{formatFecha(fecha)}</span>
               <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{hora} – {horaFi}</span>
               <span style={{ fontSize: 11, fontWeight: 700, background: abierto ? "#eff6ff" : "#f0fdf4", color: abierto ? "#1d4ed8" : "#15803d", border: `1px solid ${abierto ? "#93c5fd" : "#86efac"}`, borderRadius: 20, padding: "2px 10px" }}>
-                {abierto ? "Abierto" : "Privado"}
+                {abierto ? "Obert" : "Privat"}
               </span>
             </div>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -73,7 +73,7 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
               <path fill="#FBBC05" d="M24 44c5.2 0 9.9-1.8 13.5-4.7l-6.2-5.2C29.5 35.9 26.9 37 24 37c-5.6 0-10.4-3.8-12-9l-6.6 5.1C9.3 39.2 16.2 44 24 44z"/>
               <path fill="#EA4335" d="M44 20H24v8h11.3c-.8 2.2-2.3 4-4.2 5.2l6.2 5.2C41 35.2 44 30 44 24c0-1.3-.1-2.7-.4-4z"/>
             </svg>
-            Abrir en Google Calendar
+            Afegir a Google Calendar
           </a>
 
           <button

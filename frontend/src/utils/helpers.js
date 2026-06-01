@@ -27,10 +27,10 @@ export function fechasDesde(base, dias) {
 
 export function formatFecha(f) {
   const [y, m, d] = f.split("-");
-  const dias = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
-  const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  const dies  = ["Dg", "Dl", "Dm", "Dc", "Dj", "Dv", "Ds"];
+  const mesos = ["Gen", "Feb", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Des"];
   const date = new Date(y, m - 1, d);
-  return `${dias[date.getDay()]} ${d} ${meses[m - 1]}`;
+  return `${dies[date.getDay()]} ${d} ${mesos[m - 1]}`;
 }
 
 export function iniciales(nombre) {
@@ -70,7 +70,7 @@ export function descargarIcs(fecha, hora, duracion, titulo, descripcion) {
   const contenido = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Pista de Padel//ES",
+    "PRODID:-//Pista de Pàdel//CA",
     "BEGIN:VEVENT",
     `UID:${start}-padel@reservas`,
     `DTSTAMP:${stamp}`,
@@ -81,7 +81,7 @@ export function descargarIcs(fecha, hora, duracion, titulo, descripcion) {
     "BEGIN:VALARM",
     "TRIGGER:-PT60M",
     "ACTION:DISPLAY",
-    `DESCRIPTION:Recordatorio: ${titulo}`,
+    `DESCRIPTION:Recordatori: ${titulo}`,
     "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",

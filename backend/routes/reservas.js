@@ -5,7 +5,7 @@ const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 const getJugadors = (reservaId) =>
   db
     .prepare(
-      `SELECT u.id, u.nombre, u.email, u.avatar, u.avatar_color
+      `SELECT u.id, u.nombre, u.avatar, u.avatar_color
        FROM reserva_jugadores rj
        JOIN users u ON u.id = rj.user_id
        WHERE rj.reserva_id = ?`

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { generarHorarios, hoy, fechasDesde, googleCalendarUrl } from "./utils/helpers";
+import { generarHorarios, hoy, fechasDesde } from "./utils/helpers";
 import { DEFAULT_CONFIG } from "./data/initialData";
 import { useTheme } from "./theme/ThemeContext";
 import { api, getToken, setToken } from "./utils/api";
