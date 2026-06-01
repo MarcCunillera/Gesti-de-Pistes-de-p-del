@@ -15,6 +15,7 @@ import AdminUsers from "./components/views/AdminUsers";
 import Settings from "./components/views/Settings";
 import ReservationModal from "./components/modals/ReservationModal";
 import MatchModal from "./components/modals/MatchModal";
+import MatchCreatedModal from "./components/modals/MatchCreatedModal";
 import AdminModal from "./components/modals/AdminModal";
 import ConfirmModal from "./components/modals/ConfirmModal";
 import ReservaConfirmModal from "./components/modals/ReservaConfirmModal";
@@ -43,6 +44,7 @@ export default function App() {
   const [partidoModal, setPartidoModal] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [confirmReserva, setConfirmReserva] = useState(null);
+  const [newMatchModalId, setNewMatchModalId] = useState(null);
   const [toast, setToast] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [perfilEdit, setPerfilEdit] = useState(null);
@@ -231,6 +233,7 @@ export default function App() {
         setReservaModal(null); setAdminModal(null);
         if (abierto) {
           showToast("Partido abierto creado");
+          setNewMatchModalId(normalizeReserva(r).id);
         } else {
           setConfirmReserva({ fecha, hora, abierto });
         }
@@ -573,6 +576,16 @@ export default function App() {
       <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function (id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} config={config} session={session} t={t} />
       <ConfirmModal confirmModal={confirmModal} setConfirmModal={setConfirmModal} t={t} />
       <ReservaConfirmModal data={confirmReserva} onClose={() => setConfirmReserva(null)} config={config} t={t} />
+      <MatchCreatedModal
+        reserva={reservas.find(r => r.id === newMatchModalId) || null}
+        onClose={() => setNewMatchModalId(null)}
+        users={users}
+        session={session}
+        amics={amics}
+        solicitudsPartidaInvitades={solicitudsPartidaInvitades}
+        invitarJugador={invitarJugador}
+        t={t}
+      />
       <Toast toast={toast} />
     </div>
   );

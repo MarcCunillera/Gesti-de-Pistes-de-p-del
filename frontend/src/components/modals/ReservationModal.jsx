@@ -57,14 +57,14 @@ export default function ReservationModal({ reservaModal, setReservaModal, config
         <OptionCard
           onClick={() => { hacerReserva(reservaModal.fecha, reservaModal.hora, false); close(); }}
           color={{ bg: "#f0fdf4", border: "#86efac", icon: "#dcfce7", text: "#14532d" }}
-          icon="🔒"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>}
           title="Reserva privada"
           description="Solo tú y las personas que invites"
         />
         <OptionCard
           onClick={() => { hacerReserva(reservaModal.fecha, reservaModal.hora, true); close(); }}
           color={{ bg: "#eff6ff", border: "#93c5fd", icon: "#dbeafe", text: "#1d4ed8" }}
-          icon="🏓"
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
           title="Partido abierto"
           description="Hasta 4 jugadores — otros pueden unirse"
         />

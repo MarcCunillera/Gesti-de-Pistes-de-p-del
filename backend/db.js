@@ -91,17 +91,16 @@ db.exec(`
 `);
 
 // ── Índexs i migracions ──────────────────────────────────────────────────────
-// Aquest índex evita que es puguin crear dues reserves confirmades
-// per a la mateixa data i hora, encara que dues persones reservin alhora.
+// Eliminem l'índex antic (fecha, hora, estado) que bloquejava cancel·lacions
+// múltiples al mateix slot, i el substituïm per un índex parcial que només
+// impedeix dues reserves CONFIRMADES al mateix slot.
+try { db.prepare("DROP INDEX IF EXISTS idx_reservas_fecha_hora_estado").run(); } catch (_) {}
 try {
   db.prepare(
-    "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_estado ON reservas(fecha, hora, estado)"
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_confirmada ON reservas(fecha, hora) WHERE estado = 'confirmada'"
   ).run();
 } catch (err) {
-  console.error(
-    "No s'ha pogut crear l'índex únic de reserves:",
-    err.message
-  );
+  console.error("No s'ha pogut crear l'índex parcial de reserves:", err.message);
 }
 
 // Migracions de camps nous a users
