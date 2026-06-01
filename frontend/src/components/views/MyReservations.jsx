@@ -157,30 +157,18 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
 
                       {!r.abierto ? (
                         /* ── TARJETA PRIVADA ── */
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                            {/* Bloque fecha/hora */}
-                            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "10px 16px", textAlign: "center", minWidth: 64, flexShrink: 0 }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "#15803d", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                                {formatFecha(r.fecha).split(" ")[0]}
-                              </div>
-                              <div style={{ fontSize: 22, fontWeight: 800, color: "#15803d", lineHeight: 1.1 }}>
-                                {formatFecha(r.fecha).replace(/^\S+\s/, "")}
-                              </div>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                              <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
+                              <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
+                              <Tag variant="green">Privado</Tag>
                             </div>
-                            {/* Info */}
-                            <div>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                                <span style={{ fontWeight: 800, fontSize: 20, color: "#111827" }}>{r.hora}</span>
-                                <Tag variant="green">Privado</Tag>
-                              </div>
-                              <div style={{ fontSize: 12, color: "#9ca3af" }}>Solo tú · {config.duracion} min</div>
+                            <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14 }}>Solo tú · {config.duracion} min</div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                              <Btn onClick={() => toggleAbierto(r.id)}>Abrir partido</Btn>
+                              <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger">Cancelar</Btn>
                             </div>
-                          </div>
-                          {/* Acciones */}
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                            <Btn onClick={() => toggleAbierto(r.id)}>Abrir partido</Btn>
-                            <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger">Cancelar</Btn>
                           </div>
                         </div>
                       ) : (
@@ -318,46 +306,55 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                 var org = users.find(function(u) { return u.id === r.userId; });
                 return (
                   <div key={r.id} style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.05)", marginBottom: 10, border: "1px solid #e5e7eb" }}>
-                    <div style={{ height: 2, background: "#60a5fa" }} />
+                    <div style={{ height: 3, background: "#60a5fa" }} />
                     <div style={{ padding: "18px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                        <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
-                        <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
-                        <Tag variant="blue">Participas</Tag>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                            <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
+                            <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
+                            <Tag variant="blue">Participas</Tag>
+                          </div>
+                          <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                            Organiza: <strong style={{ color: "#374151", fontWeight: 600 }}>{org?.nombre}</strong> · {r.jugadores?.length}/4 · {config.duracion} min
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14 }}>
-                        Organiza: <strong style={{ color: "#374151", fontWeight: 600 }}>{org?.nombre}</strong> · {r.jugadores?.length}/4 · {config.duracion} min
+
+                      {/* Jugadores */}
+                      <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+                          {r.jugadores?.map(function(id) {
+                            var u = users.find(function(x) { return x.id === id; });
+                            var esOrg = id === r.userId;
+                            var esTu = id === session.id;
+                            return (
+                              <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                <UserAvatar
+                                  user={u || { id, nombre: "?" }}
+                                  size={38}
+                                  outline={esOrg ? "2px solid #374151" : esTu ? "2px solid #60a5fa" : "none"}
+                                  outlineOffset={2}
+                                />
+                                <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : "#374151", fontWeight: esTu || esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {esTu ? "tú" : u?.nombre?.split(" ")[0] || "?"}
+                                </span>
+                                {esOrg && <span style={{ fontSize: 9, color: "#6b7280", fontWeight: 600, letterSpacing: 0.2 }}>Org.</span>}
+                              </div>
+                            );
+                          })}
+                          {Array.from({ length: 4 - (r.jugadores?.length || 0) }).map(function(_, i) {
+                            return (
+                              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
+                                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#f3f4f6", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", fontSize: 16 }}>+</div>
+                                <span style={{ fontSize: 11, color: "#9ca3af" }}>Libre</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14 }}>
-                        {r.jugadores?.map(function(id) {
-                          var u = users.find(function(x) { return x.id === id; });
-                          var esOrg = id === r.userId;
-                          var esTu = id === session.id;
-                          return (
-                            <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                              <UserAvatar
-                                user={u || { id, nombre: "?" }}
-                                size={32}
-                                outline={esOrg ? "2px solid #374151" : esTu ? "2px solid #60a5fa" : "none"}
-                                outlineOffset={2}
-                                title={u?.nombre}
-                              />
-                              <span style={{ fontSize: 9, color: esTu ? "#1d4ed8" : esOrg ? "#374151" : "#9ca3af", fontWeight: esTu || esOrg ? 700 : 400 }}>
-                                {esTu ? "tú" : u?.nombre?.split(" ")[0] || "?"}
-                              </span>
-                            </div>
-                          );
-                        })}
-                        {Array.from({ length: 4 - (r.jugadores?.length || 0) }).map(function(_, i) {
-                          return (
-                            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.3 }}>
-                              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#f3f4f6", border: "1.5px dashed #d1d5db", display: "flex", alignItems: "center", justifyContent: "center", color: "#d1d5db", fontSize: 14 }}>+</div>
-                              <span style={{ fontSize: 9, color: "#d1d5db" }}>libre</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 4 }}>
                         <Btn onClick={() => salirPartido(r.id)} variant="danger" style={{ marginLeft: "auto" }}>Salir del partido</Btn>
                       </div>
                     </div>
