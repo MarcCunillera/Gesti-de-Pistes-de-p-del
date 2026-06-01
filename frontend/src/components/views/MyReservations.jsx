@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { formatFecha, googleCalendarUrl, descargarIcs } from "../../utils/helpers";
+import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 
 function activarNotificacion(r) {
@@ -152,25 +152,53 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                 var lliures = Math.max(0, 4 - (r.jugadores?.length || 0) - pendentsDeR.length);
                 return (
                   <div key={r.id} style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.05)", marginBottom: 10, border: "1px solid #e5e7eb" }}>
-                    <div style={{ height: 2, background: r.abierto ? "#60a5fa" : "#4ade80" }} />
+                    <div style={{ height: 3, background: r.abierto ? "#60a5fa" : "linear-gradient(90deg,#4ade80,#22c55e)" }} />
                     <div style={{ padding: "18px 20px" }}>
 
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: r.abierto ? 14 : 16 }}>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                            <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
-                            <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
-                            {r.abierto ? <Tag variant="blue">Abierto</Tag> : <Tag variant="green">Privado</Tag>}
+                      {!r.abierto ? (
+                        /* ── TARJETA PRIVADA ── */
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                            {/* Bloque fecha/hora */}
+                            <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "10px 16px", textAlign: "center", minWidth: 64, flexShrink: 0 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#15803d", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                {formatFecha(r.fecha).split(" ")[0]}
+                              </div>
+                              <div style={{ fontSize: 22, fontWeight: 800, color: "#15803d", lineHeight: 1.1 }}>
+                                {formatFecha(r.fecha).replace(/^\S+\s/, "")}
+                              </div>
+                            </div>
+                            {/* Info */}
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                                <span style={{ fontWeight: 800, fontSize: 20, color: "#111827" }}>{r.hora}</span>
+                                <Tag variant="green">Privado</Tag>
+                              </div>
+                              <div style={{ fontSize: 12, color: "#9ca3af" }}>Solo tú · {config.duracion} min</div>
+                            </div>
                           </div>
-                          <div style={{ fontSize: 12, color: "#9ca3af" }}>
-                            {r.abierto ? `${r.jugadores?.length}/4 jugadores` : "Solo tú"} · {config.duracion} min
+                          {/* Acciones */}
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                            <Btn onClick={() => toggleAbierto(r.id)}>Abrir partido</Btn>
+                            <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger">Cancelar</Btn>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        /* ── TARJETA ABIERTA ── */
+                        <div>
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+                            <div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                                <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
+                                <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
+                                <Tag variant="blue">Abierto</Tag>
+                              </div>
+                              <div style={{ fontSize: 12, color: "#9ca3af" }}>{r.jugadores?.length}/4 jugadores · {config.duracion} min</div>
+                            </div>
+                          </div>
 
-                      {/* Jugadores horizontal */}
-                      {r.abierto && (
-                        <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
+                          {/* Jugadores horizontal */}
+                          <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                             {r.jugadores?.map(function(id) {
                               var u = users.find(function(x) { return x.id === id; });
@@ -266,24 +294,15 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                             </div>
                           )}
                         </div>
+                          {/* Acciones partido abierto */}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 4 }}>
+                            <Btn onClick={() => toggleAbierto(r.id)}>Hacer privado</Btn>
+                            <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger" style={{ marginLeft: "auto" }}>
+                              Cancelar
+                            </Btn>
+                          </div>
+                        </div>
                       )}
-
-                      {/* Acciones */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-                        <Btn onClick={() => toggleAbierto(r.id)}>
-                          {r.abierto ? "Hacer privado" : "Abrir partido"}
-                        </Btn>
-                        <Btn onClick={() => activarNotificacion(r)}>Recordar</Btn>
-                        <Btn href={googleCalendarUrl(r.fecha, r.hora, config.duracion, r.abierto ? "Partido abierto de padel" : "Reserva de padel", `Pista · ${r.hora} · ${config.duracion} min`)} target="_blank" rel="noreferrer">
-                          Google Cal
-                        </Btn>
-                        <Btn onClick={() => descargarIcs(r.fecha, r.hora, config.duracion, r.abierto ? "Partido abierto de padel" : "Reserva de padel", `Pista · ${r.hora} · ${config.duracion} min`)}>
-                          Exportar .ics
-                        </Btn>
-                        <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger" style={{ marginLeft: "auto" }}>
-                          Cancelar
-                        </Btn>
-                      </div>
                     </div>
                   </div>
                 );
@@ -339,7 +358,6 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                         })}
                       </div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                        <Btn onClick={() => activarNotificacion(r)}>Recordar</Btn>
                         <Btn onClick={() => salirPartido(r.id)} variant="danger" style={{ marginLeft: "auto" }}>Salir del partido</Btn>
                       </div>
                     </div>

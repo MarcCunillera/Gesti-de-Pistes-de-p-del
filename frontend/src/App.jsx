@@ -409,9 +409,9 @@ export default function App() {
 
   const guardarPerfil = function () {
     if (!perfilEdit.nombre.trim()) return;
-    api.updateMe({ nombre: perfilEdit.nombre, email: perfilEdit.email, avatar_color: perfilEdit.avatar_color })
+    api.updateMe({ nombre: perfilEdit.nombre, email: perfilEdit.email, avatar_color: perfilEdit.avatar_color, lado: perfilEdit.lado, mano: perfilEdit.mano, telefono: perfilEdit.telefono })
       .then(function (updated) {
-        setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color }); });
+        setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color, lado: updated.lado, mano: updated.mano, telefono: updated.telefono }); });
         setPerfilEdit(null);
         showToast("Perfil actualizado");
       })
@@ -543,7 +543,7 @@ export default function App() {
         )}
         {vista === "perfil" && (
           <Profile
-            session={session} misReservas={misReservas} misPartidos={misPartidos}
+            session={session} misReservas={misReservas} misPartidos={misPartidos} amics={amics}
             perfilEdit={perfilEdit} setPerfilEdit={setPerfilEdit} guardarPerfil={guardarPerfil}
             pwdForm={pwdForm} setPwdForm={setPwdForm} pwdError={pwdError} cambiarPassword={cambiarPassword}
             subirAvatarFoto={subirAvatarFoto} eliminarAvatarFoto={eliminarAvatarFoto}

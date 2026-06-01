@@ -104,6 +104,16 @@ try {
   );
 }
 
+// Migracions de camps nous a users
+const migrationsUsers = [
+  "ALTER TABLE users ADD COLUMN lado TEXT DEFAULT NULL",
+  "ALTER TABLE users ADD COLUMN mano TEXT DEFAULT NULL",
+  "ALTER TABLE users ADD COLUMN telefono TEXT DEFAULT NULL",
+];
+for (const sql of migrationsUsers) {
+  try { db.prepare(sql).run(); } catch (_) {}
+}
+
 // ── Configuració per defecte ──────────────────────────────────────────────────
 const insertConfig = db.prepare(
   "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)"

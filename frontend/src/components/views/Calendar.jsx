@@ -168,16 +168,18 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
           Selecciona una franja horaria para reservar
         </p>
       </div>
-      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-        <BtnNav onClick={irAtras}>‹ Anterior</BtnNav>
-        <button
-          onClick={() => setBaseDate(hoy())}
-          style={{ padding: "8px 18px", background: primary, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
-        >
-          Hoy
-        </button>
-        <BtnNav onClick={irAdelante}>Siguiente ›</BtnNav>
-      </div>
+      {session.rol === "admin" && (
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <BtnNav onClick={irAtras}>‹ Anterior</BtnNav>
+          <button
+            onClick={() => setBaseDate(hoy())}
+            style={{ padding: "8px 18px", background: primary, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+          >
+            Hoy
+          </button>
+          <BtnNav onClick={irAdelante}>Siguiente ›</BtnNav>
+        </div>
+      )}
     </div>
   );
 

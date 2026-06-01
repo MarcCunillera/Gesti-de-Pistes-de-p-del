@@ -45,14 +45,14 @@ const upload = multer({
 router.get("/", authMiddleware, (req, res) => {
   if (req.user.rol === "admin") {
     const rows = db
-      .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users ORDER BY id")
+      .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users ORDER BY id")
       .all();
     return res.json(rows);
   }
   // Usuaris normals: veuen id, nombre, avatar, avatar_color (per a amistats/partits)
   // però NO l'email dels altres usuaris
   const rows = db
-    .prepare("SELECT id, nombre, avatar, avatar_color FROM users WHERE activo = 1 ORDER BY nombre")
+    .prepare("SELECT id, nombre, avatar, avatar_color, lado, mano, telefono FROM users WHERE activo = 1 ORDER BY nombre")
     .all();
   res.json(rows);
 });
@@ -60,15 +60,15 @@ router.get("/", authMiddleware, (req, res) => {
 // GET /api/users/me
 router.get("/me", authMiddleware, (req, res) => {
   const u = db
-    .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?")
+    .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?")
     .get(req.user.id);
   if (!u) return res.status(404).json({ error: "Usuari no trobat" });
   res.json(u);
 });
 
-// PATCH /api/users/me — editar nom, email, avatar_color, password
+// PATCH /api/users/me — editar nom, email, avatar_color, password, lado, mano
 router.patch("/me", authMiddleware, (req, res) => {
-  const { nombre, email, avatar_color, currentPassword, newPassword } = req.body;
+  const { nombre, email, avatar_color, currentPassword, newPassword, lado, mano, telefono } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
 
   if (newPassword) {
@@ -92,10 +92,16 @@ router.patch("/me", authMiddleware, (req, res) => {
       db.prepare("UPDATE users SET email = ? WHERE id = ?").run(email, user.id);
     if (avatar_color)
       db.prepare("UPDATE users SET avatar_color = ? WHERE id = ?").run(avatar_color, user.id);
+    if (lado !== undefined)
+      db.prepare("UPDATE users SET lado = ? WHERE id = ?").run(lado || null, user.id);
+    if (mano !== undefined)
+      db.prepare("UPDATE users SET mano = ? WHERE id = ?").run(mano || null, user.id);
+    if (telefono !== undefined)
+      db.prepare("UPDATE users SET telefono = ? WHERE id = ?").run(telefono || null, user.id);
   });
   applyUpdates();
 
-  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?").get(user.id);
+  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
   res.json(updated);
 });
 
@@ -125,7 +131,7 @@ router.delete("/me/avatar", authMiddleware, (req, res) => {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     db.prepare("UPDATE users SET avatar = NULL WHERE id = ?").run(user.id);
   }
-  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?").get(user.id);
+  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
   res.json(updated);
 });
 
@@ -136,7 +142,7 @@ router.patch("/:id", authMiddleware, adminMiddleware, (req, res) => {
   if (!user) return res.status(404).json({ error: "Usuari no trobat" });
   if (rol) db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, user.id);
   if (activo !== undefined) db.prepare("UPDATE users SET activo = ? WHERE id = ?").run(activo ? 1 : 0, user.id);
-  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?").get(user.id);
+  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
   res.json(updated);
 });
 
