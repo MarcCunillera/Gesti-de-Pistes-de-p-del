@@ -214,13 +214,11 @@ export default function Profile({
                 </div>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-              {session.avatar ? (
+              {session.avatar && (
                 <button onClick={eliminarAvatarFoto}
                   style={{ fontSize: 10, color: "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>
                   Eliminar foto
                 </button>
-              ) : (
-                <span style={{ fontSize: 10, color: C.muted }}>Pujar foto</span>
               )}
             </div>
 
@@ -239,7 +237,7 @@ export default function Profile({
                 <div
                   onClick={copiarTelefono}
                   title="Copiar teléfono"
-                  style={{ fontSize: 13, color: copiedTel ? "#059669" : C.muted, marginTop: 2, cursor: "pointer", userSelect: "none", display: "inline-flex", alignItems: "center", gap: 4, transition: "color 0.2s" }}
+                  style={{ fontSize: 13, color: copiedTel ? "#059669" : C.muted, marginTop: 4, cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: 4, transition: "color 0.2s", width: "fit-content" }}
                 >
                   {copiedTel ? "Copiado" : session.telefono}
                 </div>

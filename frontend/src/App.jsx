@@ -263,7 +263,7 @@ export default function App() {
   const unirsePartido = function (rid) {
     api.unirse(rid)
       .then(function (result) {
-        showToast("Sol·licitud enviada — l'organitzador ha de confirmar", "info");
+        showToast("Solicitud enviada — el organizador debe confirmar", "info");
         return api.getSolicitudsPartidaMeues();
       })
       .then(function (meues) { setSolicitudsPartidaMeues(meues); })
@@ -282,7 +282,7 @@ export default function App() {
   const respondSolicitudPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
       .then(function () {
-        showToast(estat === "acceptada" ? "Jugador acceptat al partit ✓" : "Sol·licitud rebutjada", estat === "acceptada" ? "ok" : "info");
+        showToast(estat === "acceptada" ? "Jugador aceptado en la partida ✓" : "Solicitud rechazada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
       .catch(function (e) { showToast(e.message, "error"); });
@@ -298,7 +298,7 @@ export default function App() {
           .then(function (r) {
             var rn = normalizeReserva(r);
             setReservas(function (rs) { return rs.map(function (x) { return x.id === reservaId ? rn : x; }); });
-            showToast(nomJugador + " ha estat eliminat del partit", "info");
+            showToast(nomJugador + " ha sido eliminado de la partida", "info");
             return api.getSolicitudsPartidaPendent();
           })
           .then(function (sp) { setSolicitudsPartidaPendent(sp); })
@@ -311,7 +311,7 @@ export default function App() {
     api.invitarJugador(reservaId, userId)
       .then(function () {
         var u = users.find(function (x) { return x.id === userId; });
-        showToast("Invitació enviada a " + (u ? u.nombre : "l'amic") + " — ha d'acceptar", "info");
+        showToast("Invitación enviada a " + (u ? u.nombre : "el amigo") + " — debe aceptar", "info");
         return api.getSolicitudsPartidaInvitades();
       })
       .then(function (inv) { setSolicitudsPartidaInvitades(inv); })
@@ -321,7 +321,7 @@ export default function App() {
   const respondreInvitacioPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
       .then(function () {
-        showToast(estat === "acceptada" ? "T'has unit al partit ✓" : "Invitació rebutjada", estat === "acceptada" ? "ok" : "info");
+        showToast(estat === "acceptada" ? "Te has unido a la partida ✓" : "Invitación rechazada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
       .catch(function (e) { showToast(e.message, "error"); });
@@ -384,22 +384,15 @@ export default function App() {
   };
 
   const bloquearRango = function (fechaInicio, fechaFin, horas) {
-    var d = new Date(fechaInicio);
-    var fin = new Date(fechaFin);
-    var promises = [];
-    while (d <= fin) {
-      var f = d.toISOString().split("T")[0];
-      horas.forEach(function (h) {
-        if (!bloqueados.some(function (b) { return b.fecha === f && b.hora === h; })) {
-          promises.push(api.addBloqueado(f, h));
+    api.addBloqueadoBatch(fechaInicio, fechaFin, horas)
+      .then(function (result) {
+        var nous = result?.created || [];
+        if (nous.length > 0) {
+          setBloqueados(function (bs) { return bs.concat(nous); });
         }
-      });
-      d.setDate(d.getDate() + 1);
-    }
-    Promise.all(promises).then(function (nous) {
-      setBloqueados(function (bs) { return bs.concat(nous); });
-      showToast(nous.length + " franjas bloqueadas");
-    }).catch(function (e) { showToast(e.message, "error"); });
+        showToast(nous.length + " franjas bloqueadas");
+      })
+      .catch(function (e) { showToast(e.message, "error"); });
   };
 
   const guardarConfig = function () {
@@ -467,15 +460,17 @@ export default function App() {
 
   const HORARIOS = useMemo(function () { return generarHorarios(config.horaInicio, config.horaFin, config.duracion); }, [config]);
   const fechas = useMemo(function () { return fechasDesde(baseDate, config.diasVista); }, [baseDate, config.diasVista]);
-  const esBloqueado = function (f, h) { return bloqueados.some(function (b) { return b.fecha === f && b.hora === h; }); };
-  const getReserva = function (f, h) { return reservas.find(function (r) { return r.fecha === f && r.hora === h && r.estado === "confirmada"; }); };
+  const esBloqueado = useCallback(function (f, h) {
+    return bloqueados.some(function (b) { return b.fecha === f && b.hora === h; });
+  }, [bloqueados]);
+  const getReserva = useCallback(function (f, h) {
+    return reservas.find(function (r) { return r.fecha === f && r.hora === h && r.estado === "confirmada"; });
+  }, [reservas]);
 
   var now = new Date();
   var sid = session ? session.id : null;
   var misReservas = reservas.filter(function (r) { return r.userId === sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
   var misPartidos = reservas.filter(function (r) { return r.jugadores && r.jugadores.indexOf(sid) !== -1 && r.userId !== sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
-  var historialReservas = reservas.filter(function (r) { return r.userId === sid && (r.estado === "cancelada" || new Date(r.fecha + "T" + r.hora) < now); });
-
   if (cargando) {
     return (
       <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -500,7 +495,7 @@ export default function App() {
   var navItems = [
     { id: "calendario", label: "Calendario" },
     { id: "misreservas", label: "Mis Reservas", badge: (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) > 0 ? (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) : null },
-    { id: "amics", label: "Amics", badge: solicitudsAmicCount || null },
+    { id: "amics", label: "Amigos", badge: solicitudsAmicCount || null },
     { id: "perfil", label: "Perfil" },
   ];
   if (session.rol === "admin") {
@@ -530,7 +525,6 @@ export default function App() {
         {vista === "misreservas" && (
           <MyReservations
             session={session} misReservas={misReservas} misPartidos={misPartidos}
-            historialReservas={historialReservas}
             users={users} cancelarReserva={pedirCancelar} salirPartido={pedirSalir}
             toggleAbierto={toggleAbierto} setVista={setVista}
             config={config} t={t}

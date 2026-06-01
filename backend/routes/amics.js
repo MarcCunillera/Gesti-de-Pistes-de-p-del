@@ -49,17 +49,17 @@ router.get("/solicituds/enviades", authMiddleware, (req, res) => {
 // POST /api/amics/solicituds — enviar sol·licitud
 router.post("/solicituds", authMiddleware, (req, res) => {
   const { a_user_id } = req.body;
-  if (!a_user_id) return res.status(400).json({ error: "a_user_id requerit" });
-  if (a_user_id === req.user.id) return res.status(400).json({ error: "No et pots afegir a tu mateix" });
+  if (!a_user_id) return res.status(400).json({ error: "a_user_id requerido" });
+  if (a_user_id === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
 
   const target = db.prepare("SELECT id FROM users WHERE id = ?").get(a_user_id);
-  if (!target) return res.status(404).json({ error: "Usuari no trobat" });
+  if (!target) return res.status(404).json({ error: "Usuario no encontrado" });
 
   // Ja amics?
   const jaAmic = db
     .prepare("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?")
     .get(req.user.id, a_user_id);
-  if (jaAmic) return res.status(409).json({ error: "Ja sou amics" });
+  if (jaAmic) return res.status(409).json({ error: "Ya sois amigos" });
 
   try {
     const r = db
@@ -67,7 +67,7 @@ router.post("/solicituds", authMiddleware, (req, res) => {
       .run(req.user.id, a_user_id);
     res.status(201).json({ id: r.lastInsertRowid, estat: "pendent" });
   } catch {
-    res.status(409).json({ error: "Sol·licitud ja existent" });
+    res.status(409).json({ error: "Solicitud ya existente" });
   }
 });
 
@@ -75,11 +75,11 @@ router.post("/solicituds", authMiddleware, (req, res) => {
 router.patch("/solicituds/:id", authMiddleware, (req, res) => {
   const { estat } = req.body; // 'acceptada' | 'rebutjada'
   if (!["acceptada", "rebutjada"].includes(estat))
-    return res.status(400).json({ error: "Estat invàlid" });
+    return res.status(400).json({ error: "Estado inválido" });
 
   const sol = db.prepare("SELECT * FROM solicituds_amic WHERE id = ?").get(req.params.id);
-  if (!sol) return res.status(404).json({ error: "Sol·licitud no trobada" });
-  if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sense permís" });
+  if (!sol) return res.status(404).json({ error: "Solicitud no encontrada" });
+  if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sin permiso" });
 
   db.prepare("UPDATE solicituds_amic SET estat = ? WHERE id = ?").run(estat, sol.id);
 

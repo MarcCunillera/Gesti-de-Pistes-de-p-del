@@ -13,7 +13,7 @@ function authMiddleware(req, res, next) {
   const header = req.headers["authorization"];
 
   if (!header) {
-    return res.status(401).json({ error: "Token requerit" });
+    return res.status(401).json({ error: "Token requerido" });
   }
 
   const token = header.startsWith("Bearer ")
@@ -31,13 +31,13 @@ function authMiddleware(req, res, next) {
 
     if (!user) {
       return res.status(401).json({
-        error: "Usuari no trobat"
+        error: "Usuario no encontrado"
       });
     }
 
     if (user.activo !== 1) {
       return res.status(401).json({
-        error: "Usuari desactivat"
+        error: "Usuario desactivado"
       });
     }
 
@@ -46,14 +46,14 @@ function authMiddleware(req, res, next) {
     next();
   } catch {
     return res.status(401).json({
-      error: "Token invàlid o expirat"
+      error: "Token inválido o expirado"
     });
   }
 }
 
 function adminMiddleware(req, res, next) {
   if (!req.user || req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Només administradors" });
+    return res.status(403).json({ error: "Solo administradores" });
   }
 
   next();

@@ -1,20 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
-
-function activarNotificacion(r) {
-  if (!("Notification" in window)) { alert("Tu navegador no soporta notificaciones"); return; }
-  Notification.requestPermission().then((perm) => {
-    if (perm !== "granted") { alert("Tienes que permitir las notificaciones del navegador."); return; }
-    const msHasta = new Date(`${r.fecha}T${r.hora}`) - Date.now() - 60 * 60 * 1000;
-    if (msHasta <= 0) {
-      new Notification("Partido pronto", { body: `Pista a las ${r.hora}` });
-    } else {
-      setTimeout(() => new Notification("Recordatorio de padel", { body: `Tienes pista a las ${r.hora} (queda 1h)` }), msHasta);
-      alert(`Notificación programada 1h antes (${r.hora})`);
-    }
-  });
-}
 
 function Tag({ children, variant = "default" }) {
   const styles = {
@@ -70,7 +56,7 @@ function SectionTitle({ children, count }) {
   );
 }
 
-export default function MyReservations({ session, misReservas, misPartidos, historialReservas, users, cancelarReserva, salirPartido, toggleAbierto, setVista, config, solicitudsPartidaPendent, respondSolicitudPartida, expulsarJugador, invitarJugador, amics, solicitudsPartidaInvitades, solicitudsPartidaMeues, respondreInvitacioPartida, t }) {
+export default function MyReservations({ session, misReservas, misPartidos, users, cancelarReserva, salirPartido, toggleAbierto, setVista, config, solicitudsPartidaPendent, respondSolicitudPartida, expulsarJugador, invitarJugador, amics, solicitudsPartidaInvitades, solicitudsPartidaMeues, respondreInvitacioPartida, t }) {
   var C = {
     surface:    t?.surface    || "#fff",
     surfaceAlt: t?.surfaceAlt || "#f9fafb",
@@ -82,6 +68,11 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
     primary:    t?.primary    || "#1a2e1a",
   };
   const [inviteOpen, setInviteOpen] = useState(null);
+  const usersMap = useMemo(() => {
+    const m = new Map();
+    (users || []).forEach((u) => m.set(u.id, u));
+    return m;
+  }, [users]);
   const totalActivas = misReservas.length + misPartidos.length;
 
   return (
@@ -189,7 +180,7 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                           <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                             {r.jugadores?.map(function(id) {
-                              var u = users.find(function(x) { return x.id === id; });
+                              var u = usersMap.get(id);
                               var esOrg = id === r.userId;
                               return (
                                 <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}>
@@ -303,7 +294,7 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
             <section style={{ marginBottom: 28 }}>
               <SectionTitle count={misPartidos.length}>Partidos en los que participo</SectionTitle>
               {[...misPartidos].sort((a, b) => (a.fecha + a.hora > b.fecha + b.hora ? 1 : -1)).map(function(r) {
-                var org = users.find(function(u) { return u.id === r.userId; });
+                var org = usersMap.get(r.userId);
                 return (
                   <div key={r.id} style={{ background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.05)", marginBottom: 10, border: "1px solid #e5e7eb" }}>
                     <div style={{ height: 3, background: "#60a5fa" }} />
@@ -325,7 +316,7 @@ export default function MyReservations({ session, misReservas, misPartidos, hist
                       <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
                         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                           {r.jugadores?.map(function(id) {
-                            var u = users.find(function(x) { return x.id === id; });
+                            var u = usersMap.get(id);
                             var esOrg = id === r.userId;
                             var esTu = id === session.id;
                             return (

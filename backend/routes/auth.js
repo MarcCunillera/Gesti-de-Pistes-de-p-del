@@ -1,23 +1,34 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const rateLimit = require("express-rate-limit");
 const db = require("../db");
 const { SECRET } = require("../middleware/auth");
 const { OAuth2Client } = require("google-auth-library");
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos. Vuelve a intentarlo en 15 minutos" },
+});
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // POST /api/auth/login
-router.post("/login", (req, res) => {
+router.post("/login", authLimiter, (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
-    return res.status(400).json({ error: "Email i contrasenya requerits" });
+    return res.status(400).json({ error: "Email y contraseña requeridos" });
 
   const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
-  if (!user) return res.status(401).json({ error: "Credencials incorrectes" });
-  if (!user.activo) return res.status(403).json({ error: "Compte desactivat" });
+  if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });
+  if (!user.activo) return res.status(403).json({ error: "Cuenta desactivada" });
 
   const ok = bcrypt.compareSync(password, user.password);
-  if (!ok) return res.status(401).json({ error: "Credencials incorrectes" });
+  if (!ok) return res.status(401).json({ error: "Credenciales incorrectas" });
 
   const token = jwt.sign(
     { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
@@ -30,15 +41,17 @@ router.post("/login", (req, res) => {
 });
 
 // POST /api/auth/register
-router.post("/register", (req, res) => {
+router.post("/register", authLimiter, (req, res) => {
   const { nombre, email, password } = req.body;
   if (!nombre || !email || !password)
-    return res.status(400).json({ error: "Tots els camps són obligatoris" });
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  if (!emailRegex.test(email))
+    return res.status(400).json({ error: "Formato de email inválido" });
   if (password.length < 6)
-    return res.status(400).json({ error: "La contrasenya ha de tenir mínim 6 caràcters" });
+    return res.status(400).json({ error: "La contraseña debe tener mínimo 6 caracteres" });
 
   const exists = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
-  if (exists) return res.status(409).json({ error: "Email ja registrat" });
+  if (exists) return res.status(409).json({ error: "Email ya registrado" });
 
   const hash = bcrypt.hashSync(password, 10);
   const result = db
@@ -59,7 +72,7 @@ router.post("/google", async (req, res) => {
     const { credential } = req.body;
 
     if (!credential) {
-      return res.status(400).json({ error: "Credential de Google requerida" });
+      return res.status(400).json({ error: "Credencial de Google requerida" });
     }
 
     const ticket = await googleClient.verifyIdToken({
@@ -74,13 +87,13 @@ router.post("/google", async (req, res) => {
     const avatar = payload.picture || null;
 
     if (!email || !payload.email_verified) {
-      return res.status(401).json({ error: "Compte de Google no verificat" });
+      return res.status(401).json({ error: "Cuenta de Google no verificada" });
     }
 
     let user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
 
     if (user && !user.activo) {
-      return res.status(403).json({ error: "Compte desactivat" });
+      return res.status(403).json({ error: "Cuenta desactivada" });
     }
 
     if (!user) {
@@ -106,7 +119,7 @@ router.post("/google", async (req, res) => {
     res.json({ token, user: userData });
   } catch (err) {
     console.error("Error login Google:", err);
-    res.status(401).json({ error: "Login amb Google invàlid" });
+    res.status(401).json({ error: "Login con Google inválido" });
   }
 });
 

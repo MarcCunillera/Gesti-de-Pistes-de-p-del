@@ -64,7 +64,7 @@ function TabBar({ activeTab, onTabChange }) {
         className={activeTab === "registro" ? "active" : ""}
         onClick={() => onTabChange("registro")}
       >
-        Registrar-se
+        Registrarse
       </button>
     </div>
   );
@@ -87,7 +87,7 @@ function GoogleLoginBlock({ loginGoogle }) {
             }
           }}
           onError={() => {
-            console.error("Error iniciant sessió amb Google");
+            console.error("Error iniciando sesión con Google");
           }}
           theme="outline"
           size="large"
@@ -106,7 +106,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correu electrònic"
+        placeholder="Correo electrónico"
         value={form.email}
         onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
         autoComplete="email"
@@ -115,7 +115,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconLock />}
         type="password"
-        placeholder="Contrasenya"
+        placeholder="Contraseña"
         value={form.password}
         onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
         onKeyDown={(e) => e.key === "Enter" && onSubmit()}
@@ -139,7 +139,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconUser />}
         type="text"
-        placeholder="Nom complet"
+        placeholder="Nombre completo"
         value={form.nombre}
         onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
         autoComplete="name"
@@ -148,7 +148,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correu electrònic"
+        placeholder="Correo electrónico"
         value={form.email}
         onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
         autoComplete="email"
@@ -157,7 +157,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconLock />}
         type="password"
-        placeholder="Contrasenya"
+        placeholder="Contraseña"
         value={form.password}
         onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
         onFocus={() => setShowPwdReqs(true)}
@@ -199,12 +199,12 @@ export default function AuthScreen({
           </div>
 
           <div>
-            <h1>Pista de Pàdel</h1>
+            <h1>Pista de Pádel</h1>
             <p>Torrelameu</p>
           </div>
 
           <div className="auth-brand-text">
-            Gestiona les reserves de la pista municipal de forma ràpida i senzilla.
+            Gestiona las reservas de la pista municipal de forma rápida y sencilla.
           </div>
         </div>
 
@@ -214,11 +214,11 @@ export default function AuthScreen({
           </div>
 
           <div className="auth-heading">
-            <h2>{isLogin ? "Benvingut/da" : "Crea el teu compte"}</h2>
+            <h2>{isLogin ? "Bienvenido/a" : "Crea tu cuenta"}</h2>
             <p>
               {isLogin
-                ? "Accedeix per consultar i gestionar les teves reserves."
-                : "Registra’t per començar a reservar la pista."}
+                ? "Accede para consultar y gestionar tus reservas."
+                : "Regístrate para empezar a reservar la pista."}
             </p>
           </div>
 

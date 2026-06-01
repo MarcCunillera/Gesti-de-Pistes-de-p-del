@@ -9,6 +9,15 @@ const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 const uploadsDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
+function deleteAvatarFile(avatarPath) {
+  if (!avatarPath) return;
+  if (!avatarPath.startsWith("/uploads/")) return;
+  const filePath = path.join(__dirname, "..", avatarPath.replace(/^\//, ""));
+  if (fs.existsSync(filePath)) {
+    try { fs.unlinkSync(filePath); } catch (_) {}
+  }
+}
+
 const storage = multer.diskStorage({
   destination: uploadsDir,
   filename: (req, file, cb) => {
@@ -62,7 +71,7 @@ router.get("/me", authMiddleware, (req, res) => {
   const u = db
     .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?")
     .get(req.user.id);
-  if (!u) return res.status(404).json({ error: "Usuari no trobat" });
+  if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
   res.json(u);
 });
 
@@ -72,15 +81,15 @@ router.patch("/me", authMiddleware, (req, res) => {
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
 
   if (newPassword) {
-    if (!currentPassword) return res.status(400).json({ error: "Cal la contrasenya actual" });
+    if (!currentPassword) return res.status(400).json({ error: "Se requiere la contraseña actual" });
     if (!bcrypt.compareSync(currentPassword, user.password))
-      return res.status(401).json({ error: "Contrasenya actual incorrecta" });
+      return res.status(401).json({ error: "Contraseña actual incorrecta" });
     if (newPassword.length < 6)
-      return res.status(400).json({ error: "Mínimo 6 caràcters" });
+      return res.status(400).json({ error: "Mínimo 6 caracteres" });
   }
   if (email && email !== user.email) {
     const exists = db.prepare("SELECT id FROM users WHERE email = ? AND id != ?").get(email, user.id);
-    if (exists) return res.status(400).json({ error: "Aquest email ja està en ús" });
+    if (exists) return res.status(400).json({ error: "Este email ya está en uso" });
   }
 
   const applyUpdates = db.transaction(() => {
@@ -113,11 +122,19 @@ router.post("/me/avatar", authMiddleware, (req, res) => {
     }
 
     if (!req.file) {
-      return res.status(400).json({ error: "Cap fitxer rebut" });
+      return res.status(400).json({ error: "No se recibió ningún archivo" });
     }
+
+    const user = db
+      .prepare("SELECT avatar FROM users WHERE id = ?")
+      .get(req.user.id);
 
     const url = `/uploads/${req.file.filename}`;
     db.prepare("UPDATE users SET avatar = ? WHERE id = ?").run(url, req.user.id);
+
+    if (user?.avatar && user.avatar !== url) {
+      deleteAvatarFile(user.avatar);
+    }
 
     res.json({ avatar: url });
   });
@@ -127,8 +144,7 @@ router.post("/me/avatar", authMiddleware, (req, res) => {
 router.delete("/me/avatar", authMiddleware, (req, res) => {
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
   if (user.avatar) {
-    const filePath = path.join(__dirname, "..", user.avatar);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    deleteAvatarFile(user.avatar);
     db.prepare("UPDATE users SET avatar = NULL WHERE id = ?").run(user.id);
   }
   const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
@@ -139,7 +155,7 @@ router.delete("/me/avatar", authMiddleware, (req, res) => {
 router.patch("/:id", authMiddleware, adminMiddleware, (req, res) => {
   const { rol, activo } = req.body;
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.params.id);
-  if (!user) return res.status(404).json({ error: "Usuari no trobat" });
+  if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
   if (rol) db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, user.id);
   if (activo !== undefined) db.prepare("UPDATE users SET activo = ? WHERE id = ?").run(activo ? 1 : 0, user.id);
   const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
@@ -156,13 +172,13 @@ router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => {
     .get(userId);
 
   if (!u) {
-    return res.status(404).json({ error: "Usuari no trobat" });
+    return res.status(404).json({ error: "Usuario no encontrado" });
   }
 
   // Evitar desactivar-se a si mateix
   if (userId === req.user.id) {
     return res.status(400).json({
-      error: "No pots desactivar el teu propi compte"
+      error: "No puedes desactivar tu propia cuenta"
     });
   }
 
@@ -172,7 +188,7 @@ router.delete("/:id", authMiddleware, adminMiddleware, (req, res) => {
 
   res.json({
     ok: true,
-    message: "Usuari desactivat"
+    message: "Usuario desactivado"
   });
 });
 

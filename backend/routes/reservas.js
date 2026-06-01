@@ -46,26 +46,6 @@ const isAllowedSlot = (hora) => {
   return (slot - inicio) % duracion === 0;
 };
 
-// GET /api/reservas
-router.get("/", authMiddleware, (req, res) => {
-  let rows;
-
-  if (req.user.rol === "admin") {
-    rows = db.prepare("SELECT * FROM reservas ORDER BY fecha, hora").all();
-  } else {
-    rows = db
-      .prepare(
-        `SELECT DISTINCT r.* FROM reservas r
-         LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
-         WHERE r.user_id = ? OR rj.user_id = ?
-         ORDER BY r.fecha, r.hora`
-      )
-      .all(req.user.id, req.user.id);
-  }
-
-  res.json(rows.map(enrichReserva));
-});
-
 // GET /api/reservas/all — totes les reserves confirmades per al calendari
 router.get("/all", authMiddleware, (req, res) => {
   const rows = db
@@ -84,23 +64,23 @@ router.post("/", authMiddleware, (req, res) => {
   const { fecha, hora, abierto } = req.body;
 
   if (!fecha || !hora) {
-    return res.status(400).json({ error: "Data i hora requerides" });
+    return res.status(400).json({ error: "Fecha y hora requeridas" });
   }
 
   if (!isValidDate(fecha)) {
-    return res.status(400).json({ error: "Format de data invàlid" });
+    return res.status(400).json({ error: "Formato de fecha inválido" });
   }
 
   if (!isValidTime(hora)) {
-    return res.status(400).json({ error: "Format d'hora invàlid" });
+    return res.status(400).json({ error: "Formato de hora inválido" });
   }
 
   if (isPastSlot(fecha, hora)) {
-    return res.status(400).json({ error: "No es poden fer reserves en el passat" });
+    return res.status(400).json({ error: "No se pueden hacer reservas en el pasado" });
   }
 
   if (!isAllowedSlot(hora)) {
-    return res.status(400).json({ error: "Hora fora de l'horari permès" });
+    return res.status(400).json({ error: "Hora fuera del horario permitido" });
   }
 
   const bloq = db
@@ -108,7 +88,7 @@ router.post("/", authMiddleware, (req, res) => {
     .get(fecha, hora);
 
   if (bloq) {
-    return res.status(409).json({ error: "Franja bloquejada" });
+    return res.status(409).json({ error: "Franja bloqueada" });
   }
 
   const ocupat = db
@@ -118,7 +98,7 @@ router.post("/", authMiddleware, (req, res) => {
     .get(fecha, hora);
 
   if (ocupat) {
-    return res.status(409).json({ error: "Franja ja reservada" });
+    return res.status(409).json({ error: "Franja ya reservada" });
   }
 
   const maxReservas = parseInt(getConfigValue("maxReservas", "3"), 10);
@@ -132,7 +112,7 @@ router.post("/", authMiddleware, (req, res) => {
 
   if (activas.n >= maxReservas) {
     return res.status(409).json({
-      error: `Límit de ${maxReservas} reserves actives`,
+      error: `Límite de ${maxReservas} reservas activas`,
     });
   }
 
@@ -146,11 +126,11 @@ router.post("/", authMiddleware, (req, res) => {
       .run(req.user.id, fecha, hora, abierto ? 1 : 0);
   } catch (err) {
     if (err.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return res.status(409).json({ error: "Franja ja reservada" });
+      return res.status(409).json({ error: "Franja ya reservada" });
     }
 
     console.error("Error creant reserva:", err);
-    return res.status(500).json({ error: "Error intern creant la reserva" });
+    return res.status(500).json({ error: "Error interno creando la reserva" });
   }
 
   db.prepare(
@@ -224,40 +204,40 @@ router.patch("/solicituds/:id", authMiddleware, (req, res) => {
     .prepare("SELECT * FROM solicituds_partida WHERE id = ?")
     .get(req.params.id);
 
-  if (!sp) return res.status(404).json({ error: "Sol·licitud no trobada" });
+  if (!sp) return res.status(404).json({ error: "Solicitud no encontrada" });
 
   const r = db
     .prepare("SELECT * FROM reservas WHERE id = ?")
     .get(sp.reserva_id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   const esOrganitzador = r.user_id === req.user.id;
   const esInvitat = sp.de_user_id === req.user.id && sp.estat === "invitat";
 
   if (!esOrganitzador && !esInvitat) {
-    return res.status(403).json({ error: "Sense permís" });
+    return res.status(403).json({ error: "Sin permiso" });
   }
 
   const { estat } = req.body;
 
   if (estat !== "acceptada" && estat !== "rebutjada") {
-    return res.status(400).json({ error: "Estat invàlid" });
+    return res.status(400).json({ error: "Estado inválido" });
   }
 
   if (esOrganitzador && sp.estat !== "pendent") {
-    return res.status(400).json({ error: "Aquesta sol·licitud no és pendent" });
+    return res.status(400).json({ error: "Esta solicitud no está pendiente" });
   }
 
   if (esInvitat && sp.estat !== "invitat") {
-    return res.status(400).json({ error: "Aquesta invitació no és activa" });
+    return res.status(400).json({ error: "Esta invitación no está activa" });
   }
 
   if (estat === "acceptada") {
     const jugadors = getJugadors(r.id);
 
     if (jugadors.length >= 4) {
-      return res.status(409).json({ error: "Partida ja completa" });
+      return res.status(409).json({ error: "Partida ya completa" });
     }
 
     const jaEsta = jugadors.find((j) => j.id === sp.de_user_id);
@@ -280,12 +260,12 @@ router.patch("/solicituds/:id", authMiddleware, (req, res) => {
 router.post("/:id/unirse", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (!r.abierto) return res.status(403).json({ error: "Partida privada" });
   if (r.estado !== "confirmada") return res.status(409).json({ error: "Partida no activa" });
 
   if (r.user_id === req.user.id) {
-    return res.status(409).json({ error: "Ets l'organitzador" });
+    return res.status(409).json({ error: "Eres el organizador" });
   }
 
   const jugadors = getJugadors(r.id);
@@ -297,7 +277,7 @@ router.post("/:id/unirse", authMiddleware, (req, res) => {
   const jaEsta = jugadors.find((j) => j.id === req.user.id);
 
   if (jaEsta) {
-    return res.status(409).json({ error: "Ja ets a la partida" });
+    return res.status(409).json({ error: "Ya estás en la partida" });
   }
 
   const existent = db
@@ -307,24 +287,24 @@ router.post("/:id/unirse", authMiddleware, (req, res) => {
     .get(r.id, req.user.id);
 
   if (existent) {
-    return res.status(409).json({ error: "Ja has enviat una sol·licitud" });
+    return res.status(409).json({ error: "Ya has enviado una solicitud" });
   }
 
   db.prepare(
     "INSERT INTO solicituds_partida (reserva_id, de_user_id, estat) VALUES (?, ?, 'pendent')"
   ).run(r.id, req.user.id);
 
-  res.status(201).json({ ok: true, message: "Sol·licitud enviada" });
+  res.status(201).json({ ok: true, message: "Solicitud enviada" });
 });
 
 router.post("/:id/sortir", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id === req.user.id) {
     return res.status(400).json({
-      error: "L'organitzador no pot sortir, cancel·la la reserva",
+      error: "El organizador no puede salir, cancela la reserva",
     });
   }
 
@@ -338,16 +318,16 @@ router.post("/:id/sortir", authMiddleware, (req, res) => {
 router.delete("/:id/jugadors/:userId", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Sense permís — no ets l'organitzador" });
+    return res.status(403).json({ error: "Sin permiso — no eres el organizador" });
   }
 
   const userId = parseInt(req.params.userId, 10);
 
   if (userId === r.user_id) {
-    return res.status(400).json({ error: "No pots expulsar l'organitzador" });
+    return res.status(400).json({ error: "No puedes expulsar al organizador" });
   }
 
   db.prepare(
@@ -364,20 +344,20 @@ router.delete("/:id/jugadors/:userId", authMiddleware, (req, res) => {
 router.post("/:id/invitar", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Sense permís — no ets l'organitzador" });
+    return res.status(403).json({ error: "Sin permiso — no eres el organizador" });
   }
 
   if (!r.abierto) {
-    return res.status(400).json({ error: "El partit no és obert" });
+    return res.status(400).json({ error: "La partida no está abierta" });
   }
 
   const { user_id } = req.body;
 
   if (!user_id) {
-    return res.status(400).json({ error: "user_id requerit" });
+    return res.status(400).json({ error: "user_id requerido" });
   }
 
   const jugadors = getJugadors(r.id);
@@ -389,7 +369,7 @@ router.post("/:id/invitar", authMiddleware, (req, res) => {
   const jaEsta = jugadors.find((j) => j.id === user_id);
 
   if (jaEsta) {
-    return res.status(409).json({ error: "El jugador ja és al partit" });
+    return res.status(409).json({ error: "El jugador ya está en la partida" });
   }
 
   const existent = db
@@ -401,12 +381,12 @@ router.post("/:id/invitar", authMiddleware, (req, res) => {
   if (existent) {
     if (existent.estat === "invitat") {
       return res.status(409).json({
-        error: "Ja tens una invitació pendent per a aquest jugador",
+        error: "Ya tienes una invitación pendiente para este jugador",
       });
     }
 
     if (existent.estat === "acceptada") {
-      return res.status(409).json({ error: "El jugador ja és al partit" });
+      return res.status(409).json({ error: "El jugador ya está en la partida" });
     }
 
     db.prepare("UPDATE solicituds_partida SET estat = 'invitat' WHERE id = ?").run(
@@ -418,16 +398,16 @@ router.post("/:id/invitar", authMiddleware, (req, res) => {
     ).run(r.id, user_id);
   }
 
-  res.json({ ok: true, message: "Invitació enviada — l'amic ha de confirmar" });
+  res.json({ ok: true, message: "Invitación enviada — el amigo debe confirmar" });
 });
 
 router.patch("/:id/abierto", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Sense permís" });
+    return res.status(403).json({ error: "Sin permiso" });
   }
 
   const { abierto } = req.body;
@@ -450,19 +430,19 @@ router.post("/bloqueados", authMiddleware, adminMiddleware, (req, res) => {
   const { fecha, hora } = req.body;
 
   if (!fecha || !hora) {
-    return res.status(400).json({ error: "Cal data i hora" });
+    return res.status(400).json({ error: "Se requiere fecha y hora" });
   }
 
   if (!isValidDate(fecha)) {
-    return res.status(400).json({ error: "Format de data invàlid" });
+    return res.status(400).json({ error: "Formato de fecha inválido" });
   }
 
   if (!isValidTime(hora)) {
-    return res.status(400).json({ error: "Format d'hora invàlid" });
+    return res.status(400).json({ error: "Formato de hora inválido" });
   }
 
   if (!isAllowedSlot(hora)) {
-    return res.status(400).json({ error: "Hora fora de l'horari permès" });
+    return res.status(400).json({ error: "Hora fuera del horario permitido" });
   }
 
   try {
@@ -472,8 +452,61 @@ router.post("/bloqueados", authMiddleware, adminMiddleware, (req, res) => {
 
     res.status(201).json({ id: r.lastInsertRowid, fecha, hora });
   } catch {
-    res.status(409).json({ error: "Ja bloquejat" });
+    res.status(409).json({ error: "Ya bloqueado" });
   }
+});
+
+router.post("/bloqueados/batch", authMiddleware, adminMiddleware, (req, res) => {
+  const { fechaInicio, fechaFin, horas } = req.body || {};
+
+  if (!fechaInicio || !fechaFin || !Array.isArray(horas) || horas.length === 0) {
+    return res.status(400).json({ error: "Se requiere fechaInicio, fechaFin y horas" });
+  }
+
+  if (!isValidDate(fechaInicio) || !isValidDate(fechaFin)) {
+    return res.status(400).json({ error: "Formato de fecha inválido" });
+  }
+
+  if (new Date(fechaInicio) > new Date(fechaFin)) {
+    return res.status(400).json({ error: "Rango de fechas inválido" });
+  }
+
+  for (const hora of horas) {
+    if (!isValidTime(hora)) {
+      return res.status(400).json({ error: "Formato de hora inválido" });
+    }
+    if (!isAllowedSlot(hora)) {
+      return res.status(400).json({ error: "Hora fuera del horario permitido" });
+    }
+  }
+
+  const toInsert = [];
+  const d = new Date(fechaInicio);
+  const fin = new Date(fechaFin);
+
+  while (d <= fin) {
+    const f = d.toISOString().split("T")[0];
+    for (const h of horas) {
+      toInsert.push([f, h]);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  const insertOrIgnore = db.prepare("INSERT OR IGNORE INTO bloqueados (fecha, hora) VALUES (?, ?)");
+  const readBySlot = db.prepare("SELECT id, fecha, hora FROM bloqueados WHERE fecha = ? AND hora = ?");
+
+  const created = db.transaction((rows) => {
+    const inserted = [];
+    for (const [f, h] of rows) {
+      const r = insertOrIgnore.run(f, h);
+      if (r.changes > 0) {
+        inserted.push(readBySlot.get(f, h));
+      }
+    }
+    return inserted;
+  })(toInsert);
+
+  res.status(201).json({ created });
 });
 
 router.delete("/bloqueados/:id", authMiddleware, adminMiddleware, (req, res) => {
@@ -512,10 +545,10 @@ router.put("/config", authMiddleware, adminMiddleware, (req, res) => {
 router.delete("/:id", authMiddleware, (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
-    return res.status(403).json({ error: "Sense permís" });
+    return res.status(403).json({ error: "Sin permiso" });
   }
 
   const cancelReserva = db.transaction(() => {
@@ -529,7 +562,7 @@ router.delete("/:id", authMiddleware, (req, res) => {
     cancelReserva();
   } catch (err) {
     console.error("Error cancelant reserva:", err);
-    return res.status(500).json({ error: "Error intern cancelant la reserva" });
+    return res.status(500).json({ error: "Error interno cancelando la reserva" });
   }
 
   res.json({ ok: true });

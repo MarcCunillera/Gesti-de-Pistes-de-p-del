@@ -5,12 +5,12 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
   if (!data) return null;
   const { fecha, hora, abierto } = data;
   const duracion = config?.duracion || 90;
-  const titulo = abierto ? "Partit obert de pàdel" : "Reserva pista pàdel - Torrelameu";
-  const desc = "Pista pàdel Torrelameu - La pleta";
+  const titulo = abierto ? "Partido abierto de pádel" : "Reserva pista pádel - Torrelameu";
+  const desc = "Pista pádel Torrelameu - La pleta";
   const [h, m] = hora.split(":").map(Number);
   const tot = h * 60 + m + duracion;
   const horaFi = `${String(Math.floor(tot / 60)).padStart(2, "0")}:${String(tot % 60).padStart(2, "0")}`;
-  const mes = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"][parseInt(fecha.split("-")[1]) - 1];
+  const mes = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][parseInt(fecha.split("-")[1]) - 1];
 
   return (
     <div style={modalOverlay} onClick={onClose}>
@@ -39,7 +39,7 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
               </svg>
-              <span style={{ fontSize: 12, color: "#9ca3af" }}>Pista pàdel Torrelameu - La pleta</span>
+              <span style={{ fontSize: 12, color: "#9ca3af" }}>Pista pádel Torrelameu - La pleta</span>
             </div>
           </div>
 

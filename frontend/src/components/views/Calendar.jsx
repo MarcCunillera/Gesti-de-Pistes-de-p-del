@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { hoy, formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 
@@ -75,6 +75,11 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
   const width = useWindowWidth();
   const esMobil = width < 640;
   const [diaAbierto, setDiaAbierto] = useState(null);
+  const usersMap = useMemo(() => {
+    const m = new Map();
+    (users || []).forEach((u) => m.set(u.id, u));
+    return m;
+  }, [users]);
 
   const surface    = t?.surface    || "#ffffff";
   const surfaceAlt = t?.surfaceAlt || "#f9fafb";
@@ -216,7 +221,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {partitsOrdenats.map(function(r) {
-          var org = (users || []).find(function(u) { return u.id === r.userId; });
+          var org = usersMap.get(r.userId);
           var esAmic = amicIds.has(r.userId);
           var lliures = 4 - (r.jugadores?.length || 0);
           return (
@@ -251,7 +256,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                 {/* Avatars jugadors */}
                 <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "12px 14px 8px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   {(r.jugadores || []).map(function(id) {
-                    var u = (users || []).find(function(x) { return x.id === id; });
+                    var u = usersMap.get(id);
                     var esOrg = id === r.userId;
                     return (
                       <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>

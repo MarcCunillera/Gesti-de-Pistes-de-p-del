@@ -16,7 +16,8 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
 
   const invitadesReserva = (solicitudsPartidaInvitades || []).filter(s => s.reserva_id === reserva.id);
   const invitadesIds     = invitadesReserva.map(s => s.de_id);
-  const jaAlPartit       = reserva.jugadors || [];
+  const jaAlPartit       = reserva.jugadores || [];
+  const jugadorsConDatos = reserva.jugadorsData || [];
   const amicsDisponibles = (amics || []).filter(a => !jaAlPartit.includes(a.id) && !invitadesIds.includes(a.id));
   const amicsInvitats    = (amics || []).filter(a => invitadesIds.includes(a.id));
   const lliures          = 4 - (jaAlPartit.length || 0);
@@ -36,30 +37,30 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
 
           {/* Cabecera */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Partit creat</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Partido creado</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
               <span style={{ fontWeight: 700, fontSize: 16, color: C.text }}>{formatFecha(reserva.fecha)}</span>
               <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{reserva.hora}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #93c5fd", borderRadius: 20, padding: "2px 10px" }}>Obert</span>
+              <span style={{ fontSize: 11, fontWeight: 700, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #93c5fd", borderRadius: 20, padding: "2px 10px" }}>Abierto</span>
             </div>
-            <div style={{ fontSize: 12, color: "#9ca3af" }}>{jaAlPartit.length}/4 jugadors</div>
+            <div style={{ fontSize: 12, color: "#9ca3af" }}>{jaAlPartit.length}/4 jugadores</div>
             <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 4 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span style={{ fontSize: 12, color: "#9ca3af" }}>Pista pàdel Torrelameu - La pleta</span>
+              <span style={{ fontSize: 12, color: "#9ca3af" }}>Pista pádel Torrelameu - La pleta</span>
             </div>
           </div>
 
           {/* Jugadores */}
           <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 16 }}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
-              {jaAlPartit.map(function(id) {
-                const u = users.find(x => x.id === id);
-                const esTu = id === session.id;
+              {jugadorsConDatos.map(function(userData) {
+                const esTu = userData.id === session.id;
+                const userToShow = esTu ? session : userData;
                 return (
-                  <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <UserAvatar user={u || { id, nombre: "?" }} size={38} outline={esTu ? "2px solid #60a5fa" : "none"} outlineOffset={2} />
+                  <div key={userData.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                    <UserAvatar user={userToShow || { id: userData.id, nombre: "?" }} size={38} outline={esTu ? "2px solid #60a5fa" : "none"} outlineOffset={2} />
                     <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : "#374151", fontWeight: esTu ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {esTu ? "tu" : u?.nombre?.split(" ")[0] || "?"}
+                      {esTu ? "tú" : userData?.nombre?.split(" ")[0] || "?"}
                     </span>
                   </div>
                 );
@@ -67,25 +68,25 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
               {Array.from({ length: lliures }).map((_, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
                   <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
-                  <span style={{ fontSize: 11, color: "#64748b" }}>Lliure</span>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Convidar */}
+          {/* Invitar */}
           {lliures > 0 && (
             <div style={{ marginBottom: 16 }}>
               <button
                 onClick={() => setInviteOpen(o => !o)}
                 style={{ background: "none", border: "1px solid " + C.border, borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#374151", cursor: "pointer", width: "100%" }}
               >
-                {inviteOpen ? "Tancar" : "Convidar jugador"}
+                {inviteOpen ? "Cerrar" : "Invitar jugador"}
               </button>
               {inviteOpen && (
                 <div style={{ marginTop: 8, background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "10px 12px" }}>
                   {amicsDisponibles.length === 0 && amicsInvitats.length === 0 ? (
-                    <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Tots els teus amics ja han estat convidats.</p>
+                    <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Todos tus amigos ya han sido invitados.</p>
                   ) : (
                     amicsDisponibles.map(a => (
                       <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6 }}>
@@ -94,7 +95,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
                         <button
                           onClick={() => invitarJugador(reserva.id, a.id)}
                           style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 7, padding: "4px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
-                        >Convidar</button>
+                        >Invitar</button>
                       </div>
                     ))
                   )}
@@ -102,7 +103,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
                     <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6, opacity: 0.65 }}>
                       <UserAvatar user={a} size={28} />
                       <span style={{ fontSize: 12, flex: 1, color: C.text }}>{a.nombre || "?"}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 7, padding: "3px 10px" }}>Pendent</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 7, padding: "3px 10px" }}>Pendiente</span>
                     </div>
                   ))}
                 </div>
@@ -114,7 +115,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
             onClick={onClose}
             style={{ width: "100%", padding: "10px", background: "transparent", color: "#9ca3af", border: "none", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
           >
-            Tancar
+            Cerrar
           </button>
         </div>
       </div>
