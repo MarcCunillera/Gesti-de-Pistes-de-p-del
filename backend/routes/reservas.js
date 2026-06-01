@@ -1,6 +1,14 @@
 const router = require("express").Router();
 const db = require("../db");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+const {
+  sendReservaConfirmada,
+  sendReservaCancelada,
+  sendSolicitudPartida,
+  sendSolicitudAcceptada,
+  sendSolicitudRebutjada,
+  sendInvitacioPartida,
+} = require("../services/mail");
 
 const getJugadors = (reservaId) =>
   db
@@ -60,7 +68,7 @@ router.get("/all", authMiddleware, (req, res) => {
 });
 
 // POST /api/reservas
-router.post("/", authMiddleware, (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   const { fecha, hora, abierto } = req.body;
 
   if (!fecha || !hora) {
@@ -141,6 +149,16 @@ router.post("/", authMiddleware, (req, res) => {
     .prepare("SELECT * FROM reservas WHERE id = ?")
     .get(result.lastInsertRowid);
 
+  const user = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(req.user.id);
+
+  try {
+    await sendReservaConfirmada(user, r);
+  } catch (err) {
+    console.error("Error enviant correu de reserva:", err.message);
+  }
+
   res.status(201).json(enrichReserva(r));
 });
 
@@ -199,7 +217,7 @@ router.get("/solicituds/pendent", authMiddleware, (req, res) => {
   res.json(rows);
 });
 
-router.patch("/solicituds/:id", authMiddleware, (req, res) => {
+router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
   const sp = db
     .prepare("SELECT * FROM solicituds_partida WHERE id = ?")
     .get(req.params.id);
@@ -254,10 +272,24 @@ router.patch("/solicituds/:id", authMiddleware, (req, res) => {
     sp.id
   );
 
+  const user = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(sp.de_user_id);
+
+  try {
+    if (estat === "acceptada") {
+      await sendSolicitudAcceptada(user, r);
+    } else {
+      await sendSolicitudRebutjada(user, r);
+    }
+  } catch (err) {
+    console.error("Error enviant correu de sol·licitud:", err.message);
+  }
+
   res.json({ ok: true, estat });
 });
 
-router.post("/:id/unirse", authMiddleware, (req, res) => {
+router.post("/:id/unirse", authMiddleware, async (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
@@ -294,10 +326,24 @@ router.post("/:id/unirse", authMiddleware, (req, res) => {
     "INSERT INTO solicituds_partida (reserva_id, de_user_id, estat) VALUES (?, ?, 'pendent')"
   ).run(r.id, req.user.id);
 
-  res.status(201).json({ ok: true, message: "Solicitud enviada" });
+  const organitzador = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(r.user_id);
+
+  const solicitant = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(req.user.id);
+
+  try {
+    await sendSolicitudPartida(organitzador, solicitant, r);
+  } catch (err) {
+    console.error("Error enviant correu de sol·licitud de partida:", err.message);
+  }
+
+  res.status(201).json({ ok: true, message: "Sol·licitud enviada" });
 });
 
-router.post("/:id/sortir", authMiddleware, (req, res) => {
+router.post("/:id/sortir", authMiddleware, async (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
@@ -312,10 +358,14 @@ router.post("/:id/sortir", authMiddleware, (req, res) => {
     "DELETE FROM reserva_jugadores WHERE reserva_id = ? AND user_id = ?"
   ).run(r.id, req.user.id);
 
+  db.prepare(
+    "UPDATE solicituds_partida SET estat = 'rebutjada' WHERE reserva_id = ? AND de_user_id = ?"
+  ).run(r.id, req.user.id);
+
   res.json(enrichReserva(db.prepare("SELECT * FROM reservas WHERE id = ?").get(r.id)));
 });
 
-router.delete("/:id/jugadors/:userId", authMiddleware, (req, res) => {
+router.delete("/:id/jugadors/:userId", authMiddleware, async (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
@@ -341,17 +391,13 @@ router.delete("/:id/jugadors/:userId", authMiddleware, (req, res) => {
   res.json(enrichReserva(db.prepare("SELECT * FROM reservas WHERE id = ?").get(r.id)));
 });
 
-router.post("/:id/invitar", authMiddleware, (req, res) => {
+router.post("/:id/invitar", authMiddleware, async (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
     return res.status(403).json({ error: "Sin permiso — no eres el organizador" });
-  }
-
-  if (!r.abierto) {
-    return res.status(400).json({ error: "La partida no está abierta" });
   }
 
   const { user_id } = req.body;
@@ -398,7 +444,21 @@ router.post("/:id/invitar", authMiddleware, (req, res) => {
     ).run(r.id, user_id);
   }
 
-  res.json({ ok: true, message: "Invitación enviada — el amigo debe confirmar" });
+  const userInvitat = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(user_id);
+
+  const organitzador = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(req.user.id);
+
+  try {
+    await sendInvitacioPartida(userInvitat, organitzador, r);
+  } catch (err) {
+    console.error("Error enviant correu d'invitació:", err.message);
+  }
+
+  res.json({ ok: true, message: "Invitació enviada — l'amic ha de confirmar" });
 });
 
 router.patch("/:id/abierto", authMiddleware, (req, res) => {
@@ -542,10 +602,12 @@ router.put("/config", authMiddleware, adminMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete("/:id", authMiddleware, (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   const r = db.prepare("SELECT * FROM reservas WHERE id = ?").get(req.params.id);
 
-  if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
+  if (!r) {
+    return res.status(404).json({ error: "Reserva no trobada" });
+  }
 
   if (r.user_id !== req.user.id && req.user.rol !== "admin") {
     return res.status(403).json({ error: "Sin permiso" });
@@ -563,6 +625,19 @@ router.delete("/:id", authMiddleware, (req, res) => {
   } catch (err) {
     console.error("Error cancelant reserva:", err);
     return res.status(500).json({ error: "Error interno cancelando la reserva" });
+  }
+
+  const user = db
+    .prepare("SELECT id, nombre, email FROM users WHERE id = ?")
+    .get(r.user_id);
+
+  try {
+    await sendReservaCancelada(user, r);
+  } catch (err) {
+    console.error(
+      "Error enviant correu de cancel·lació:",
+      err.message
+    );
   }
 
   res.json({ ok: true });
