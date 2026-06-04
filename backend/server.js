@@ -50,5 +50,5 @@ if (fs.existsSync(publicDir)) {
 }
 
 app.listen(PORT, () => {
-  console.log(`✅  Backend Pàdel escoltant a http://localhost:${PORT}`);
+  console.log(`Backend Pàdel escoltant a http://localhost:${PORT}`);
 });

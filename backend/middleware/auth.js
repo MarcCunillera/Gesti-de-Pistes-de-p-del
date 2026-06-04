@@ -5,7 +5,7 @@ const db = require("../db");
 // Si no existeix, el procés s'atura per evitar desplegar amb secret insegur.
 const SECRET = process.env.JWT_SECRET;
 if (!SECRET) {
-  console.error("❌  ERROR: JWT_SECRET no definit. Defineix-lo al fitxer .env");
+  console.error("ERROR: JWT_SECRET no definit. Defineix-lo al fitxer .env");
   process.exit(1);
 }
 
