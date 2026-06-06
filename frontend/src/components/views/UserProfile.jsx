@@ -183,7 +183,6 @@ export default function UserProfile({
     if (esAmic) {
       return (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <Button variant="green" disabled>Amigo</Button>
           <Button variant="danger" onClick={function () { onEliminarAmic && onEliminarAmic(user); }}>
             Eliminar
           </Button>
