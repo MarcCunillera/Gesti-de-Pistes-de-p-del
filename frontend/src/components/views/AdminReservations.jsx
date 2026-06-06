@@ -9,7 +9,7 @@ const TABS = [
   { key: "todas", label: "Todas" },
 ];
 
-export default function AdminReservations({ reservas, users, cancelarReserva, t }) {
+export default function AdminReservations({ reservas, users, cancelarReserva, onOpenUserProfile, t }) {
   var surface = t?.surface || '#fff';
   var border = t?.border || '#e5e7eb';
   var textMain = t?.text || '#111827';
@@ -128,7 +128,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, t 
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textMuted }}>
-                      <UserAvatar user={r.usuario || { id: r.userId, nombre: "?" }} size={22} />
+                      <UserAvatar user={r.usuario || { id: r.userId, nombre: "?" }} size={22} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(r.usuario || { id: r.userId, nombre: "?" }); }} />
                       <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuario eliminado"}</span>
                       {r.jugadores?.length > 1 && (
                         <span style={{ color: textMuted, fontSize: 12 }}>

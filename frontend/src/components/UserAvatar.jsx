@@ -10,6 +10,8 @@ export default function UserAvatar({
   outline,
   outlineOffset,
   title,
+  onClick,
+  ariaLabel,
 }) {
   var sz = size || 32;
 
@@ -38,24 +40,21 @@ export default function UserAvatar({
     outlineOffset: outlineOffset || 2,
   };
 
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={(user && user.nombre) || ""}
-        title={title || (user && user.nombre) || ""}
-        referrerPolicy="no-referrer"
-        style={{
-          ...baseStyle,
-          objectFit: "cover",
-        }}
-      />
-    );
-  }
-
-  return (
+  var label = title || (user && user.nombre) || "";
+  var avatar = src ? (
+    <img
+      src={src}
+      alt={(user && user.nombre) || ""}
+      title={label}
+      referrerPolicy="no-referrer"
+      style={{
+        ...baseStyle,
+        objectFit: "cover",
+      }}
+    />
+  ) : (
     <div
-      title={title || (user && user.nombre) || ""}
+      title={label}
       style={{
         ...baseStyle,
         background: bg,
@@ -69,5 +68,32 @@ export default function UserAvatar({
     >
       {iniciales((user && user.nombre) || "?")}
     </div>
+  );
+
+  if (!onClick) return avatar;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel || ("Ver perfil de " + ((user && user.nombre) || "usuario"))}
+      title={label}
+      style={{
+        width: sz,
+        height: sz,
+        border: "none",
+        borderRadius: "50%",
+        background: "transparent",
+        padding: 0,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        flexShrink: 0,
+        lineHeight: 0,
+      }}
+    >
+      {avatar}
+    </button>
   );
 }

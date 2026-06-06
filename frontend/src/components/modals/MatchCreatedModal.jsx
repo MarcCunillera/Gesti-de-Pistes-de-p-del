@@ -3,7 +3,7 @@ import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 import { modalOverlay } from "../../styles/styles";
 
-export default function MatchCreatedModal({ reserva, onClose, users, session, amics, solicitudsPartidaInvitades, invitarJugador, t }) {
+export default function MatchCreatedModal({ reserva, onClose, users, session, amics, solicitudsPartidaInvitades, invitarJugador, onOpenUserProfile, t }) {
   const [inviteOpen, setInviteOpen] = useState(false);
 
   if (!reserva) return null;
@@ -58,7 +58,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
                 const userToShow = esTu ? session : userData;
                 return (
                   <div key={userData.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <UserAvatar user={userToShow || { id: userData.id, nombre: "?" }} size={38} outline={esTu ? "2px solid #60a5fa" : "none"} outlineOffset={2} />
+                    <UserAvatar user={userToShow || { id: userData.id, nombre: "?" }} size={38} outline={esTu ? "2px solid #60a5fa" : "none"} outlineOffset={2} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(userToShow || { id: userData.id, nombre: "?" }); }} />
                     <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : "#374151", fontWeight: esTu ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {esTu ? "tú" : userData?.nombre?.split(" ")[0] || "?"}
                     </span>
@@ -90,7 +90,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
                   ) : (
                     amicsDisponibles.map(a => (
                       <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6 }}>
-                        <UserAvatar user={a} size={28} />
+                        <UserAvatar user={a} size={28} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(a); }} />
                         <span style={{ fontSize: 12, flex: 1, color: C.text }}>{a.nombre || "?"}</span>
                         <button
                           onClick={() => invitarJugador(reserva.id, a.id)}
@@ -101,7 +101,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
                   )}
                   {amicsInvitats.map(a => (
                     <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6, opacity: 0.65 }}>
-                      <UserAvatar user={a} size={28} />
+                      <UserAvatar user={a} size={28} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(a); }} />
                       <span style={{ fontSize: 12, flex: 1, color: C.text }}>{a.nombre || "?"}</span>
                       <span style={{ fontSize: 11, fontWeight: 700, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 7, padding: "3px 10px" }}>Pendiente</span>
                     </div>

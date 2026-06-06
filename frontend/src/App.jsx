@@ -10,6 +10,7 @@ import Nav from "./components/layout/Nav";
 import Calendar from "./components/views/Calendar";
 import MyReservations from "./components/views/MyReservations";
 import Profile from "./components/views/Profile";
+import UserProfile from "./components/views/UserProfile";
 import AdminReservations from "./components/views/AdminReservations";
 import AdminUsers from "./components/views/AdminUsers";
 import Settings from "./components/views/Settings";
@@ -32,6 +33,8 @@ export default function App() {
   const [bloqueados, setBloqueados] = useState([]);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [configEdit, setConfigEdit] = useState(DEFAULT_CONFIG);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [profileBackView, setProfileBackView] = useState("calendario");
 
   const [vista, setVista] = useState("calendario");
   const [baseDate, setBaseDate] = useState(hoy());
@@ -51,6 +54,8 @@ export default function App() {
   const [pwdForm, setPwdForm] = useState({ actual: "", nueva: "", repetir: "" });
   const [pwdError, setPwdError] = useState("");
   const [solicitudsAmicCount, setSolicitudsAmicCount] = useState(0);
+  const [solicitudsAmicRebudes, setSolicitudsAmicRebudes] = useState([]);
+  const [solicitudsAmicEnviades, setSolicitudsAmicEnviades] = useState([]);
   const [solicitudsPartidaMeues, setSolicitudsPartidaMeues] = useState([]);
   const [solicitudsPartidaPendent, setSolicitudsPartidaPendent] = useState([]);
   const [solicitudsPartidaInvitades, setSolicitudsPartidaInvitades] = useState([]);
@@ -90,9 +95,12 @@ export default function App() {
       };
       setConfig(cfgObj);
       setConfigEdit(cfgObj);
-      return api.getSolicituds();
-    }).then(function (sols) {
-      setSolicitudsAmicCount(sols.length);
+      return Promise.all([api.getSolicituds(), api.getEnviades()]);
+    }).then(function (solsAmic) {
+      var rebudes = solsAmic[0], enviades = solsAmic[1];
+      setSolicitudsAmicRebudes(rebudes);
+      setSolicitudsAmicEnviades(enviades);
+      setSolicitudsAmicCount(rebudes.length);
       return Promise.all([
         api.getSolicitudsPartidaMeues(),
         api.getSolicitudsPartidaPendent(),
@@ -150,13 +158,14 @@ export default function App() {
       api.getBloqueados(),
       api.getConfig(),
       api.getSolicituds(),
+      api.getEnviades(),
       api.getSolicitudsPartidaMeues(),
       api.getSolicitudsPartidaPendent(),
       api.getSolicitudsPartidaInvitades(),
       api.getAmics(),
     ]).then(function (results) {
       var me = results[0], rs = results[1], us = results[2], bl = results[3], cfg = results[4];
-      var amicSols = results[5], meues = results[6], pendent = results[7], inv = results[8], am = results[9];
+      var amicSols = results[5], amicEnviades = results[6], meues = results[7], pendent = results[8], inv = results[9], am = results[10];
 
       setSession(function (prev) {
         if (
@@ -186,6 +195,8 @@ export default function App() {
         maxReservas: parseInt(cfg.maxReservas) || 3,
       });
       setSolicitudsAmicCount(amicSols.length);
+      setSolicitudsAmicRebudes(amicSols);
+      setSolicitudsAmicEnviades(amicEnviades);
       setSolicitudsPartidaMeues(meues);
       setSolicitudsPartidaPendent(pendent);
       setSolicitudsPartidaInvitades(inv);
@@ -520,6 +531,66 @@ export default function App() {
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
+  const enviarSolicitudAmicPerfil = function (user) {
+    if (!user || !user.id) return Promise.resolve();
+    return api.enviarSolicitud(user.id)
+      .then(function () {
+        showToast("Solicitud enviada a " + (user.nombre || "el usuario"), "info");
+        setFriendsRefreshKey(function (k) { return k + 1; });
+        return cargarDades();
+      })
+      .catch(function (e) { showToast(e.message, "error"); });
+  };
+
+  const respondreSolicitudAmicPerfil = function (solId, estat, user) {
+    return api.respondSolicitud(solId, estat)
+      .then(function () {
+        showToast(estat === "acceptada" ? "Amigo añadido" : "Solicitud rechazada", estat === "acceptada" ? "ok" : "info");
+        setFriendsRefreshKey(function (k) { return k + 1; });
+        return cargarDades();
+      })
+      .catch(function (e) { showToast(e.message, "error"); });
+  };
+
+  const eliminarAmicPerfil = function (user) {
+    if (!user || !user.id) return;
+    setConfirmModal({
+      titulo: "Eliminar amigo",
+      mensaje: "¿Seguro que quieres eliminar a " + (user.nombre || "este usuario") + " de tus amigos?",
+      accion: "Sí, eliminar",
+      onConfirm: function () {
+        api.eliminarAmic(user.id)
+          .then(function () {
+            showToast("Amigo eliminado", "info");
+            setFriendsRefreshKey(function (k) { return k + 1; });
+            return cargarDades();
+          })
+          .catch(function (e) { showToast(e.message, "error"); });
+      },
+    });
+  };
+
+  const abrirPerfilUsuario = function (user) {
+    if (!user || !user.id) return;
+    setProfileBackView(function (prev) { return vista === "perfil_usuario" ? prev : vista; });
+    setReservaModal(null);
+    setAdminModal(null);
+    setPartidoModal(null);
+    setNewMatchModalId(null);
+    if (user.id === session?.id) {
+      setSelectedUser(null);
+      setVista("perfil");
+      return;
+    }
+    setSelectedUser(Object.assign(
+      {},
+      users.find(function (u) { return u.id === user.id; }) || {},
+      amics.find(function (a) { return a.id === user.id; }) || {},
+      user
+    ));
+    setVista("perfil_usuario");
+  };
+
   const HORARIOS = useMemo(function () { return generarHorarios(config.horaInicio, config.horaFin, config.duracion); }, [config]);
   const fechas = useMemo(function () { return fechasDesde(baseDate, config.diasVista); }, [baseDate, config.diasVista]);
   const esBloqueado = useCallback(function (f, h) {
@@ -533,6 +604,14 @@ export default function App() {
   var sid = session ? session.id : null;
   var misReservas = reservas.filter(function (r) { return r.userId === sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
   var misPartidos = reservas.filter(function (r) { return r.jugadores && r.jugadores.indexOf(sid) !== -1 && r.userId !== sid && r.estado === "confirmada" && new Date(r.fecha + "T" + r.hora) >= now; });
+  var selectedUserProfile = selectedUser
+    ? Object.assign(
+      {},
+      users.find(function (u) { return u.id === selectedUser.id; }) || {},
+      amics.find(function (a) { return a.id === selectedUser.id; }) || {},
+      selectedUser
+    )
+    : null;
   if (cargando) {
     return (
       <div style={{ minHeight: "100vh", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -581,7 +660,7 @@ export default function App() {
             esBloqueado={esBloqueado} getReserva={getReserva}
             setAdminModal={setAdminModal} setReservaModal={setReservaModal} setPartidoModal={setPartidoModal}
             reservas={reservas} users={users} amics={amics}
-            pedirUnirse={pedirUnirse} t={t}
+            pedirUnirse={pedirUnirse} onOpenUserProfile={abrirPerfilUsuario} t={t}
           />
         )}
         {vista === "misreservas" && (
@@ -598,6 +677,7 @@ export default function App() {
             solicitudsPartidaInvitades={solicitudsPartidaInvitades}
             solicitudsPartidaMeues={solicitudsPartidaMeues}
             respondreInvitacioPartida={respondreInvitacioPartida}
+            onOpenUserProfile={abrirPerfilUsuario}
           />
         )}
         {vista === "perfil" && (
@@ -609,6 +689,23 @@ export default function App() {
             t={t}
           />
         )}
+        {vista === "perfil_usuario" && (
+          <UserProfile
+            user={selectedUserProfile}
+            session={session}
+            amics={amics}
+            solicitudsAmicRebudes={solicitudsAmicRebudes}
+            solicitudsAmicEnviades={solicitudsAmicEnviades}
+            reservas={reservas}
+            users={users}
+            onBack={function () { setVista(profileBackView || "calendario"); }}
+            onOpenUserProfile={abrirPerfilUsuario}
+            onEnviarSolicitud={enviarSolicitudAmicPerfil}
+            onRespondSolicitud={respondreSolicitudAmicPerfil}
+            onEliminarAmic={eliminarAmicPerfil}
+            t={t}
+          />
+        )}
         {vista === "amics" && (
           <Friends
             session={session}
@@ -616,14 +713,15 @@ export default function App() {
             showToast={showToast}
             onSolicitudsChange={setSolicitudsAmicCount}
             refreshKey={friendsRefreshKey}
+            onOpenUserProfile={abrirPerfilUsuario}
             t={t}
           />
         )}
         {vista === "admin_reservas" && session.rol === "admin" && (
-          <AdminReservations reservas={reservas} users={users} cancelarReserva={function (id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} t={t} />
+          <AdminReservations reservas={reservas} users={users} cancelarReserva={function (id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} onOpenUserProfile={abrirPerfilUsuario} t={t} />
         )}
         {vista === "admin_usuarios" && session.rol === "admin" && (
-          <AdminUsers users={users} toggleActivo={toggleActivoUser} reservas={reservas} t={t} />
+          <AdminUsers users={users} toggleActivo={toggleActivoUser} reservas={reservas} onOpenUserProfile={abrirPerfilUsuario} t={t} />
         )}
         {vista === "ajustes" && session.rol === "admin" && (
           <Settings
@@ -635,7 +733,7 @@ export default function App() {
       </div>
 
       <ReservationModal reservaModal={reservaModal} setReservaModal={setReservaModal} config={config} session={session} hacerReserva={hacerReserva} t={t} />
-      <MatchModal partidoModal={partidoModal} setPartidoModal={setPartidoModal} users={users} session={session} unirsePartido={pedirUnirse} salirPartido={pedirSalir} solicitudsPartidaMeues={solicitudsPartidaMeues} respondreInvitacio={respondreInvitacioPartida} t={t} />
+      <MatchModal partidoModal={partidoModal} setPartidoModal={setPartidoModal} users={users} session={session} unirsePartido={pedirUnirse} salirPartido={pedirSalir} solicitudsPartidaMeues={solicitudsPartidaMeues} respondreInvitacio={respondreInvitacioPartida} onOpenUserProfile={abrirPerfilUsuario} t={t} />
       <AdminModal adminModal={adminModal} setAdminModal={setAdminModal} users={users} hacerReserva={hacerReserva} cancelarReserva={function (id) { setAdminModal(null); pedirCancelar(id, (adminModal ? adminModal.fecha : "") + " " + (adminModal ? adminModal.hora : "")); }} toggleBloqueo={toggleBloqueo} config={config} session={session} t={t} />
       <ConfirmModal confirmModal={confirmModal} setConfirmModal={setConfirmModal} t={t} />
       <ReservaConfirmModal data={confirmReserva} onClose={() => setConfirmReserva(null)} config={config} t={t} />
@@ -647,6 +745,7 @@ export default function App() {
         amics={amics}
         solicitudsPartidaInvitades={solicitudsPartidaInvitades}
         invitarJugador={invitarJugador}
+        onOpenUserProfile={abrirPerfilUsuario}
         t={t}
       />
       <Toast toast={toast} />

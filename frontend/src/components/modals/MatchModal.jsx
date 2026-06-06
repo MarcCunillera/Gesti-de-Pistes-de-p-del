@@ -2,7 +2,7 @@ import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 import { modalOverlay } from "../../styles/styles";
 
-export default function MatchModal({ partidoModal, setPartidoModal, users, session, unirsePartido, salirPartido, solicitudsPartidaMeues, respondreInvitacio, t }) {
+export default function MatchModal({ partidoModal, setPartidoModal, users, session, unirsePartido, salirPartido, solicitudsPartidaMeues, respondreInvitacio, onOpenUserProfile, t }) {
   if (!partidoModal) return null;
   const { reserva } = partidoModal;
   const numJugadors = reserva.jugadores?.length || 0;
@@ -49,9 +49,10 @@ export default function MatchModal({ partidoModal, setPartidoModal, users, sessi
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {reserva.jugadores?.map(function(id, i) {
               const u = users.find(function(x) { return x.id === id; });
+              const jugador = id === session.id ? session : (u || { id, nombre: "?" });
               return (
                 <div key={id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <UserAvatar user={u || { id, nombre: "?" }} size={32} />
+                <UserAvatar user={jugador} size={32} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(jugador); }} />
                   <span style={{ fontSize: 13, fontWeight: 600, color: t?.text || "#111827" }}>{u?.nombre}</span>
                   {i === 0 && <span style={{ fontSize: 11, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 10, padding: "1px 7px", fontWeight: 600 }}>Organizador</span>}
                   {id === session.id && i !== 0 && <span style={{ fontSize: 11, background: "#f0f9ff", color: "#0284c7", border: "1px solid #7dd3fc", borderRadius: 10, padding: "1px 7px", fontWeight: 600 }}>Tú</span>}

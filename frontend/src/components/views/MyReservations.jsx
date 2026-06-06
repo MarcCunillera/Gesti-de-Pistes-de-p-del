@@ -56,7 +56,7 @@ function SectionTitle({ children, count }) {
   );
 }
 
-export default function MyReservations({ session, misReservas, misPartidos, users, cancelarReserva, salirPartido, toggleAbierto, setVista, config, solicitudsPartidaPendent, respondSolicitudPartida, expulsarJugador, invitarJugador, amics, solicitudsPartidaInvitades, solicitudsPartidaMeues, respondreInvitacioPartida, t }) {
+export default function MyReservations({ session, misReservas, misPartidos, users, cancelarReserva, salirPartido, toggleAbierto, setVista, config, solicitudsPartidaPendent, respondSolicitudPartida, expulsarJugador, invitarJugador, amics, solicitudsPartidaInvitades, solicitudsPartidaMeues, respondreInvitacioPartida, onOpenUserProfile, t }) {
   var C = {
     surface:    t?.surface    || "#fff",
     surfaceAlt: t?.surfaceAlt || "#f9fafb",
@@ -73,6 +73,9 @@ export default function MyReservations({ session, misReservas, misPartidos, user
     (users || []).forEach((u) => m.set(u.id, u));
     return m;
   }, [users]);
+  function obrirPerfil(user) {
+    if (onOpenUserProfile && user && user.id) onOpenUserProfile(user);
+  }
   const totalActivas = misReservas.length + misPartidos.length;
 
   return (
@@ -181,14 +184,16 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                             {r.jugadores?.map(function(id) {
                               var u = usersMap.get(id);
+                              var jugador = u || { id, nombre: "?" };
                               var esOrg = id === r.userId;
                               return (
                                 <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}>
                                   <UserAvatar
-                                    user={u || { id, nombre: "?" }}
+                                    user={jugador}
                                     size={38}
                                     outline={esOrg ? "2px solid #374151" : "none"}
                                     outlineOffset={2}
+                                    onClick={function() { obrirPerfil(jugador); }}
                                   />
                                   <span style={{ fontSize: 11, color: "#374151", fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {u?.nombre?.split(" ")[0] || "?"}
@@ -203,12 +208,10 @@ export default function MyReservations({ session, misReservas, misPartidos, user
 
                             {/* Solicitudes pendientes inline */}
                             {pendentsDeR.map(function(s) {
-                              var initials = s.de_nombre ? s.de_nombre.split(" ").map(function(n) { return n[0]; }).slice(0, 2).join("").toUpperCase() : "?";
+                              var pendingUser = usersMap.get(s.de_id) || { id: s.de_id, nombre: s.de_nombre, avatar: s.avatar, avatar_color: s.avatar_color };
                               return (
                                 <div key={"sol-" + s.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", fontSize: 12, fontWeight: 700, border: "1.5px dashed #d1d5db" }}>
-                                    {initials}
-                                  </div>
+                                  <UserAvatar user={pendingUser} size={38} outline="1.5px dashed #d1d5db" outlineOffset={2} onClick={function() { obrirPerfil(pendingUser); }} />
                                   <span style={{ fontSize: 11, color: "#374151", fontWeight: 500, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {s.de_nombre?.split(" ")[0] || "?"}
                                   </span>
@@ -251,7 +254,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                       amicsDisponibles.map(function(a) {
                                         return (
                                           <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6 }}>
-                                            <UserAvatar user={a} size={28} />
+                                            <UserAvatar user={a} size={28} onClick={function() { obrirPerfil(a); }} />
                                             <span style={{ fontSize: 12, flex: 1, color: "#111827" }}>{a.nombre || "?"}</span>
                                             <Btn onClick={() => invitarJugador(r.id, a.id)} variant="confirm">Invitar</Btn>
                                           </div>
@@ -261,7 +264,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                     {amicsInvitats.map(function(a) {
                                       return (
                                         <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6, opacity: 0.65 }}>
-                                          <UserAvatar user={a} size={28} />
+                                          <UserAvatar user={a} size={28} onClick={function() { obrirPerfil(a); }} />
                                           <span style={{ fontSize: 12, flex: 1, color: "#111827" }}>{a.nombre || "?"}</span>
                                           <Tag variant="amber">Pendiente</Tag>
                                         </div>
@@ -317,15 +320,17 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                           {r.jugadores?.map(function(id) {
                             var u = usersMap.get(id);
+                            var jugador = u || { id, nombre: "?" };
                             var esOrg = id === r.userId;
                             var esTu = id === session.id;
                             return (
                               <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                                 <UserAvatar
-                                  user={u || { id, nombre: "?" }}
+                                  user={esTu ? session : jugador}
                                   size={38}
                                   outline={esOrg ? "2px solid #374151" : esTu ? "2px solid #60a5fa" : "none"}
                                   outlineOffset={2}
+                                  onClick={function() { obrirPerfil(esTu ? session : jugador); }}
                                 />
                                 <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : "#374151", fontWeight: esTu || esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {esTu ? "tú" : u?.nombre?.split(" ")[0] || "?"}

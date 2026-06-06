@@ -54,14 +54,25 @@ const upload = multer({
 router.get("/", authMiddleware, (req, res) => {
   if (req.user.rol === "admin") {
     const rows = db
-      .prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users ORDER BY id")
+      .prepare(
+        `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at,
+                (SELECT COUNT(*) FROM amics WHERE amics.user_id = users.id) as amigos_count
+         FROM users
+         ORDER BY id`
+      )
       .all();
     return res.json(rows);
   }
   // Usuaris normals: veuen id, nombre, avatar, avatar_color (per a amistats/partits)
   // però NO l'email dels altres usuaris
   const rows = db
-    .prepare("SELECT id, nombre, avatar, avatar_color, lado, mano, telefono FROM users WHERE activo = 1 ORDER BY nombre")
+    .prepare(
+      `SELECT id, nombre, avatar, avatar_color, lado, mano, telefono,
+              (SELECT COUNT(*) FROM amics WHERE amics.user_id = users.id) as amigos_count
+       FROM users
+       WHERE activo = 1
+       ORDER BY nombre`
+    )
     .all();
   res.json(rows);
 });

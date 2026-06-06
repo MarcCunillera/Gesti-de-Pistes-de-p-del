@@ -3,7 +3,7 @@ import UserAvatar from "../UserAvatar";
 
 const PER_PAGE = 5;
 
-export default function AdminUsers({ users, toggleActivo, reservas, t }) {
+export default function AdminUsers({ users, toggleActivo, reservas, onOpenUserProfile, t }) {
   var surface = t?.surface || '#fff';
   var border = t?.border || '#e5e7eb';
   var textMain = t?.text || '#111827';
@@ -50,7 +50,7 @@ export default function AdminUsers({ users, toggleActivo, reservas, t }) {
         visibles.map((u) => (
           <div key={u.id} style={{ background: surface, borderRadius: 10, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,.07)", marginBottom: 8, border: `1px solid ${border}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <UserAvatar user={u} size={40} />
+              <UserAvatar user={u} size={40} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(u); }} />
               <div>
                 <div style={{ fontWeight: 700, color: textMain }}>
                   {u.nombre}{" "}

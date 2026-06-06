@@ -19,7 +19,7 @@ function Btn({ onClick, variant, children, style }) {
   );
 }
 
-export default function Friends({ session, users, showToast, onSolicitudsChange, refreshKey, t }) {
+export default function Friends({ session, users, showToast, onSolicitudsChange, refreshKey, onOpenUserProfile, t }) {
   const [tab, setTab] = useState("amics");
   const [amics, setAmics] = useState([]);
   const [solicituds, setSolicituds] = useState([]);
@@ -118,6 +118,10 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
       .catch(function(e) { showToast(e.message, "error"); });
   }
 
+  function obrirPerfil(user) {
+    if (onOpenUserProfile && user && user.id) onOpenUserProfile(user);
+  }
+
   var TABS = [
     { key: "amics", label: "Mis amigos" },
     { key: "buscar", label: "Añadir amigo" },
@@ -168,7 +172,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                 return (
                   <div key={a.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <Avatar user={a} size={38} />
+                      <Avatar user={a} size={38} onClick={function() { obrirPerfil(a); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{a.nombre}</div>
                         <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>
@@ -201,7 +205,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                     return (
                       <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <Avatar user={u} size={38} />
+                          <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                           <div>
                             <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
                           </div>
@@ -250,7 +254,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                 return (
                   <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <Avatar user={u} size={38} />
+                      <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
                         <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{u.email}</div>
@@ -276,10 +280,11 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {enviades.map(function(s) {
+                  var userEnviat = { id: s.a_id, nombre: s.a_nombre, email: s.a_email, avatar: s.avatar, avatar_color: s.avatar_color };
                   return (
                     <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", opacity: 0.75 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <Avatar user={{ id: s.a_id, nombre: s.a_nombre, avatar: s.avatar, avatar_color: s.avatar_color }} size={38} />
+                        <Avatar user={userEnviat} size={38} onClick={function() { obrirPerfil(userEnviat); }} />
                         <div>
                           <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.a_nombre}</div>
                           <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>
@@ -308,10 +313,11 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {solicituds.map(function(s) {
+                var userSolicitant = { id: s.de_id, nombre: s.de_nombre, email: s.de_email, avatar: s.avatar, avatar_color: s.avatar_color };
                 return (
                   <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-                      <Avatar user={{ id: s.de_id, nombre: s.de_nombre, avatar: s.avatar, avatar_color: s.avatar_color }} size={38} />
+                      <Avatar user={userSolicitant} size={38} onClick={function() { obrirPerfil(userSolicitant); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.de_nombre}</div>
                         <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.de_email}</div>

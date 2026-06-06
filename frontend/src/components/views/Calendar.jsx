@@ -71,7 +71,7 @@ function Celda({ estado, sublabel, onClick, esHoy }) {
   );
 }
 
-export default function Calendar({ session, fechas, HORARIOS, config, esBloqueado, getReserva, setBaseDate, baseDate, setAdminModal, setReservaModal, setPartidoModal, reservas, users, amics, pedirUnirse, t }) {
+export default function Calendar({ session, fechas, HORARIOS, config, esBloqueado, getReserva, setBaseDate, baseDate, setAdminModal, setReservaModal, setPartidoModal, reservas, users, amics, pedirUnirse, onOpenUserProfile, t }) {
   const width = useWindowWidth();
   const esMobil = width < 640;
   const [diaAbierto, setDiaAbierto] = useState(null);
@@ -257,10 +257,11 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                 <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "12px 14px 8px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   {(r.jugadores || []).map(function(id) {
                     var u = usersMap.get(id);
+                    var jugador = u || { id, nombre: "?" };
                     var esOrg = id === r.userId;
                     return (
                       <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                        <UserAvatar user={u || { id, nombre: "?" }} size={36} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} />
+                        <UserAvatar user={jugador} size={36} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(jugador); }} />
                         <span style={{ fontSize: 10, color: esOrg ? "#374151" : textMuted, fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
                       </div>
                     );
