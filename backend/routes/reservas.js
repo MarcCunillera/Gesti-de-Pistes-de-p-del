@@ -32,12 +32,36 @@ const timeToMinutes = (time) => {
   return h * 60 + m;
 };
 
+const APP_TIMEZONE = process.env.APP_TIMEZONE || "Europe/Madrid";
+
+function getLocalNowKey() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+
+  const values = {};
+  for (const p of parts) {
+    if (p.type !== "literal") values[p.type] = p.value;
+  }
+
+  return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
+}
+
+function slotHasStarted(fecha, hora) {
+  return `${fecha}T${hora}` <= getLocalNowKey();
+}
+
 const isValidDate = (fecha) => /^\d{4}-\d{2}-\d{2}$/.test(fecha);
 const isValidTime = (hora) => /^([01]\d|2[0-3]):[0-5]\d$/.test(hora);
 
 const isPastSlot = (fecha, hora) => {
-  const slotDate = new Date(`${fecha}T${hora}:00`);
-  return slotDate.getTime() < Date.now();
+  return slotHasStarted(fecha, hora);
 };
 
 const isAllowedSlot = (hora) => {
@@ -55,6 +79,43 @@ const isAllowedSlot = (hora) => {
 };
 
 // GET /api/reservas/all — totes les reserves confirmades per al calendari
+function cancelExpiredOpenMatches() {
+  const rows = db
+    .prepare(
+      `SELECT id, fecha, hora
+       FROM reservas
+       WHERE estado = 'confirmada' AND abierto = 1`
+    )
+    .all();
+
+  const expired = rows.filter((r) => {
+    return slotHasStarted(r.fecha, r.hora) && getJugadors(r.id).length < 4;
+  });
+
+  if (expired.length === 0) return 0;
+
+  const cancel = db.transaction((reservasToCancel) => {
+    for (const r of reservasToCancel) {
+      db.prepare("UPDATE reservas SET estado = 'cancelada', abierto = 0 WHERE id = ?").run(r.id);
+      db.prepare(
+        "UPDATE solicituds_partida SET estat = 'rebutjada' WHERE reserva_id = ? AND estat IN ('pendent', 'invitat')"
+      ).run(r.id);
+    }
+  });
+
+  cancel(expired);
+  return expired.length;
+}
+
+router.use((req, res, next) => {
+  try {
+    cancelExpiredOpenMatches();
+  } catch (err) {
+    console.error("Error cancelando partidas abiertas caducadas:", err.message);
+  }
+  next();
+});
+
 router.get("/all", authMiddleware, (req, res) => {
   const rows = db
     .prepare(

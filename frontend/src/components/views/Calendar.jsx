@@ -104,7 +104,10 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
     const pasado = new Date(`${fecha}T${hora}`) < new Date();
     let estado, sublabel, onClick;
 
-    if (bloq) {
+    if (pasado) {
+      estado  = "pasado";
+      onClick = null;
+    } else if (bloq) {
       estado  = "bloqueado";
       onClick = session.rol === "admin" ? () => setAdminModal({ fecha, hora, res: null, bloq: true }) : null;
     } else if (res) {
@@ -124,9 +127,6 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
         estado  = "ocupado";
         onClick = session.rol === "admin" ? () => setAdminModal({ fecha, hora, res, bloq: false }) : null;
       }
-    } else if (pasado) {
-      estado  = "pasado";
-      onClick = session.rol === "admin" ? () => setAdminModal({ fecha, hora, res: null, bloq: false }) : null;
     } else {
       estado  = "libre";
       onClick = session.rol === "admin"

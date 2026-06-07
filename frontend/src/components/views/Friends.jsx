@@ -170,15 +170,19 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {amics.map(function(a) {
                 return (
-                  <div key={a.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
+                  <div
+                    key={a.id}
+                    onClick={function() { obrirPerfil(a); }}
+                    style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}
+                  >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <Avatar user={a} size={38} onClick={function() { obrirPerfil(a); }} />
+                      <Avatar user={a} size={38} onClick={function(e) { e.stopPropagation(); obrirPerfil(a); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{a.nombre}</div>
                         <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>
                       </div>
                     </div>
-                    <Btn onClick={function() { eliminarAmic(a.id); }} variant="danger">Eliminar</Btn>
+                    <Btn onClick={function(e) { e.stopPropagation(); eliminarAmic(a.id); }} variant="danger">Eliminar</Btn>
                   </div>
                 );
               })}

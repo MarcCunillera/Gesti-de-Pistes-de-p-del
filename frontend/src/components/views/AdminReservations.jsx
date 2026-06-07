@@ -9,6 +9,14 @@ const TABS = [
   { key: "todas", label: "Todas" },
 ];
 
+function normalizarBusqueda(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export default function AdminReservations({ reservas, users, cancelarReserva, onOpenUserProfile, t }) {
   var surface = t?.surface || '#fff';
   var border = t?.border || '#e5e7eb';
@@ -20,10 +28,20 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
   const [busqueda, setBusqueda] = useState("");
 
   const ahora = new Date();
+  const usersMap = new Map((users || []).map((u) => [u.id, u]));
+
+  const getEstadoLabel = (r) => {
+    const dt = new Date(`${r.fecha}T${r.hora}`);
+    if (r.estado === "cancelada") return "Cancelada";
+    if (dt < ahora) return "Completada";
+    if (r.abierto) return `Abierto ${r.jugadores?.length || 0}/4`;
+    return "Privado";
+  };
 
   const conUsuario = reservas.map((r) => ({
     ...r,
-    usuario: users.find((u) => u.id === r.userId),
+    usuario: usersMap.get(r.userId),
+    jugadoresData: (r.jugadores || []).map((id) => usersMap.get(id)).filter(Boolean),
   }));
 
   const filtradas = conUsuario
@@ -35,13 +53,21 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
       return true;
     })
     .filter((r) => {
-      if (!busqueda) return true;
-      const q = busqueda.toLowerCase();
-      return (
-        r.usuario?.nombre?.toLowerCase().includes(q) ||
-        r.fecha.includes(q) ||
-        r.hora.includes(q)
-      );
+      const q = normalizarBusqueda(busqueda);
+      if (!q) return true;
+      const campos = [
+        r.usuario?.nombre,
+        r.usuario?.email,
+        r.fecha,
+        formatFecha(r.fecha),
+        r.hora,
+        r.estado,
+        r.abierto ? "abierto partido abierto" : "privado reserva privada",
+        getEstadoLabel(r),
+        ...r.jugadoresData.map((u) => u.nombre),
+        ...r.jugadoresData.map((u) => u.email),
+      ];
+      return normalizarBusqueda(campos.join(" ")).includes(q);
     })
     .sort((a, b) => {
       const da = new Date(`${a.fecha}T${a.hora}`);
@@ -100,7 +126,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
         <input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar usuario, fecha…"
+          placeholder="Buscar usuario, jugador, fecha..."
           style={{ flex: 1, minWidth: 180, padding: "8px 12px", borderRadius: 8, border: `1px solid ${border}`, fontSize: 13, outline: 'none' }}
         />
       </div>
@@ -132,7 +158,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
                       <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuario eliminado"}</span>
                       {r.jugadores?.length > 1 && (
                         <span style={{ color: textMuted, fontSize: 12 }}>
-                          · {r.jugadores.map((id) => users.find((u) => u.id === id)?.nombre).filter(Boolean).join(", ")}
+                          · {r.jugadoresData.map((u) => u.nombre).filter(Boolean).join(", ")}
                         </span>
                       )}
                     </div>
