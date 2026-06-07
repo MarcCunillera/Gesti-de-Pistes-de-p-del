@@ -591,6 +591,34 @@ export default function App() {
     setVista("perfil_usuario");
   };
 
+  const cambiarRolUsuario = function (user, nuevoRol) {
+    if (!user || !user.id) return;
+
+    const esHacerAdmin = nuevoRol === "admin";
+
+    setConfirmModal({
+      titulo: esHacerAdmin ? "Hacer administrador" : "Quitar administrador",
+      mensaje: esHacerAdmin
+        ? "¿Seguro que quieres hacer administrador a " + user.nombre + "?"
+        : "¿Seguro que quieres quitar el rol de administrador a " + user.nombre + "?",
+      accion: esHacerAdmin ? "Sí, hacer admin" : "Sí, quitar admin",
+      onConfirm: function () {
+        api.updateUserRole(user.id, nuevoRol)
+          .then(function () {
+            showToast(
+              esHacerAdmin
+                ? "Usuario convertido en administrador"
+                : "Administrador quitado"
+            );
+            return cargarDades();
+          })
+          .catch(function (e) {
+            showToast(e.message, "error");
+          });
+      },
+    });
+  };
+
   const HORARIOS = useMemo(function () { return generarHorarios(config.horaInicio, config.horaFin, config.duracion); }, [config]);
   const fechas = useMemo(function () { return fechasDesde(baseDate, config.diasVista); }, [baseDate, config.diasVista]);
   const esBloqueado = useCallback(function (f, h) {
@@ -721,7 +749,15 @@ export default function App() {
           <AdminReservations reservas={reservas} users={users} cancelarReserva={function (id, r) { pedirCancelar(id, (r ? r.fecha : "") + " " + (r ? r.hora : "")); }} onOpenUserProfile={abrirPerfilUsuario} t={t} />
         )}
         {vista === "admin_usuarios" && session.rol === "admin" && (
-          <AdminUsers users={users} toggleActivo={toggleActivoUser} reservas={reservas} onOpenUserProfile={abrirPerfilUsuario} t={t} />
+          <AdminUsers
+            users={users}
+            toggleActivo={toggleActivoUser}
+            reservas={reservas}
+            session={session}
+            cambiarRolUsuario={cambiarRolUsuario}
+            onOpenUserProfile={abrirPerfilUsuario}
+            t={t}
+          />
         )}
         {vista === "ajustes" && session.rol === "admin" && (
           <Settings

@@ -14,7 +14,7 @@ function deleteAvatarFile(avatarPath) {
   if (!avatarPath.startsWith("/uploads/")) return;
   const filePath = path.join(__dirname, "..", avatarPath.replace(/^\//, ""));
   if (fs.existsSync(filePath)) {
-    try { fs.unlinkSync(filePath); } catch (_) {}
+    try { fs.unlinkSync(filePath); } catch (_) { }
   }
 }
 
@@ -52,6 +52,10 @@ const upload = multer({
 // GET /api/users — tots els usuaris
 // Admin: rep tots els camps. Usuari normal: rep llista reduïda (sense email dels altres)
 router.get("/", authMiddleware, (req, res) => {
+  const initialAdminEmail = (process.env.INITIAL_ADMIN_EMAIL || "")
+    .trim()
+    .toLowerCase();
+
   if (req.user.rol === "admin") {
     const rows = db
       .prepare(
@@ -61,10 +65,19 @@ router.get("/", authMiddleware, (req, res) => {
          ORDER BY id`
       )
       .all();
-    return res.json(rows);
+
+    const result = rows.map((u) => ({
+      ...u,
+      protected_admin:
+        initialAdminEmail &&
+        u.email &&
+        u.email.toLowerCase() === initialAdminEmail &&
+        u.rol === "admin",
+    }));
+
+    return res.json(result);
   }
-  // Usuaris normals: veuen id, nombre, avatar, avatar_color (per a amistats/partits)
-  // però NO l'email dels altres usuaris
+
   const rows = db
     .prepare(
       `SELECT id, nombre, avatar, avatar_color, lado, mano, telefono,
@@ -74,6 +87,7 @@ router.get("/", authMiddleware, (req, res) => {
        ORDER BY nombre`
     )
     .all();
+
   res.json(rows);
 });
 
@@ -164,13 +178,71 @@ router.delete("/me/avatar", authMiddleware, (req, res) => {
 
 // PATCH /api/users/:id — admin: canviar rol/activo
 router.patch("/:id", authMiddleware, adminMiddleware, (req, res) => {
-  const { rol, activo } = req.body;
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.params.id);
-  if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
-  if (rol) db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, user.id);
-  if (activo !== undefined) db.prepare("UPDATE users SET activo = ? WHERE id = ?").run(activo ? 1 : 0, user.id);
-  const updated = db.prepare("SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?").get(user.id);
-  res.json(updated);
+  const userId = parseInt(req.params.id, 10);
+  const { activo, rol } = req.body;
+
+  const user = db
+    .prepare("SELECT id, email, rol FROM users WHERE id = ?")
+    .get(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "Usuario no encontrado" });
+  }
+
+  const initialAdminEmail = (process.env.INITIAL_ADMIN_EMAIL || "")
+    .trim()
+    .toLowerCase();
+
+  const isProtectedAdmin =
+    initialAdminEmail &&
+    user.email &&
+    user.email.toLowerCase() === initialAdminEmail &&
+    user.rol === "admin";
+
+  if (userId === req.user.id && rol && rol !== "admin") {
+    return res.status(400).json({
+      error: "No puedes quitarte tu propio rol de admin",
+    });
+  }
+
+  if (isProtectedAdmin && rol !== undefined && rol !== "admin") {
+    return res.status(400).json({
+      error: "No se puede quitar el rol al administrador principal",
+    });
+  }
+
+  if (rol && !["admin", "usuario"].includes(rol)) {
+    return res.status(400).json({ error: "Rol inválido" });
+  }
+
+  if (activo !== undefined) {
+    db.prepare("UPDATE users SET activo = ? WHERE id = ?").run(
+      activo ? 1 : 0,
+      userId
+    );
+  }
+
+  if (rol !== undefined) {
+    db.prepare("UPDATE users SET rol = ? WHERE id = ?").run(rol, userId);
+  }
+
+  const updated = db
+    .prepare(
+      `SELECT id, nombre, email, rol, activo, avatar, avatar_color,
+              lado, mano, telefono, created_at
+       FROM users
+       WHERE id = ?`
+    )
+    .get(userId);
+
+  res.json({
+    ...updated,
+    protected_admin:
+      initialAdminEmail &&
+      updated.email &&
+      updated.email.toLowerCase() === initialAdminEmail &&
+      updated.rol === "admin",
+  });
 });
 
 // DELETE /api/users/:id — admin only

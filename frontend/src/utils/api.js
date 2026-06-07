@@ -71,6 +71,7 @@ export const api = {
   getSolicitudsPartidaInvitades: () => req("GET", "/reservas/solicituds/invitades"),
   respondSolicitudPartida: (id, estat) => req("PATCH", `/reservas/solicituds/${id}`, { estat }),
   toggleAbierto: (id, abierto) => req("PATCH", `/reservas/${id}/abierto`, { abierto }),
+  updateUserRole: (id, rol) => req("PATCH", `/users/${id}`, { rol }),
 
   // Bloqueados
   getBloqueados: () => req("GET", "/reservas/bloqueados"),
