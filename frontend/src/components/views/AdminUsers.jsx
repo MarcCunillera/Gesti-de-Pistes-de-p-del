@@ -48,9 +48,26 @@ export default function AdminUsers({ users, toggleActivo, reservas, onOpenUserPr
         </div>
       ) : (
         visibles.map((u) => (
-          <div key={u.id} style={{ background: surface, borderRadius: 10, padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 1px 4px rgba(0,0,0,.07)", marginBottom: 8, border: `1px solid ${border}` }}>
+          <div
+            key={u.id}
+            onClick={() => {
+              if (onOpenUserProfile) onOpenUserProfile(u);
+            }}
+            style={{
+              background: surface,
+              borderRadius: 10,
+              padding: "12px 18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 1px 4px rgba(0,0,0,.07)",
+              marginBottom: 8,
+              border: `1px solid ${border}`,
+              cursor: "pointer",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <UserAvatar user={u} size={40} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(u); }} />
+              <UserAvatar user={u} size={40} onClick={function () { if (onOpenUserProfile) onOpenUserProfile(u); }} />
               <div>
                 <div style={{ fontWeight: 700, color: textMain }}>
                   {u.nombre}{" "}
@@ -64,7 +81,22 @@ export default function AdminUsers({ users, toggleActivo, reservas, onOpenUserPr
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 12, color: u.activo ? "#2d6a4f" : "#c0392b", fontWeight: 600 }}>{u.activo ? "Activo" : "Inactivo"}</span>
               {u.rol !== "admin" && (
-                <button onClick={() => toggleActivo(u.id, !u.activo)} style={{ background: u.activo ? "#fdecea" : "#e8f5e9", color: u.activo ? "#c0392b" : "#2d6a4f", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleActivo(u.id, !u.activo);
+                  }}
+                  style={{
+                    background: u.activo ? "#fdecea" : "#e8f5e9",
+                    color: u.activo ? "#c0392b" : "#2d6a4f",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
                   {u.activo ? "Desactivar" : "Activar"}
                 </button>
               )}
