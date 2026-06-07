@@ -49,7 +49,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function layout(title, subtitle, body, buttonText = "Obrir aplicació") {
+function layout(title, subtitle, body, buttonText = "Obrir aplicació", buttonUrl = appUrl) {
   return `
 <!doctype html>
 <html>
@@ -80,7 +80,7 @@ function layout(title, subtitle, body, buttonText = "Obrir aplicació") {
                 ${body}
 
                 <div style="text-align:center;margin:30px 0 10px;">
-                  <a href="${appUrl}" style="display:inline-block;background:#1a472a;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;padding:13px 24px;border-radius:12px;">
+                  <a href="${buttonUrl}" style="display:inline-block;background:#1a472a;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;padding:13px 24px;border-radius:12px;">
                     ${escapeHtml(buttonText)}
                   </a>
                 </div>
@@ -238,6 +238,24 @@ async function sendInvitacioPartida(user, organitzador, reserva) {
   });
 }
 
+async function sendPasswordReset(user, resetUrl) {
+  await sendMailSafe({
+    to: user.email,
+    subject: "Recuperar contrasenya - Pàdel Torrelameu",
+    html: layout(
+      "Recuperar contrasenya",
+      "Hem rebut una sol·licitud per canviar la teva contrasenya.",
+      `
+        ${paragraph(`Hola <strong>${escapeHtml(user.nombre)}</strong>,`)}
+        ${paragraph("Prem el botó següent per crear una nova contrasenya. Aquest enllaç caduca en 30 minuts.")}
+        ${paragraph("Si no has demanat aquest canvi, pots ignorar aquest correu.")}
+      `,
+      "Canviar contrasenya",
+      resetUrl
+    ),
+  });
+}
+
 module.exports = {
   sendReservaConfirmada,
   sendReservaCancelada,
@@ -245,4 +263,5 @@ module.exports = {
   sendSolicitudAcceptada,
   sendSolicitudRebutjada,
   sendInvitacioPartida,
+  sendPasswordReset,
 };

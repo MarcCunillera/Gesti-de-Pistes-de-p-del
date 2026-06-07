@@ -23,6 +23,7 @@ import ReservaConfirmModal from "./components/modals/ReservaConfirmModal";
 import Friends from "./components/views/Friends";
 import Skeleton from "./components/Skeleton";
 import Toast from "./components/Toast";
+import ResetPasswordScreen from "./components/auth/ResetPasswordScreen";
 
 export default function App() {
   const { t, dark, toggle } = useTheme();
@@ -648,14 +649,37 @@ export default function App() {
     );
   }
 
+  const resetToken = new URLSearchParams(window.location.search).get("token");
+  const isResetPassword = window.location.pathname === "/reset-password" && resetToken;
+
+  if (isResetPassword) {
+    return (
+      <ResetPasswordScreen
+        token={resetToken}
+        api={api}
+        onDone={() => {
+          window.history.replaceState({}, "", "/");
+          setAuthTab("login");
+        }}
+        dark={dark}
+      />
+    );
+  }
+
   if (!session) {
     return (
       <AuthScreen
-        authTab={authTab} setAuthTab={setAuthTab}
-        loginForm={loginForm} setLoginForm={setLoginForm}
-        regForm={regForm} setRegForm={setRegForm}
-        authError={authError} login={login} registro={registro}
+        authTab={authTab}
+        setAuthTab={setAuthTab}
+        loginForm={loginForm}
+        setLoginForm={setLoginForm}
+        regForm={regForm}
+        setRegForm={setRegForm}
+        authError={authError}
+        login={login}
+        registro={registro}
         loginGoogle={allowGoogleLogin ? loginGoogle : null}
+        api={api}
         dark={dark}
       />
     );

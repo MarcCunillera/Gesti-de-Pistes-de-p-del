@@ -39,6 +39,12 @@ export const api = {
   loginGoogle: (credential) =>
     req("POST", "/auth/google", { credential }),
 
+  forgotPassword: (email) =>
+    req("POST", "/auth/forgot-password", { email }),
+
+  resetPassword: (token, password) =>
+    req("POST", "/auth/reset-password", { token, password }),
+
   // Users
   getUsers: () => req("GET", "/users"),
   getMe: () => req("GET", "/users/me"),

@@ -16,6 +16,25 @@ const IconLock = () => (
   </svg>
 );
 
+function IconEye() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function IconEyeOff() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.94 10.94 0 0112 20C5 20 1 12 1 12a21.8 21.8 0 015.06-6.94" />
+      <path d="M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 8 11 8a21.8 21.8 0 01-2.16 3.19" />
+      <path d="M1 1l22 22" />
+    </svg>
+  );
+}
+
 const IconUser = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -25,12 +44,21 @@ const IconUser = () => (
 
 function InputField({ icon, ...props }) {
   const [focus, setFocus] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPassword = props.type === "password";
 
   return (
     <div className={`auth-field ${focus ? "is-focus" : ""}`}>
       <span>{icon}</span>
+
       <input
         {...props}
+        type={
+          isPassword
+            ? (showPassword ? "text" : "password")
+            : props.type
+        }
         onFocus={(e) => {
           setFocus(true);
           props.onFocus?.(e);
@@ -40,6 +68,16 @@ function InputField({ icon, ...props }) {
           props.onBlur?.(e);
         }}
       />
+
+      {isPassword && (
+        <button
+          type="button"
+          className="auth-eye-btn"
+          onClick={() => setShowPassword((v) => !v)}
+        >
+          {showPassword ? <IconEyeOff /> : <IconEye />}
+        </button>
+      )}
     </div>
   );
 }
@@ -118,7 +156,7 @@ function GoogleLoginBlock({ loginGoogle }) {
   );
 }
 
-function LoginForm({ form, setForm, onSubmit, loginGoogle }) {
+function LoginForm({ form, setForm, onSubmit, loginGoogle, setAuthTab }) {
   return (
     <>
       <InputField
@@ -142,6 +180,14 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle }) {
 
       <button className="auth-primary" type="button" onClick={onSubmit}>
         Entrar
+      </button>
+
+      <button
+        type="button"
+        className="auth-link-button"
+        onClick={() => setAuthTab("forgot")}
+      >
+        ¿Has olvidado tu contraseña?
       </button>
 
       <GoogleLoginBlock loginGoogle={loginGoogle} />
@@ -193,6 +239,54 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
   );
 }
 
+function ForgotPasswordForm({ api, setAuthTab }) {
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const enviar = () => {
+    setMsg("");
+    setError("");
+
+    api.forgotPassword(email)
+      .then((data) => {
+        setMsg(data.message || "Si el email existe, recibirás un correo.");
+      })
+      .catch((e) => {
+        setError(e.message);
+      });
+  };
+
+  return (
+    <>
+      <InputField
+        icon={<IconEmail />}
+        type="email"
+        placeholder="Correo electrónico"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && enviar()}
+        autoComplete="email"
+      />
+
+      {msg && <div className="auth-success">{msg}</div>}
+      {error && <div className="auth-error">{error}</div>}
+
+      <button className="auth-primary" type="button" onClick={enviar}>
+        Enviar correo de recuperación
+      </button>
+
+      <button
+        type="button"
+        className="auth-link-button"
+        onClick={() => setAuthTab("login")}
+      >
+        Volver al inicio de sesión
+      </button>
+    </>
+  );
+}
+
 export default function AuthScreen({
   authTab,
   setAuthTab,
@@ -204,14 +298,17 @@ export default function AuthScreen({
   login,
   registro,
   loginGoogle,
+  api,
 }) {
   const isLogin = authTab === "login";
+  const isForgot = authTab === "forgot";
 
   return (
     <main className="auth-page">
       <section className="auth-card">
         <div className="auth-brand">
           <div className="auth-brand-glow" />
+
           <div className="auth-logo auth-logo-large">
             <img src="/Escut_de_Torrelameu.svg" alt="Escut de Torrelameu" />
           </div>
@@ -232,23 +329,43 @@ export default function AuthScreen({
           </div>
 
           <div className="auth-heading">
-            <h2>{isLogin ? "Bienvenido/a" : "Crea tu cuenta"}</h2>
+            <h2>
+              {isForgot
+                ? "Recuperar contraseña"
+                : isLogin
+                  ? "Bienvenido/a"
+                  : "Crea tu cuenta"}
+            </h2>
+
             <p>
-              {isLogin
-                ? "Accede para consultar y gestionar tus reservas."
-                : "Regístrate para empezar a reservar la pista."}
+              {isForgot
+                ? "Introduce tu correo electrónico para recibir un enlace de recuperación."
+                : isLogin
+                  ? "Accede para consultar y gestionar tus reservas."
+                  : "Regístrate para empezar a reservar la pista."}
             </p>
           </div>
 
-          <TabBar activeTab={authTab} onTabChange={setAuthTab} />
+          {!isForgot && (
+            <TabBar
+              activeTab={authTab}
+              onTabChange={setAuthTab}
+            />
+          )}
 
           <div className="auth-form-section">
-            {isLogin ? (
+            {isForgot ? (
+              <ForgotPasswordForm
+                api={api}
+                setAuthTab={setAuthTab}
+              />
+            ) : isLogin ? (
               <LoginForm
                 form={loginForm}
                 setForm={setLoginForm}
                 onSubmit={login}
                 loginGoogle={loginGoogle}
+                setAuthTab={setAuthTab}
               />
             ) : (
               <RegisterForm

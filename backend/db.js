@@ -87,13 +87,23 @@ db.exec(`
     FOREIGN KEY (reserva_id) REFERENCES reservas(id),
     FOREIGN KEY (de_user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS password_resets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);
 
 // ── Índexs i migracions ──────────────────────────────────────────────────────
 // Eliminem l'índex antic (fecha, hora, estado) que bloquejava cancel·lacions
 // múltiples al mateix slot, i el substituïm per un índex parcial que només
 // impedeix dues reserves CONFIRMADES al mateix slot.
-try { db.prepare("DROP INDEX IF EXISTS idx_reservas_fecha_hora_estado").run(); } catch (_) {}
+try { db.prepare("DROP INDEX IF EXISTS idx_reservas_fecha_hora_estado").run(); } catch (_) { }
 try {
   db.prepare(
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_confirmada ON reservas(fecha, hora) WHERE estado = 'confirmada'"
@@ -109,7 +119,7 @@ const migrationsUsers = [
   "ALTER TABLE users ADD COLUMN telefono TEXT DEFAULT NULL",
 ];
 for (const sql of migrationsUsers) {
-  try { db.prepare(sql).run(); } catch (_) {}
+  try { db.prepare(sql).run(); } catch (_) { }
 }
 
 // ── Configuració per defecte ──────────────────────────────────────────────────
