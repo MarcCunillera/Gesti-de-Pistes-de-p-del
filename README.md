@@ -4,7 +4,7 @@ Aplicación web **full-stack** para la gestión y reserva de pistas de pàdel. L
 
 ![React](https://img.shields.io/badge/React-17-61DAFB?logo=react&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-003B57?logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
 ---
@@ -44,7 +44,7 @@ Aplicación web **full-stack** para la gestión y reserva de pistas de pàdel. L
 |-------------------|-----------------------------------|
 | Frontend          | React 17, Vite, CSS Modules       |
 | Backend           | Node.js, Express 4                |
-| Base de datos     | SQLite (better-sqlite3)           |
+| Base de datos     | PostgreSQL 16                               |
 | Auth              | JSON Web Tokens (JWT), bcryptjs   |
 | Subida de archivos| Multer                            |
 | Contenedores      | Docker, Docker Compose            |
@@ -56,7 +56,7 @@ Aplicación web **full-stack** para la gestión y reserva de pistas de pàdel. L
 ```
 Reserva-padel/
 ├── backend/                  # API REST con Express
-│   ├── db.js                 # Inicialización de SQLite
+│   ├── db.js                 # Inicializacion de PostgreSQL
 │   ├── server.js             # Punto de entrada del servidor
 │   ├── middleware/
 │   │   └── auth.js           # Middleware de autenticación JWT
@@ -97,8 +97,8 @@ cd reserva-padel
 docker compose up --build -d
 ```
 
-- **Frontend** → [http://localhost:3000](http://localhost:3000)
-- **Backend** → [http://localhost:4000](http://localhost:4000)
+- **Frontend** → [http://localhost:3003](http://localhost:3003)
+- **Backend** → [http://localhost:4000](http://localhost:4000)`r`n- **PostgreSQL** -> `localhost:5432`
 
 Para detener los contenedores:
 
@@ -130,12 +130,12 @@ npm run dev        # Inicia Vite en el puerto 5173
 
 ## Variables de entorno
 
-Crea un archivo `.env` dentro de `backend/` con las siguientes variables:
+Crea un archivo `.env` en la raiz del proyecto con las siguientes variables:
 
 | Variable     | Descripción                               | Valor por defecto |
 |--------------|-------------------------------------------|-------------------|
 | `PORT`       | Puerto en el que escucha el servidor      | `4000`            |
-| `DB_DIR`     | Directorio donde se almacena la BD SQLite | `./data`          |
+| `DATABASE_URL` | Conexion PostgreSQL del backend | `postgres://padel:padel_password@postgres:5432/padel` |`r`n| `POSTGRES_DB` | Nombre de la base PostgreSQL | `padel` |`r`n| `POSTGRES_USER` | Usuario PostgreSQL | `padel` |`r`n| `POSTGRES_PASSWORD` | Contrasena PostgreSQL | `padel_password` |
 | `JWT_SECRET` | Clave secreta para firmar los tokens      | *(requerido)*     |
 
 ---
@@ -169,3 +169,4 @@ Crea un archivo `.env` dentro de `backend/` con las siguientes variables:
 ## Licencia
 
 Distribuido bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más información.
+

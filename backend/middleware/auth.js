@@ -9,7 +9,7 @@ if (!SECRET) {
   process.exit(1);
 }
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   const header = req.headers["authorization"];
 
   if (!header) {
@@ -23,11 +23,10 @@ function authMiddleware(req, res, next) {
   try {
     const decoded = jwt.verify(token, SECRET);
 
-    const user = db
-      .prepare(
-        "SELECT id, nombre, email, rol, activo FROM users WHERE id = ?"
-      )
-      .get(decoded.id);
+    const user = await db.get(
+      "SELECT id, nombre, email, rol, activo FROM users WHERE id = ?",
+      [decoded.id]
+    );
 
     if (!user) {
       return res.status(401).json({

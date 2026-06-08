@@ -2,102 +2,91 @@ const router = require("express").Router();
 const db = require("../db");
 const { authMiddleware } = require("../middleware/auth");
 
-// GET /api/amics — llista d'amics de l'usuari
-router.get("/", authMiddleware, (req, res) => {
-  const amics = db
-    .prepare(
-      `SELECT u.id, u.nombre, u.email, u.avatar, u.avatar_color
-       FROM amics a
-       JOIN users u ON u.id = a.amic_id
-       WHERE a.user_id = ?
-       ORDER BY u.nombre`
-    )
-    .all(req.user.id);
+router.get("/", authMiddleware, async (req, res) => {
+  const amics = await db.all(
+    `SELECT u.id, u.nombre, u.email, u.avatar, u.avatar_color
+     FROM amics a
+     JOIN users u ON u.id = a.amic_id
+     WHERE a.user_id = ?
+     ORDER BY u.nombre`,
+    [req.user.id]
+  );
   res.json(amics);
 });
 
-// GET /api/amics/solicituds — sol·licituds pendents rebudes
-router.get("/solicituds", authMiddleware, (req, res) => {
-  const sols = db
-    .prepare(
-      `SELECT s.id, s.estat, s.created_at,
-              u.id as de_id, u.nombre as de_nombre, u.email as de_email, u.avatar, u.avatar_color
-       FROM solicituds_amic s
-       JOIN users u ON u.id = s.de_user_id
-       WHERE s.a_user_id = ? AND s.estat = 'pendent'
-       ORDER BY s.created_at DESC`
-    )
-    .all(req.user.id);
+router.get("/solicituds", authMiddleware, async (req, res) => {
+  const sols = await db.all(
+    `SELECT s.id, s.estat, s.created_at,
+            u.id as de_id, u.nombre as de_nombre, u.email as de_email, u.avatar, u.avatar_color
+     FROM solicituds_amic s
+     JOIN users u ON u.id = s.de_user_id
+     WHERE s.a_user_id = ? AND s.estat = 'pendent'
+     ORDER BY s.created_at DESC`,
+    [req.user.id]
+  );
   res.json(sols);
 });
 
-// GET /api/amics/solicituds/enviades — sol·licituds enviades pendents
-router.get("/solicituds/enviades", authMiddleware, (req, res) => {
-  const sols = db
-    .prepare(
-      `SELECT s.id, s.estat, s.created_at,
-              u.id as a_id, u.nombre as a_nombre, u.email as a_email, u.avatar, u.avatar_color
-       FROM solicituds_amic s
-       JOIN users u ON u.id = s.a_user_id
-       WHERE s.de_user_id = ? AND s.estat = 'pendent'
-       ORDER BY s.created_at DESC`
-    )
-    .all(req.user.id);
+router.get("/solicituds/enviades", authMiddleware, async (req, res) => {
+  const sols = await db.all(
+    `SELECT s.id, s.estat, s.created_at,
+            u.id as a_id, u.nombre as a_nombre, u.email as a_email, u.avatar, u.avatar_color
+     FROM solicituds_amic s
+     JOIN users u ON u.id = s.a_user_id
+     WHERE s.de_user_id = ? AND s.estat = 'pendent'
+     ORDER BY s.created_at DESC`,
+    [req.user.id]
+  );
   res.json(sols);
 });
 
-// POST /api/amics/solicituds — enviar sol·licitud
-router.post("/solicituds", authMiddleware, (req, res) => {
+router.post("/solicituds", authMiddleware, async (req, res) => {
   const { a_user_id } = req.body;
   if (!a_user_id) return res.status(400).json({ error: "a_user_id requerido" });
-  if (a_user_id === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
+  if (Number(a_user_id) === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
 
-  const target = db.prepare("SELECT id FROM users WHERE id = ?").get(a_user_id);
+  const target = await db.get("SELECT id FROM users WHERE id = ?", [a_user_id]);
   if (!target) return res.status(404).json({ error: "Usuario no encontrado" });
 
-  // Ja amics?
-  const jaAmic = db
-    .prepare("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?")
-    .get(req.user.id, a_user_id);
+  const jaAmic = await db.get("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?", [req.user.id, a_user_id]);
   if (jaAmic) return res.status(409).json({ error: "Ya sois amigos" });
 
   try {
-    const r = db
-      .prepare("INSERT INTO solicituds_amic (de_user_id, a_user_id) VALUES (?, ?)")
-      .run(req.user.id, a_user_id);
-    res.status(201).json({ id: r.lastInsertRowid, estat: "pendent" });
+    const r = await db.run(
+      "INSERT INTO solicituds_amic (de_user_id, a_user_id) VALUES (?, ?) RETURNING id",
+      [req.user.id, a_user_id]
+    );
+    res.status(201).json({ id: r.insertedId, estat: "pendent" });
   } catch {
     res.status(409).json({ error: "Solicitud ya existente" });
   }
 });
 
-// PATCH /api/amics/solicituds/:id — acceptar o rebutjar
-router.patch("/solicituds/:id", authMiddleware, (req, res) => {
-  const { estat } = req.body; // 'acceptada' | 'rebutjada'
-  if (!["acceptada", "rebutjada"].includes(estat))
-    return res.status(400).json({ error: "Estado inválido" });
+router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
+  const { estat } = req.body;
+  if (!["acceptada", "rebutjada"].includes(estat)) return res.status(400).json({ error: "Estado invalido" });
 
-  const sol = db.prepare("SELECT * FROM solicituds_amic WHERE id = ?").get(req.params.id);
+  const sol = await db.get("SELECT * FROM solicituds_amic WHERE id = ?", [req.params.id]);
   if (!sol) return res.status(404).json({ error: "Solicitud no encontrada" });
   if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sin permiso" });
 
-  db.prepare("UPDATE solicituds_amic SET estat = ? WHERE id = ?").run(estat, sol.id);
+  await db.tx(async (trx) => {
+    await trx.run("UPDATE solicituds_amic SET estat = ? WHERE id = ?", [estat, sol.id]);
 
-  if (estat === "acceptada") {
-    // Crear relació bidireccional
-    const ins = db.prepare("INSERT OR IGNORE INTO amics (user_id, amic_id) VALUES (?, ?)");
-    ins.run(sol.de_user_id, sol.a_user_id);
-    ins.run(sol.a_user_id, sol.de_user_id);
-  }
+    if (estat === "acceptada") {
+      await trx.run("INSERT INTO amics (user_id, amic_id) VALUES (?, ?) ON CONFLICT (user_id, amic_id) DO NOTHING", [sol.de_user_id, sol.a_user_id]);
+      await trx.run("INSERT INTO amics (user_id, amic_id) VALUES (?, ?) ON CONFLICT (user_id, amic_id) DO NOTHING", [sol.a_user_id, sol.de_user_id]);
+    }
+  });
 
   res.json({ ok: true, estat });
 });
 
-// DELETE /api/amics/:amicId — eliminar amic
-router.delete("/:amicId", authMiddleware, (req, res) => {
-  const amicId = parseInt(req.params.amicId);
-  db.prepare("DELETE FROM amics WHERE (user_id = ? AND amic_id = ?) OR (user_id = ? AND amic_id = ?)").run(
-    req.user.id, amicId, amicId, req.user.id
+router.delete("/:amicId", authMiddleware, async (req, res) => {
+  const amicId = parseInt(req.params.amicId, 10);
+  await db.run(
+    "DELETE FROM amics WHERE (user_id = ? AND amic_id = ?) OR (user_id = ? AND amic_id = ?)",
+    [req.user.id, amicId, amicId, req.user.id]
   );
   res.json({ ok: true });
 });

@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: padel-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-padel}
+      - POSTGRES_USER=${POSTGRES_USER:-padel}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-padel_password}
+    volumes:
+      - padel-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-padel} -d ${POSTGRES_DB:-padel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -7,11 +25,10 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - padel-db:/app/data
       - padel-uploads:/app/uploads
     environment:
       - PORT=4000
-      - DB_DIR=/app/data
+      - DATABASE_URL=${DATABASE_URL:-postgres://padel:padel_password@postgres:5432/padel}
       - JWT_SECRET=${JWT_SECRET}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3003}
       - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL}
@@ -25,6 +42,9 @@ services:
       - MAIL_PASS=${MAIL_PASS}
       - MAIL_FROM=${MAIL_FROM}
       - APP_URL=${APP_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -55,5 +75,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  padel-db:
+  padel-postgres:
   padel-uploads:
