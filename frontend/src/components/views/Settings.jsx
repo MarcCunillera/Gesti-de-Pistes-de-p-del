@@ -7,6 +7,18 @@ const SECCIONES = [
   { key: "bloqueos", label: "Bloqueos" },
 ];
 
+const DIAS_SEMANA = [
+  { key: 1, label: "Lunes", short: "L" },
+  { key: 2, label: "Martes", short: "M" },
+  { key: 3, label: "Miercoles", short: "X" },
+  { key: 4, label: "Jueves", short: "J" },
+  { key: 5, label: "Viernes", short: "V" },
+  { key: 6, label: "Sabado", short: "S" },
+  { key: 0, label: "Domingo", short: "D" },
+];
+
+const TODOS_LOS_DIAS = DIAS_SEMANA.map((d) => d.key);
+
 const Field = ({ label, desc, children, textColor }) => (
   <div style={{ marginBottom: 24 }}>
     <div style={{ marginBottom: 6 }}>
@@ -31,7 +43,7 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
   };
   var selectBase = { ...inputBase, cursor: 'pointer' };
   const [seccion, setSeccion] = useState("calendario");
-  const [rango, setRango] = useState({ inicio: hoy(), fin: hoy(), horas: [] });
+  const [rango, setRango] = useState({ inicio: hoy(), fin: hoy(), diasSemana: [], horas: [] });
   const [rangoMsg, setRangoMsg] = useState(null);
   const [guardado, setGuardado] = useState(false);
 
@@ -45,18 +57,24 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
   const toggleHora = (h) =>
     setRango((r) => ({ ...r, horas: r.horas.includes(h) ? r.horas.filter((x) => x !== h) : [...r.horas, h] }));
 
+  const toggleDiaSemana = (dia) =>
+    setRango((r) => ({ ...r, diasSemana: r.diasSemana.includes(dia) ? r.diasSemana.filter((x) => x !== dia) : [...r.diasSemana, dia] }));
+
   const aplicarRango = () => {
-    if (!rango.inicio || !rango.fin || rango.horas.length === 0) {
-      setRangoMsg({ tipo: "error", txt: "Selecciona rango de fechas y al menos una franja." });
+    if (!rango.inicio || !rango.fin || rango.diasSemana.length === 0 || rango.horas.length === 0) {
+      setRangoMsg({ tipo: "error", txt: "Selecciona rango de fechas, dias de la semana y al menos una franja." });
       return;
     }
     if (rango.fin < rango.inicio) {
       setRangoMsg({ tipo: "error", txt: "La fecha de fin no puede ser anterior al inicio." });
       return;
     }
-    bloquearRango(rango.inicio, rango.fin, rango.horas);
-    setRangoMsg({ tipo: "ok", txt: `Franjas bloqueadas del ${rango.inicio} al ${rango.fin}.` });
-    setRango({ inicio: hoy(), fin: hoy(), horas: [] });
+    bloquearRango(rango.inicio, rango.fin, rango.horas, rango.diasSemana);
+    const diasTxt = rango.diasSemana.length === TODOS_LOS_DIAS.length
+      ? "todos los dias"
+      : DIAS_SEMANA.filter((d) => rango.diasSemana.includes(d.key)).map((d) => d.label).join(", ");
+    setRangoMsg({ tipo: "ok", txt: `Franjas bloqueadas del ${rango.inicio} al ${rango.fin} (${diasTxt}).` });
+    setRango({ inicio: hoy(), fin: hoy(), diasSemana: [], horas: [] });
     setTimeout(() => setRangoMsg(null), 3000);
   };
 
@@ -225,6 +243,41 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
                     <input type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
                   </Field>
                 </div>
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Dias de la semana</label>
+                  <button
+                    onClick={() => setRango((r) => ({ ...r, diasSemana: r.diasSemana.length === TODOS_LOS_DIAS.length ? [] : TODOS_LOS_DIAS }))}
+                    style={{ background: 'none', border: 'none', color: '#1a73e8', fontSize: 12, cursor: "pointer", fontWeight: 600, padding: 0 }}
+                  >
+                    {rango.diasSemana.length === TODOS_LOS_DIAS.length ? "Quitar todos" : "Seleccionar todos"}
+                  </button>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 6 }}>
+                  {DIAS_SEMANA.map((dia) => {
+                    const sel = rango.diasSemana.includes(dia.key);
+                    return (
+                      <button
+                        key={dia.key}
+                        onClick={() => toggleDiaSemana(dia.key)}
+                        title={dia.label}
+                        style={{ padding: "8px 10px", borderRadius: 8, border: `1.5px solid ${sel ? primary : border}`, background: sel ? primary : surfaceAlt, color: sel ? "#fff" : textMain, fontSize: 12, cursor: "pointer", fontWeight: sel ? 700 : 500, transition: "all 0.1s" }}
+                      >
+                        <span style={{ display: "block", fontSize: 13 }}>{dia.short}</span>
+                        <span style={{ display: "block", fontSize: 11, marginTop: 2 }}>{dia.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {rango.diasSemana.length > 0 && (
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#9ca3af" }}>
+                    {rango.diasSemana.length === TODOS_LOS_DIAS.length
+                      ? "Se bloquearan todos los dias del rango."
+                      : `Solo se bloquearan los ${DIAS_SEMANA.filter((d) => rango.diasSemana.includes(d.key)).map((d) => d.label.toLowerCase()).join(", ")} marcados.`}
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: 20 }}>

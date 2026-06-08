@@ -578,11 +578,21 @@ router.post("/bloqueados", authMiddleware, adminMiddleware, (req, res) => {
 });
 
 router.post("/bloqueados/batch", authMiddleware, adminMiddleware, (req, res) => {
-  const { fechaInicio, fechaFin, horas } = req.body || {};
+  const { fechaInicio, fechaFin, horas, diasSemana } = req.body || {};
 
   if (!fechaInicio || !fechaFin || !Array.isArray(horas) || horas.length === 0) {
     return res.status(400).json({ error: "Se requiere fechaInicio, fechaFin y horas" });
   }
+
+  const diasSeleccionados = Array.isArray(diasSemana) && diasSemana.length > 0
+    ? diasSemana.map((d) => Number(d))
+    : [0, 1, 2, 3, 4, 5, 6];
+
+  if (diasSeleccionados.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) {
+    return res.status(400).json({ error: "Dias de la semana invalidos" });
+  }
+
+  const diasSet = new Set(diasSeleccionados);
 
   if (!isValidDate(fechaInicio) || !isValidDate(fechaFin)) {
     return res.status(400).json({ error: "Formato de fecha inválido" });
@@ -607,8 +617,10 @@ router.post("/bloqueados/batch", authMiddleware, adminMiddleware, (req, res) => 
 
   while (d <= fin) {
     const f = d.toISOString().split("T")[0];
-    for (const h of horas) {
-      toInsert.push([f, h]);
+    if (diasSet.has(d.getUTCDay())) {
+      for (const h of horas) {
+        toInsert.push([f, h]);
+      }
     }
     d.setDate(d.getDate() + 1);
   }

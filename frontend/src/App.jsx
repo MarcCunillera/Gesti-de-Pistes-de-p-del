@@ -457,8 +457,8 @@ export default function App() {
     setAdminModal(null);
   };
 
-  const bloquearRango = function (fechaInicio, fechaFin, horas) {
-    api.addBloqueadoBatch(fechaInicio, fechaFin, horas)
+  const bloquearRango = function (fechaInicio, fechaFin, horas, diasSemana) {
+    api.addBloqueadoBatch(fechaInicio, fechaFin, horas, diasSemana)
       .then(function (result) {
         var nous = result?.created || [];
         if (nous.length > 0) {

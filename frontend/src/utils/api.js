@@ -82,7 +82,7 @@ export const api = {
   // Bloqueados
   getBloqueados: () => req("GET", "/reservas/bloqueados"),
   addBloqueado: (fecha, hora) => req("POST", "/reservas/bloqueados", { fecha, hora }),
-  addBloqueadoBatch: (fechaInicio, fechaFin, horas) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas }),
+  addBloqueadoBatch: (fechaInicio, fechaFin, horas, diasSemana) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas, diasSemana }),
   delBloqueado: (id) => req("DELETE", `/reservas/bloqueados/${id}`),
 
   // Config
