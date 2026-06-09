@@ -20,6 +20,7 @@ import MatchCreatedModal from "./components/modals/MatchCreatedModal";
 import AdminModal from "./components/modals/AdminModal";
 import ConfirmModal from "./components/modals/ConfirmModal";
 import ReservaConfirmModal from "./components/modals/ReservaConfirmModal";
+import WelcomeOnboardingModal from "./components/modals/WelcomeOnboardingModal";
 import Friends from "./components/views/Friends";
 import Skeleton from "./components/Skeleton";
 import Toast from "./components/Toast";
@@ -29,6 +30,7 @@ export default function App() {
   const { t, dark, toggle } = useTheme();
 
   const [session, setSession] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [users, setUsers] = useState([]);
   const [reservas, setReservas] = useState([]);
   const [bloqueados, setBloqueados] = useState([]);
@@ -121,7 +123,11 @@ export default function App() {
     var token = getToken();
     if (!token) { setCargando(false); return; }
     api.getMe()
-      .then(function (me) { setSession(me); return cargarDades(); })
+      .then(function (me) {
+        setSession(me);
+        setShowOnboarding(Number(me.onboarding_done) === 0);
+        return cargarDades();
+      })
       .catch(function () { setToken(null); })
       .finally(function () { setCargando(false); });
   }, []);
@@ -179,7 +185,8 @@ export default function App() {
           prev.avatar_color === me.avatar_color &&
           prev.telefono === me.telefono &&
           prev.lado === me.lado &&
-          prev.mano === me.mano
+          prev.mano === me.mano &&
+          prev.onboarding_done === me.onboarding_done
         ) {
           return prev;
         }
@@ -248,6 +255,7 @@ export default function App() {
       .then(function (data) {
         setToken(data.token);
         setSession(data.user);
+        setShowOnboarding(Boolean(data.isNewUser || Number(data.user?.onboarding_done) === 0));
         setAuthError("");
         setVista("calendario");
         return cargarDades();
@@ -263,6 +271,7 @@ export default function App() {
       .then(function (data) {
         setToken(data.token);
         setSession(data.user);
+        setShowOnboarding(Boolean(data.isNewUser || Number(data.user?.onboarding_done) === 0));
         setAuthError("");
         setVista("calendario");
         return cargarDades();
@@ -280,6 +289,7 @@ export default function App() {
       .then(function (data) {
         setToken(data.token);
         setSession(data.user);
+        setShowOnboarding(Boolean(data.isNewUser || Number(data.user?.onboarding_done) === 0));
         setAuthError("");
         setVista("calendario");
         return cargarDades();
@@ -294,6 +304,7 @@ export default function App() {
   const logout = function () {
     setToken(null);
     setSession(null);
+    setShowOnboarding(false);
     setUsers([]);
     setReservas([]);
     setBloqueados([]);
@@ -484,6 +495,16 @@ export default function App() {
         setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color, lado: updated.lado, mano: updated.mano, telefono: updated.telefono }); });
         setPerfilEdit(null);
         showToast("Perfil actualizado");
+      })
+      .catch(function (e) { showToast(e.message, "error"); });
+  };
+
+  const completarOnboarding = function (data) {
+    return api.completeOnboarding(data || {})
+      .then(function (updated) {
+        setSession(function (s) { return Object.assign({}, s, updated); });
+        setShowOnboarding(false);
+        showToast("Perfil preparado. Ya puedes empezar.");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
@@ -808,6 +829,14 @@ export default function App() {
         onOpenUserProfile={abrirPerfilUsuario}
         t={t}
       />
+      {showOnboarding && (
+        <WelcomeOnboardingModal
+          session={session}
+          t={t}
+          onFinish={completarOnboarding}
+          onSkip={completarOnboarding}
+        />
+      )}
       <Toast toast={toast} />
     </div>
   );

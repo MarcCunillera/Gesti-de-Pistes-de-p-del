@@ -73,16 +73,16 @@ router.post("/register", authLimiter, async (req, res) => {
 
   const hash = bcrypt.hashSync(password, 10);
   const result = await db.run(
-    "INSERT INTO users (nombre, email, password, rol) VALUES (?, ?, ?, 'usuario') RETURNING id",
+    "INSERT INTO users (nombre, email, password, rol, onboarding_done) VALUES (?, ?, ?, 'usuario', 0) RETURNING id",
     [normalizedName, normalizedEmail, hash]
   );
 
   const user = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
     [result.insertedId]
   );
 
-  res.status(201).json({ token: createToken(user), user });
+  res.status(201).json({ token: createToken(user), user, isNewUser: true });
 });
 
 router.post("/google", authLimiter, async (req, res) => {
@@ -104,19 +104,21 @@ router.post("/google", authLimiter, async (req, res) => {
     if (!email || !payload.email_verified) return res.status(401).json({ error: "Cuenta de Google no verificada" });
 
     let user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
+    let isNewUser = false;
 
     if (user && !user.activo) return res.status(403).json({ error: "Cuenta desactivada" });
 
     if (!user) {
       const randomPassword = bcrypt.hashSync(`google_${Date.now()}_${Math.random()}`, 10);
       const result = await db.run(
-        "INSERT INTO users (nombre, email, password, rol, activo, avatar) VALUES (?, ?, ?, 'usuario', 1, ?) RETURNING id",
+        "INSERT INTO users (nombre, email, password, rol, activo, avatar, onboarding_done) VALUES (?, ?, ?, 'usuario', 1, ?, 0) RETURNING id",
         [nombre, email, randomPassword, avatar]
       );
       user = await db.get("SELECT * FROM users WHERE id = ?", [result.insertedId]);
+      isNewUser = true;
     }
 
-    res.json({ token: createToken(user), user: publicUser(user) });
+    res.json({ token: createToken(user), user: publicUser(user), isNewUser });
   } catch (err) {
     console.error("Error login Google:", err);
     res.status(401).json({ error: "Login con Google invalido" });

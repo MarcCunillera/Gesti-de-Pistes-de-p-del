@@ -38,7 +38,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
   if (req.user.rol === "admin") {
     const rows = await db.all(
-      `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at,
+    `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at,
               (SELECT COUNT(*)::int FROM amics WHERE amics.user_id = users.id) as amigos_count
        FROM users
        ORDER BY id`
@@ -51,7 +51,7 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 
   const rows = await db.all(
-    `SELECT id, nombre, avatar, avatar_color, lado, mano, telefono,
+    `SELECT id, nombre, avatar, avatar_color, lado, mano, telefono, onboarding_done,
             (SELECT COUNT(*)::int FROM amics WHERE amics.user_id = users.id) as amigos_count
      FROM users
      WHERE activo = 1
@@ -62,7 +62,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
 router.get("/me", authMiddleware, async (req, res) => {
   const u = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
     [req.user.id]
   );
   if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -95,9 +95,45 @@ router.patch("/me", authMiddleware, async (req, res) => {
   });
 
   const updated = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
     [user.id]
   );
+  res.json(updated);
+});
+
+router.patch("/me/onboarding", authMiddleware, async (req, res) => {
+  const { telefono, lado, mano, avatar_color } = req.body || {};
+
+  if (lado !== undefined && lado !== null && lado !== "" && !["derecha", "reves", "ambos"].includes(lado)) {
+    return res.status(400).json({ error: "Lado invalido" });
+  }
+
+  if (mano !== undefined && mano !== null && mano !== "" && !["diestro", "zurdo"].includes(mano)) {
+    return res.status(400).json({ error: "Mano invalida" });
+  }
+
+  await db.run(
+    `UPDATE users
+     SET telefono = COALESCE(?, telefono),
+         lado = COALESCE(?, lado),
+         mano = COALESCE(?, mano),
+         avatar_color = COALESCE(?, avatar_color),
+         onboarding_done = 1
+     WHERE id = ?`,
+    [
+      telefono !== undefined ? (telefono || null) : null,
+      lado !== undefined ? (lado || null) : null,
+      mano !== undefined ? (mano || null) : null,
+      avatar_color !== undefined ? (avatar_color || null) : null,
+      req.user.id,
+    ]
+  );
+
+  const updated = await db.get(
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    [req.user.id]
+  );
+
   res.json(updated);
 });
 
@@ -122,7 +158,7 @@ router.delete("/me/avatar", authMiddleware, async (req, res) => {
     await db.run("UPDATE users SET avatar = NULL WHERE id = ?", [user.id]);
   }
   const updated = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
     [user.id]
   );
   res.json(updated);

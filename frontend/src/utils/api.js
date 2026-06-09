@@ -49,6 +49,7 @@ export const api = {
   getUsers: () => req("GET", "/users"),
   getMe: () => req("GET", "/users/me"),
   updateMe: (data) => req("PATCH", "/users/me", data),
+  completeOnboarding: (data) => req("PATCH", "/users/me/onboarding", data),
   toggleActivo: (id, activo) => req("PATCH", `/users/${id}`, { activo }),
   uploadAvatar: async (file) => {
     const form = new FormData();

@@ -74,7 +74,8 @@ async function init() {
       created_at TIMESTAMPTZ DEFAULT now(),
       lado TEXT DEFAULT NULL,
       mano TEXT DEFAULT NULL,
-      telefono TEXT DEFAULT NULL
+      telefono TEXT DEFAULT NULL,
+      onboarding_done INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS reservas (
@@ -146,6 +147,9 @@ async function init() {
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_confirmada ON reservas(fecha, hora) WHERE estado = 'confirmada'"
   );
 
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done INTEGER NOT NULL DEFAULT 1");
+  await query("ALTER TABLE users ALTER COLUMN onboarding_done SET DEFAULT 0");
+
   await query("INSERT INTO config (key, value) VALUES ('horaInicio', '08:00') ON CONFLICT (key) DO NOTHING");
   await query("INSERT INTO config (key, value) VALUES ('horaFin', '23:00') ON CONFLICT (key) DO NOTHING");
   await query("INSERT INTO config (key, value) VALUES ('duracion', '90') ON CONFLICT (key) DO NOTHING");
@@ -162,7 +166,7 @@ async function init() {
     if (initialAdminEmail && initialAdminPassword) {
       const hashAdmin = bcrypt.hashSync(initialAdminPassword, 10);
       await run(
-        "INSERT INTO users (nombre, email, password, rol, activo) VALUES (?, ?, ?, 'admin', 1)",
+        "INSERT INTO users (nombre, email, password, rol, activo, onboarding_done) VALUES (?, ?, ?, 'admin', 1, 1)",
         [initialAdminName, initialAdminEmail.trim().toLowerCase(), hashAdmin]
       );
       console.log(`Administrador inicial creat: ${initialAdminEmail}`);
