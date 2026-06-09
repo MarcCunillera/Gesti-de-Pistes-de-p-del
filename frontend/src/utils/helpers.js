@@ -13,15 +13,22 @@ export function generarHorarios(horaInicio, horaFin, duracion) {
   return slots;
 }
 
+function dateKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function hoy() {
-  return new Date().toISOString().split("T")[0];
+  return dateKey(new Date());
 }
 
 export function fechasDesde(base, dias) {
   return Array.from({ length: dias }, (_, i) => {
-    const d = new Date(base);
+    const d = new Date(`${base}T12:00:00`);
     d.setDate(d.getDate() + i);
-    return d.toISOString().split("T")[0];
+    return dateKey(d);
   });
 }
 
@@ -66,7 +73,7 @@ export function googleCalendarUrl(fecha, hora, duracion, titulo, descripcion) {
 export function descargarIcs(fecha, hora, duracion, titulo, descripcion) {
   const start = toCalDate(fecha, hora);
   const end = toCalDate(fecha, hora, duracion);
-  const stamp = toCalDate(new Date().toISOString().split("T")[0], new Date().toTimeString().slice(0, 5));
+  const stamp = toCalDate(hoy(), new Date().toTimeString().slice(0, 5));
   const contenido = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

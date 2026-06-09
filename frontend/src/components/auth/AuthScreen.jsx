@@ -87,6 +87,11 @@ function ErrorBanner({ message }) {
   return <div className="auth-error">{message}</div>;
 }
 
+function SuccessBanner({ message }) {
+  if (!message) return null;
+  return <div className="auth-success">{message}</div>;
+}
+
 function TabBar({ activeTab, onTabChange }) {
   return (
     <div className="auth-tabs">
@@ -190,6 +195,14 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle, setAuthTab }) {
         ¿Has olvidado tu contraseña?
       </button>
 
+      <button
+        type="button"
+        className="auth-link-button"
+        onClick={() => setAuthTab("verify")}
+      >
+        Reenviar correo de verificacion
+      </button>
+
       <GoogleLoginBlock loginGoogle={loginGoogle} />
     </>
   );
@@ -235,6 +248,54 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
         Crear compte
       </button>
       <GoogleLoginBlock loginGoogle={loginGoogle} />
+    </>
+  );
+}
+
+function ResendVerificationForm({ api, setAuthTab }) {
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const enviar = () => {
+    setMsg("");
+    setError("");
+
+    api.resendVerification(email)
+      .then((data) => {
+        setMsg(data.message || "Si el email existe, recibiras un correo de verificacion.");
+      })
+      .catch((e) => {
+        setError(e.message);
+      });
+  };
+
+  return (
+    <>
+      <InputField
+        icon={<IconEmail />}
+        type="email"
+        placeholder="Correo electronico"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && enviar()}
+        autoComplete="email"
+      />
+
+      {msg && <div className="auth-success">{msg}</div>}
+      {error && <div className="auth-error">{error}</div>}
+
+      <button className="auth-primary" type="button" onClick={enviar}>
+        Reenviar correo de verificacion
+      </button>
+
+      <button
+        type="button"
+        className="auth-link-button"
+        onClick={() => setAuthTab("login")}
+      >
+        Volver al inicio de sesion
+      </button>
     </>
   );
 }
@@ -295,6 +356,7 @@ export default function AuthScreen({
   regForm,
   setRegForm,
   authError,
+  authSuccess,
   login,
   registro,
   loginGoogle,
@@ -302,6 +364,7 @@ export default function AuthScreen({
 }) {
   const isLogin = authTab === "login";
   const isForgot = authTab === "forgot";
+  const isVerifyPending = authTab === "verify";
 
   return (
     <main className="auth-page">
@@ -332,21 +395,25 @@ export default function AuthScreen({
             <h2>
               {isForgot
                 ? "Recuperar contraseña"
-                : isLogin
-                  ? "Bienvenido/a"
-                  : "Crea tu cuenta"}
+                : isVerifyPending
+                  ? "Verificar correo"
+                  : isLogin
+                    ? "Bienvenido/a"
+                    : "Crea tu cuenta"}
             </h2>
 
             <p>
               {isForgot
                 ? "Introduce tu correo electrónico para recibir un enlace de recuperación."
-                : isLogin
-                  ? "Accede para consultar y gestionar tus reservas."
-                  : "Regístrate para empezar a reservar la pista."}
+                : isVerifyPending
+                  ? "Introduce tu correo electronico para recibir otro enlace de verificacion."
+                  : isLogin
+                    ? "Accede para consultar y gestionar tus reservas."
+                    : "Registrate para empezar a reservar la pista."}
             </p>
           </div>
 
-          {!isForgot && (
+          {!isForgot && !isVerifyPending && (
             <TabBar
               activeTab={authTab}
               onTabChange={setAuthTab}
@@ -354,7 +421,12 @@ export default function AuthScreen({
           )}
 
           <div className="auth-form-section">
-            {isForgot ? (
+            {isVerifyPending ? (
+              <ResendVerificationForm
+                api={api}
+                setAuthTab={setAuthTab}
+              />
+            ) : isForgot ? (
               <ForgotPasswordForm
                 api={api}
                 setAuthTab={setAuthTab}
@@ -374,6 +446,17 @@ export default function AuthScreen({
                 onSubmit={registro}
                 loginGoogle={loginGoogle}
               />
+            )}
+
+            <SuccessBanner message={authSuccess} />
+            {authSuccess && authTab === "registro" && (
+              <button
+                type="button"
+                className="auth-link-button"
+                onClick={() => setAuthTab("login")}
+              >
+                Ja he verificat el correu, anar a login
+              </button>
             )}
 
             <ErrorBanner message={authError} />

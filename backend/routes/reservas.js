@@ -12,6 +12,30 @@ const {
 
 const APP_TIMEZONE = process.env.APP_TIMEZONE || "Europe/Madrid";
 
+function localDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = {};
+  for (const p of parts) if (p.type !== "literal") values[p.type] = p.value;
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function addDaysKey(fecha, days) {
+  const [y, m, d] = fecha.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+  return date.toISOString().split("T")[0];
+}
+
+function weekdayKey(fecha) {
+  const [y, m, d] = fecha.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0)).getUTCDay();
+}
+
 const timeToMinutes = (time) => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -72,16 +96,14 @@ async function isAllowedSlot(hora) {
 
 async function cancelExpiredOpenMatches() {
   const rows = await db.all(
-    `SELECT id, fecha, hora
-     FROM reservas
-     WHERE estado = 'confirmada' AND abierto = 1`
+    `SELECT r.id, r.fecha, r.hora, COUNT(rj.user_id)::int as jugadors_count
+     FROM reservas r
+     LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
+     WHERE r.estado = 'confirmada' AND r.abierto = 1
+     GROUP BY r.id, r.fecha, r.hora`
   );
 
-  const expired = [];
-  for (const r of rows) {
-    const jugadors = await getJugadors(r.id);
-    if (slotHasStarted(r.fecha, r.hora) && jugadors.length < 4) expired.push(r);
-  }
+  const expired = rows.filter((r) => slotHasStarted(r.fecha, r.hora) && r.jugadors_count < 4);
 
   if (expired.length === 0) return 0;
 
@@ -98,6 +120,8 @@ async function cancelExpiredOpenMatches() {
   return expired.length;
 }
 
+router.use(authMiddleware);
+
 router.use(async (req, res, next) => {
   try {
     await cancelExpiredOpenMatches();
@@ -107,7 +131,7 @@ router.use(async (req, res, next) => {
   next();
 });
 
-router.get("/all", authMiddleware, async (req, res) => {
+router.get("/all", async (req, res) => {
   const rows = await db.all(
     `SELECT r.* FROM reservas r
      WHERE r.estado = 'confirmada'
@@ -116,7 +140,7 @@ router.get("/all", authMiddleware, async (req, res) => {
   res.json(await Promise.all(rows.map(enrichReserva)));
 });
 
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", async (req, res) => {
   const { fecha, hora, abierto } = req.body;
 
   if (!fecha || !hora) return res.status(400).json({ error: "Fecha y hora requeridas" });
@@ -135,7 +159,7 @@ router.post("/", authMiddleware, async (req, res) => {
   if (ocupat) return res.status(409).json({ error: "Franja ya reservada" });
 
   const maxReservas = parseInt(await getConfigValue("maxReservas", "3"), 10);
-  const today = new Date().toISOString().split("T")[0];
+  const today = localDateKey();
   const activas = await db.get(
     "SELECT COUNT(*)::int as n FROM reservas WHERE user_id = ? AND fecha >= ? AND estado = 'confirmada'",
     [req.user.id, today]
@@ -170,7 +194,7 @@ router.post("/", authMiddleware, async (req, res) => {
   res.status(201).json(await enrichReserva(r));
 });
 
-router.get("/solicituds/meues", authMiddleware, async (req, res) => {
+router.get("/solicituds/meues", async (req, res) => {
   const rows = await db.all(
     `SELECT sp.id, sp.reserva_id, sp.estat, sp.created_at,
             r.fecha, r.hora, r.user_id as organitzador_id,
@@ -185,7 +209,7 @@ router.get("/solicituds/meues", authMiddleware, async (req, res) => {
   res.json(rows);
 });
 
-router.get("/solicituds/invitades", authMiddleware, async (req, res) => {
+router.get("/solicituds/invitades", async (req, res) => {
   const rows = await db.all(
     `SELECT sp.id, sp.reserva_id, sp.estat, sp.created_at,
             r.fecha, r.hora,
@@ -201,7 +225,7 @@ router.get("/solicituds/invitades", authMiddleware, async (req, res) => {
   res.json(rows);
 });
 
-router.get("/solicituds/pendent", authMiddleware, async (req, res) => {
+router.get("/solicituds/pendent", async (req, res) => {
   const rows = await db.all(
     `SELECT sp.id, sp.reserva_id, sp.estat, sp.created_at,
             r.fecha, r.hora,
@@ -217,7 +241,7 @@ router.get("/solicituds/pendent", authMiddleware, async (req, res) => {
   res.json(rows);
 });
 
-router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
+router.patch("/solicituds/:id", async (req, res) => {
   const sp = await db.get("SELECT * FROM solicituds_partida WHERE id = ?", [req.params.id]);
   if (!sp) return res.status(404).json({ error: "Solicitud no encontrada" });
 
@@ -234,15 +258,33 @@ router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
   if (esInvitat && sp.estat !== "invitat") return res.status(400).json({ error: "Esta invitacion no esta activa" });
 
   if (estat === "acceptada") {
-    const jugadors = await getJugadors(r.id);
-    if (jugadors.length >= 4) return res.status(409).json({ error: "Partida ya completa" });
-    const jaEsta = jugadors.find((j) => j.id === sp.de_user_id);
-    if (!jaEsta) {
-      await db.run("INSERT INTO reserva_jugadores (reserva_id, user_id) VALUES (?, ?) ON CONFLICT (reserva_id, user_id) DO NOTHING", [r.id, sp.de_user_id]);
-    }
-  }
+    try {
+      await db.tx(async (trx) => {
+        const locked = await trx.get("SELECT * FROM reservas WHERE id = ? FOR UPDATE", [r.id]);
+        if (!locked || locked.estado !== "confirmada") {
+          const err = new Error("Partida no activa");
+          err.status = 409;
+          throw err;
+        }
 
-  await db.run("UPDATE solicituds_partida SET estat = ? WHERE id = ?", [estat, sp.id]);
+        const count = await trx.get("SELECT COUNT(*)::int as n FROM reserva_jugadores WHERE reserva_id = ?", [r.id]);
+        const jaEsta = await trx.get("SELECT 1 FROM reserva_jugadores WHERE reserva_id = ? AND user_id = ?", [r.id, sp.de_user_id]);
+        if (!jaEsta && count.n >= 4) {
+          const err = new Error("Partida ya completa");
+          err.status = 409;
+          throw err;
+        }
+
+        await trx.run("INSERT INTO reserva_jugadores (reserva_id, user_id) VALUES (?, ?) ON CONFLICT (reserva_id, user_id) DO NOTHING", [r.id, sp.de_user_id]);
+        await trx.run("UPDATE solicituds_partida SET estat = ? WHERE id = ?", [estat, sp.id]);
+      });
+    } catch (err) {
+      if (err.status) return res.status(err.status).json({ error: err.message });
+      throw err;
+    }
+  } else {
+    await db.run("UPDATE solicituds_partida SET estat = ? WHERE id = ?", [estat, sp.id]);
+  }
 
   const user = await db.get("SELECT id, nombre, email FROM users WHERE id = ?", [sp.de_user_id]);
   try {
@@ -255,7 +297,7 @@ router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
   res.json({ ok: true, estat });
 });
 
-router.post("/:id/unirse", authMiddleware, async (req, res) => {
+router.post("/:id/unirse", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
 
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
@@ -287,7 +329,7 @@ router.post("/:id/unirse", authMiddleware, async (req, res) => {
   res.status(201).json({ ok: true, message: "Solicitud enviada" });
 });
 
-router.post("/:id/sortir", authMiddleware, async (req, res) => {
+router.post("/:id/sortir", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id === req.user.id) return res.status(400).json({ error: "El organizador no puede salir, cancela la reserva" });
@@ -300,7 +342,7 @@ router.post("/:id/sortir", authMiddleware, async (req, res) => {
   res.json(await enrichReserva(await db.get("SELECT * FROM reservas WHERE id = ?", [r.id])));
 });
 
-router.delete("/:id/jugadors/:userId", authMiddleware, async (req, res) => {
+router.delete("/:id/jugadors/:userId", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso - no eres el organizador" });
@@ -316,7 +358,7 @@ router.delete("/:id/jugadors/:userId", authMiddleware, async (req, res) => {
   res.json(await enrichReserva(await db.get("SELECT * FROM reservas WHERE id = ?", [r.id])));
 });
 
-router.post("/:id/invitar", authMiddleware, async (req, res) => {
+router.post("/:id/invitar", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso - no eres el organizador" });
@@ -353,7 +395,7 @@ router.post("/:id/invitar", authMiddleware, async (req, res) => {
   res.json({ ok: true, message: "Invitacion enviada - el amigo debe confirmar" });
 });
 
-router.patch("/:id/abierto", authMiddleware, async (req, res) => {
+router.patch("/:id/abierto", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso" });
@@ -363,11 +405,11 @@ router.patch("/:id/abierto", authMiddleware, async (req, res) => {
   res.json(await enrichReserva(await db.get("SELECT * FROM reservas WHERE id = ?", [r.id])));
 });
 
-router.get("/bloqueados", authMiddleware, async (req, res) => {
+router.get("/bloqueados", async (req, res) => {
   res.json(await db.all("SELECT * FROM bloqueados ORDER BY fecha, hora"));
 });
 
-router.post("/bloqueados", authMiddleware, adminMiddleware, async (req, res) => {
+router.post("/bloqueados", adminMiddleware, async (req, res) => {
   const { fecha, hora } = req.body;
 
   if (!fecha || !hora) return res.status(400).json({ error: "Se requiere fecha y hora" });
@@ -384,7 +426,7 @@ router.post("/bloqueados", authMiddleware, adminMiddleware, async (req, res) => 
   }
 });
 
-router.post("/bloqueados/batch", authMiddleware, adminMiddleware, async (req, res) => {
+router.post("/bloqueados/batch", adminMiddleware, async (req, res) => {
   const { fechaInicio, fechaFin, horas, diasSemana } = req.body || {};
 
   if (!fechaInicio || !fechaFin || !Array.isArray(horas) || horas.length === 0) {
@@ -410,15 +452,10 @@ router.post("/bloqueados/batch", authMiddleware, adminMiddleware, async (req, re
 
   const diasSet = new Set(diasSeleccionados);
   const toInsert = [];
-  const d = new Date(fechaInicio);
-  const fin = new Date(fechaFin);
-
-  while (d <= fin) {
-    const f = d.toISOString().split("T")[0];
-    if (diasSet.has(d.getUTCDay())) {
+  for (let f = fechaInicio; f <= fechaFin; f = addDaysKey(f, 1)) {
+    if (diasSet.has(weekdayKey(f))) {
       for (const h of horas) toInsert.push([f, h]);
     }
-    d.setDate(d.getDate() + 1);
   }
 
   const created = await db.tx(async (trx) => {
@@ -436,21 +473,40 @@ router.post("/bloqueados/batch", authMiddleware, adminMiddleware, async (req, re
   res.status(201).json({ created });
 });
 
-router.delete("/bloqueados/:id", authMiddleware, adminMiddleware, async (req, res) => {
+router.delete("/bloqueados/:id", adminMiddleware, async (req, res) => {
   await db.run("DELETE FROM bloqueados WHERE id = ?", [req.params.id]);
   res.json({ ok: true });
 });
 
-router.get("/config", authMiddleware, async (req, res) => {
+router.get("/config", async (req, res) => {
   const rows = await db.all("SELECT key, value FROM config");
   const obj = {};
   rows.forEach((r) => { obj[r.key] = r.value; });
   res.json(obj);
 });
 
-router.put("/config", authMiddleware, adminMiddleware, async (req, res) => {
+router.put("/config", adminMiddleware, async (req, res) => {
+  const allowedKeys = new Set(["horaInicio", "horaFin", "duracion", "diasVista", "maxReservas"]);
+  const next = {};
+
+  for (const [k, v] of Object.entries(req.body || {})) {
+    if (!allowedKeys.has(k)) return res.status(400).json({ error: `Config invalida: ${k}` });
+    next[k] = v;
+  }
+
+  if (next.horaInicio !== undefined && !isValidTime(String(next.horaInicio))) return res.status(400).json({ error: "Hora de inicio invalida" });
+  if (next.horaFin !== undefined && !isValidTime(String(next.horaFin))) return res.status(400).json({ error: "Hora de fin invalida" });
+
+  const horaInicio = String(next.horaInicio ?? await getConfigValue("horaInicio", "08:00"));
+  const horaFin = String(next.horaFin ?? await getConfigValue("horaFin", "23:00"));
+  if (timeToMinutes(horaInicio) >= timeToMinutes(horaFin)) return res.status(400).json({ error: "La hora de inicio debe ser anterior a la hora de fin" });
+
+  if (next.duracion !== undefined && ![30, 45, 60, 90, 120].includes(Number(next.duracion))) return res.status(400).json({ error: "Duracion invalida" });
+  if (next.diasVista !== undefined && ![3, 5, 7].includes(Number(next.diasVista))) return res.status(400).json({ error: "Dias visibles invalidos" });
+  if (next.maxReservas !== undefined && ![1, 2, 3, 4, 5].includes(Number(next.maxReservas))) return res.status(400).json({ error: "Limite de reservas invalido" });
+
   await db.tx(async (trx) => {
-    for (const [k, v] of Object.entries(req.body)) {
+    for (const [k, v] of Object.entries(next)) {
       await trx.run(
         "INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
         [k, String(v)]
@@ -460,7 +516,7 @@ router.put("/config", authMiddleware, adminMiddleware, async (req, res) => {
   res.json({ ok: true });
 });
 
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso" });

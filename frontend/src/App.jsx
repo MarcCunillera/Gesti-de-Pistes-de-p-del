@@ -25,6 +25,7 @@ import Friends from "./components/views/Friends";
 import Skeleton from "./components/Skeleton";
 import Toast from "./components/Toast";
 import ResetPasswordScreen from "./components/auth/ResetPasswordScreen";
+import VerifyEmailScreen from "./components/auth/VerifyEmailScreen";
 
 export default function App() {
   const { t, dark, toggle } = useTheme();
@@ -45,6 +46,7 @@ export default function App() {
   const [regForm, setRegForm] = useState({ nombre: "", email: "", password: "" });
   const [authTab, setAuthTab] = useState("login");
   const [authError, setAuthError] = useState("");
+  const [authSuccess, setAuthSuccess] = useState("");
   const [reservaModal, setReservaModal] = useState(null);
   const [adminModal, setAdminModal] = useState(null);
   const [partidoModal, setPartidoModal] = useState(null);
@@ -251,6 +253,9 @@ export default function App() {
   }, [solicitudsAmicCount, solicitudsPartidaPendent, solicitudsPartidaInvitades, solicitudsPartidaMeues]);
 
   const login = function () {
+    setAuthError("");
+    setAuthSuccess("");
+
     api.login(loginForm.email, loginForm.password)
       .then(function (data) {
         setToken(data.token);
@@ -264,11 +269,21 @@ export default function App() {
   };
 
   const registro = function () {
+    setAuthError("");
+    setAuthSuccess("");
+
     if (!regForm.nombre || !regForm.email || !regForm.password) {
       setAuthError("Rellena todos los campos."); return;
     }
     api.register(regForm.nombre, regForm.email, regForm.password)
       .then(function (data) {
+        if (data.pendingVerification) {
+          setAuthSuccess(data.message || "Email de verificacion enviado. Revisa tu correo antes de iniciar sesion.");
+          setRegForm(function (f) { return Object.assign({}, f, { password: "" }); });
+          setLoginForm(function (f) { return Object.assign({}, f, { email: regForm.email, password: "" }); });
+          return null;
+        }
+
         setToken(data.token);
         setSession(data.user);
         setShowOnboarding(Boolean(data.isNewUser || Number(data.user?.onboarding_done) === 0));
@@ -280,6 +295,9 @@ export default function App() {
   };
 
   const loginGoogle = function (credential) {
+    setAuthError("");
+    setAuthSuccess("");
+
     if (!credential) {
       setAuthError("No s'ha rebut la credencial de Google.");
       return;
@@ -300,6 +318,12 @@ export default function App() {
   };
 
   const allowGoogleLogin = Boolean((import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim());
+
+  const changeAuthTab = function (tab) {
+    setAuthError("");
+    setAuthSuccess("");
+    setAuthTab(tab);
+  };
 
   const logout = function () {
     setToken(null);
@@ -492,6 +516,20 @@ export default function App() {
     if (!perfilEdit.nombre.trim()) return;
     api.updateMe({ nombre: perfilEdit.nombre, email: perfilEdit.email, avatar_color: perfilEdit.avatar_color, lado: perfilEdit.lado, mano: perfilEdit.mano, telefono: perfilEdit.telefono })
       .then(function (updated) {
+        if (Number(updated.email_verified) === 0) {
+          setPerfilEdit(null);
+          setToken(null);
+          setSession(null);
+          setUsers([]);
+          setReservas([]);
+          setBloqueados([]);
+          setLoginForm(function (f) { return Object.assign({}, f, { email: updated.email, password: "" }); });
+          setAuthTab("login");
+          setAuthError("");
+          setAuthSuccess("Email actualitzat. Revisa el correu de verificacio abans de tornar a iniciar sessio.");
+          return;
+        }
+
         setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color, lado: updated.lado, mano: updated.mano, telefono: updated.telefono }); });
         setPerfilEdit(null);
         showToast("Perfil actualizado");
@@ -672,6 +710,7 @@ export default function App() {
 
   const resetToken = new URLSearchParams(window.location.search).get("token");
   const isResetPassword = window.location.pathname === "/reset-password" && resetToken;
+  const isVerifyEmail = window.location.pathname === "/verify-email" && resetToken;
 
   if (isResetPassword) {
     return (
@@ -687,16 +726,30 @@ export default function App() {
     );
   }
 
+  if (isVerifyEmail) {
+    return (
+      <VerifyEmailScreen
+        token={resetToken}
+        api={api}
+        onDone={() => {
+          window.history.replaceState({}, "", "/");
+          setAuthTab("login");
+        }}
+      />
+    );
+  }
+
   if (!session) {
     return (
       <AuthScreen
         authTab={authTab}
-        setAuthTab={setAuthTab}
+        setAuthTab={changeAuthTab}
         loginForm={loginForm}
         setLoginForm={setLoginForm}
         regForm={regForm}
         setRegForm={setRegForm}
         authError={authError}
+        authSuccess={authSuccess}
         login={login}
         registro={registro}
         loginGoogle={allowGoogleLogin ? loginGoogle : null}

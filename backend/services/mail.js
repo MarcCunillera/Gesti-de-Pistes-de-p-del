@@ -18,6 +18,10 @@ const transporter = mailEnabled
   })
   : null;
 
+function isMailEnabled() {
+  return Boolean(transporter);
+}
+
 if (transporter) {
   transporter
     .verify()
@@ -30,7 +34,11 @@ const appUrl = process.env.APP_URL || "http://localhost:3003";
 const LOGO_URL = `https://raw.githubusercontent.com/MarcCunillera/Gesti-de-Pistes-de-p-del/Develop/frontend/public/Escut_de_Torrelameu.svg`;
 
 async function sendMailSafe({ to, subject, html }) {
-  if (!transporter || !to) return;
+  if (!transporter || !to) {
+    const err = new Error("SMTP no esta configurado");
+    err.code = "MAIL_NOT_CONFIGURED";
+    throw err;
+  }
 
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
@@ -256,6 +264,24 @@ async function sendPasswordReset(user, resetUrl) {
   });
 }
 
+async function sendEmailVerification(user, verifyUrl) {
+  await sendMailSafe({
+    to: user.email,
+    subject: "Verifica el teu correu - Padel Torrelameu",
+    html: layout(
+      "Verifica el teu correu",
+      "Confirma el teu compte per poder accedir a l'aplicacio.",
+      `
+        ${paragraph(`Hola <strong>${escapeHtml(user.nombre)}</strong>,`)}
+        ${paragraph("Prem el boto seguent per validar el teu correu electronic. Aquest enllac caduca en 24 hores.")}
+        ${paragraph("Si no has creat cap compte, pots ignorar aquest correu.")}
+      `,
+      "Verificar correu",
+      verifyUrl
+    ),
+  });
+}
+
 module.exports = {
   sendReservaConfirmada,
   sendReservaCancelada,
@@ -264,4 +290,6 @@ module.exports = {
   sendSolicitudRebutjada,
   sendInvitacioPartida,
   sendPasswordReset,
+  sendEmailVerification,
+  isMailEnabled,
 };

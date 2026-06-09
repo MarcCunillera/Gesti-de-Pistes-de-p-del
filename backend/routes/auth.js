@@ -7,6 +7,7 @@ const { SECRET } = require("../middleware/auth");
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const { sendPasswordReset } = require("../services/mail");
+const { createEmailVerification, ensureEmailCanBeSent } = require("../services/emailVerification");
 
 const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || "").trim();
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -51,6 +52,10 @@ router.post("/login", authLimiter, async (req, res) => {
     return res.status(403).json({ error: "Cuenta desactivada" });
   }
 
+  if (Number(user.email_verified) !== 1) {
+    return res.status(403).json({ error: "Debes verificar tu correo antes de iniciar sesion" });
+  }
+
   res.json({ token: createToken(user), user: publicUser(user) });
 });
 
@@ -67,22 +72,39 @@ router.post("/register", authLimiter, async (req, res) => {
   if (!normalizedName) return res.status(400).json({ error: "El nombre es obligatorio" });
   if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Formato de email invalido" });
   if (password.length < 6) return res.status(400).json({ error: "La contrasena debe tener minimo 6 caracteres" });
+  try {
+    ensureEmailCanBeSent();
+  } catch (err) {
+    return res.status(503).json({ error: err.message });
+  }
 
   const exists = await db.get("SELECT id FROM users WHERE email = ?", [normalizedEmail]);
   if (exists) return res.status(409).json({ error: "Email ya registrado" });
 
   const hash = bcrypt.hashSync(password, 10);
   const result = await db.run(
-    "INSERT INTO users (nombre, email, password, rol, onboarding_done) VALUES (?, ?, ?, 'usuario', 0) RETURNING id",
+    "INSERT INTO users (nombre, email, password, rol, onboarding_done, email_verified) VALUES (?, ?, ?, 'usuario', 0, 0) RETURNING id",
     [normalizedName, normalizedEmail, hash]
   );
 
   const user = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [result.insertedId]
   );
 
-  res.status(201).json({ token: createToken(user), user, isNewUser: true });
+  try {
+    await createEmailVerification(user);
+  } catch (err) {
+    await db.run("DELETE FROM users WHERE id = ?", [user.id]);
+    console.error("Error enviando correo de verificacion:", err.message);
+    return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+  }
+
+  res.status(201).json({
+    ok: true,
+    pendingVerification: true,
+    message: "Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesion.",
+  });
 });
 
 router.post("/google", authLimiter, async (req, res) => {
@@ -111,7 +133,7 @@ router.post("/google", authLimiter, async (req, res) => {
     if (!user) {
       const randomPassword = bcrypt.hashSync(`google_${Date.now()}_${Math.random()}`, 10);
       const result = await db.run(
-        "INSERT INTO users (nombre, email, password, rol, activo, avatar, onboarding_done) VALUES (?, ?, ?, 'usuario', 1, ?, 0) RETURNING id",
+        "INSERT INTO users (nombre, email, password, rol, activo, avatar, onboarding_done, email_verified) VALUES (?, ?, ?, 'usuario', 1, ?, 0, 1) RETURNING id",
         [nombre, email, randomPassword, avatar]
       );
       user = await db.get("SELECT * FROM users WHERE id = ?", [result.insertedId]);
@@ -123,6 +145,53 @@ router.post("/google", authLimiter, async (req, res) => {
     console.error("Error login Google:", err);
     res.status(401).json({ error: "Login con Google invalido" });
   }
+});
+
+router.post("/resend-verification", authLimiter, async (req, res) => {
+  const email = (req.body.email || "").trim().toLowerCase();
+  const okMessage = "Si el email existe y no esta verificado, recibiras un correo de verificacion.";
+
+  if (!email || !emailRegex.test(email)) return res.json({ ok: true, message: okMessage });
+
+  const user = await db.get("SELECT id, nombre, email, activo, email_verified FROM users WHERE email = ?", [email]);
+  if (!user || !user.activo || Number(user.email_verified) === 1) return res.json({ ok: true, message: okMessage });
+
+  try {
+    await createEmailVerification(user);
+  } catch (err) {
+    console.error("Error reenviando correo de verificacion:", err.message);
+    return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+  }
+
+  res.json({ ok: true, message: okMessage });
+});
+
+router.post("/verify-email", authLimiter, async (req, res) => {
+  const token = (req.body.token || "").trim();
+  if (!token) return res.status(400).json({ error: "Token de verificacion requerido" });
+
+  const verification = await db.get(
+    `SELECT ev.id, ev.user_id, ev.expires_at, ev.used, u.activo
+     FROM email_verifications ev
+     JOIN users u ON u.id = ev.user_id
+     WHERE ev.token = ?`,
+    [token]
+  );
+
+  if (!verification || verification.used || !verification.activo) {
+    return res.status(400).json({ error: "Enlace invalido o caducado" });
+  }
+
+  if (new Date(verification.expires_at).getTime() < Date.now()) {
+    return res.status(400).json({ error: "Enlace caducado" });
+  }
+
+  await db.tx(async (trx) => {
+    await trx.run("UPDATE users SET email_verified = 1 WHERE id = ?", [verification.user_id]);
+    await trx.run("UPDATE email_verifications SET used = 1 WHERE id = ?", [verification.id]);
+  });
+
+  res.json({ ok: true, message: "Correo verificado correctamente. Ya puedes iniciar sesion." });
 });
 
 router.post("/forgot-password", authLimiter, async (req, res) => {

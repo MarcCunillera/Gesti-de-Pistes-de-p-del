@@ -171,6 +171,21 @@ export default function AdminUsers({
                       PRINCIPAL
                     </span>
                   )}
+
+                  {Number(u.email_verified) !== 1 && (
+                    <span
+                      style={{
+                        background: "#fff7ed",
+                        color: "#c2410c",
+                        borderRadius: 4,
+                        padding: "1px 6px",
+                        fontSize: 10,
+                        fontWeight: 800,
+                      }}
+                    >
+                      EMAIL PENDIENTE
+                    </span>
+                  )}
                 </div>
 
                 <div

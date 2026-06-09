@@ -5,9 +5,12 @@ const path = require("path");
 const fs = require("fs");
 const db = require("../db");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+const { createEmailVerification, ensureEmailCanBeSent } = require("../services/emailVerification");
 
 const uploadsDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function deleteAvatarFile(avatarPath) {
   if (!avatarPath || !avatarPath.startsWith("/uploads/")) return;
@@ -38,7 +41,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
   if (req.user.rol === "admin") {
     const rows = await db.all(
-    `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at,
+    `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at,
               (SELECT COUNT(*)::int FROM amics WHERE amics.user_id = users.id) as amigos_count
        FROM users
        ORDER BY id`
@@ -62,7 +65,7 @@ router.get("/", authMiddleware, async (req, res) => {
 
 router.get("/me", authMiddleware, async (req, res) => {
   const u = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [req.user.id]
   );
   if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -79,15 +82,24 @@ router.patch("/me", authMiddleware, async (req, res) => {
     if (newPassword.length < 6) return res.status(400).json({ error: "Minimo 6 caracteres" });
   }
 
-  if (email && email !== user.email) {
-    const exists = await db.get("SELECT id FROM users WHERE email = ? AND id != ?", [email, user.id]);
+  const normalizedEmail = email ? email.trim().toLowerCase() : "";
+  const emailChanged = normalizedEmail && normalizedEmail !== user.email;
+
+  if (emailChanged) {
+    if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Formato de email invalido" });
+    try {
+      ensureEmailCanBeSent();
+    } catch (err) {
+      return res.status(503).json({ error: err.message });
+    }
+    const exists = await db.get("SELECT id FROM users WHERE email = ? AND id != ?", [normalizedEmail, user.id]);
     if (exists) return res.status(400).json({ error: "Este email ya esta en uso" });
   }
 
   await db.tx(async (trx) => {
     if (newPassword) await trx.run("UPDATE users SET password = ? WHERE id = ?", [bcrypt.hashSync(newPassword, 10), user.id]);
     if (nombre) await trx.run("UPDATE users SET nombre = ? WHERE id = ?", [nombre, user.id]);
-    if (email && email !== user.email) await trx.run("UPDATE users SET email = ? WHERE id = ?", [email, user.id]);
+    if (emailChanged) await trx.run("UPDATE users SET email = ?, email_verified = 0 WHERE id = ?", [normalizedEmail, user.id]);
     if (avatar_color) await trx.run("UPDATE users SET avatar_color = ? WHERE id = ?", [avatar_color, user.id]);
     if (lado !== undefined) await trx.run("UPDATE users SET lado = ? WHERE id = ?", [lado || null, user.id]);
     if (mano !== undefined) await trx.run("UPDATE users SET mano = ? WHERE id = ?", [mano || null, user.id]);
@@ -95,9 +107,20 @@ router.patch("/me", authMiddleware, async (req, res) => {
   });
 
   const updated = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [user.id]
   );
+
+  if (emailChanged) {
+    try {
+      await createEmailVerification(updated);
+    } catch (err) {
+      await db.run("UPDATE users SET email = ?, email_verified = ? WHERE id = ?", [user.email, user.email_verified, user.id]);
+      console.error("Error enviando correo de verificacion:", err.message);
+      return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+    }
+  }
+
   res.json(updated);
 });
 
@@ -130,7 +153,7 @@ router.patch("/me/onboarding", authMiddleware, async (req, res) => {
   );
 
   const updated = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [req.user.id]
   );
 
@@ -158,7 +181,7 @@ router.delete("/me/avatar", authMiddleware, async (req, res) => {
     await db.run("UPDATE users SET avatar = NULL WHERE id = ?", [user.id]);
   }
   const updated = await db.get(
-    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, created_at FROM users WHERE id = ?",
+    "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [user.id]
   );
   res.json(updated);
@@ -182,7 +205,7 @@ router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   if (rol !== undefined) await db.run("UPDATE users SET rol = ? WHERE id = ?", [rol, userId]);
 
   const updated = await db.get(
-    `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, created_at
+    `SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, email_verified, created_at
      FROM users
      WHERE id = ?`,
     [userId]

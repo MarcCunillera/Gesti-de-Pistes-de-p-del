@@ -75,7 +75,8 @@ async function init() {
       lado TEXT DEFAULT NULL,
       mano TEXT DEFAULT NULL,
       telefono TEXT DEFAULT NULL,
-      onboarding_done INTEGER NOT NULL DEFAULT 0
+      onboarding_done INTEGER NOT NULL DEFAULT 0,
+      email_verified INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS reservas (
@@ -140,6 +141,15 @@ async function init() {
       used INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ DEFAULT now()
     );
+
+    CREATE TABLE IF NOT EXISTS email_verifications (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TEXT NOT NULL,
+      used INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
   `);
 
   await query("DROP INDEX IF EXISTS idx_reservas_fecha_hora_estado");
@@ -149,6 +159,8 @@ async function init() {
 
   await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done INTEGER NOT NULL DEFAULT 1");
   await query("ALTER TABLE users ALTER COLUMN onboarding_done SET DEFAULT 0");
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified INTEGER NOT NULL DEFAULT 1");
+  await query("ALTER TABLE users ALTER COLUMN email_verified SET DEFAULT 0");
 
   await query("INSERT INTO config (key, value) VALUES ('horaInicio', '08:00') ON CONFLICT (key) DO NOTHING");
   await query("INSERT INTO config (key, value) VALUES ('horaFin', '23:00') ON CONFLICT (key) DO NOTHING");
@@ -166,7 +178,7 @@ async function init() {
     if (initialAdminEmail && initialAdminPassword) {
       const hashAdmin = bcrypt.hashSync(initialAdminPassword, 10);
       await run(
-        "INSERT INTO users (nombre, email, password, rol, activo, onboarding_done) VALUES (?, ?, ?, 'admin', 1, 1)",
+        "INSERT INTO users (nombre, email, password, rol, activo, onboarding_done, email_verified) VALUES (?, ?, ?, 'admin', 1, 1, 1)",
         [initialAdminName, initialAdminEmail.trim().toLowerCase(), hashAdmin]
       );
       console.log(`Administrador inicial creat: ${initialAdminEmail}`);

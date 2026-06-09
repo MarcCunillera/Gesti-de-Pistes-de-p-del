@@ -8,6 +8,12 @@ export function setToken(t) {
   else localStorage.removeItem("padel_token");
 }
 
+function notifyUnauthorizedIfNeeded(status) {
+  if (status === 401) {
+    window.dispatchEvent(new CustomEvent("padel:unauthorized"));
+  }
+}
+
 async function req(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const token = getToken();
@@ -20,10 +26,7 @@ async function req(method, path, body) {
   });
 
   const data = await res.json().catch(() => ({}));
-  if (res.status === 401) {
-    // Token expirat o invàlid — notificar l'app perquè faci logout
-    window.dispatchEvent(new CustomEvent("padel:unauthorized"));
-  }
+  notifyUnauthorizedIfNeeded(res.status);
   if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
   return data;
 }
@@ -45,6 +48,12 @@ export const api = {
   resetPassword: (token, password) =>
     req("POST", "/auth/reset-password", { token, password }),
 
+  verifyEmail: (token) =>
+    req("POST", "/auth/verify-email", { token }),
+
+  resendVerification: (email) =>
+    req("POST", "/auth/resend-verification", { email }),
+
   // Users
   getUsers: () => req("GET", "/users"),
   getMe: () => req("GET", "/users/me"),
@@ -60,6 +69,7 @@ export const api = {
       body: form,
     });
     const data = await res.json();
+    notifyUnauthorizedIfNeeded(res.status);
     if (!res.ok) throw new Error(data.error || "Error pujant avatar");
     return data;
   },

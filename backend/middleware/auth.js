@@ -24,7 +24,7 @@ async function authMiddleware(req, res, next) {
     const decoded = jwt.verify(token, SECRET);
 
     const user = await db.get(
-      "SELECT id, nombre, email, rol, activo FROM users WHERE id = ?",
+      "SELECT id, nombre, email, rol, activo, email_verified FROM users WHERE id = ?",
       [decoded.id]
     );
 
@@ -37,6 +37,12 @@ async function authMiddleware(req, res, next) {
     if (user.activo !== 1) {
       return res.status(401).json({
         error: "Usuario desactivado"
+      });
+    }
+
+    if (Number(user.email_verified) !== 1) {
+      return res.status(401).json({
+        error: "Correo pendiente de verificacion"
       });
     }
 

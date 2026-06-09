@@ -3,8 +3,8 @@ FROM node:18-alpine AS frontend
 
 WORKDIR /frontend
 
-COPY frontend/package.json ./
-RUN npm install
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
 
 COPY frontend/src/ ./src/
 COPY frontend/public/ ./public/
@@ -24,8 +24,8 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-COPY backend/package.json ./
-RUN npm install --omit=dev
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev
 
 COPY backend/ .
 

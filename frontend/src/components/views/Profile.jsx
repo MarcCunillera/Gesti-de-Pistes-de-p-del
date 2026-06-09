@@ -98,19 +98,6 @@ function AvatarDisplay({ session, size }) {
   );
 }
 
-function StatBox({ label, value, sub, color, C }) {
-  return (
-    <div style={{
-      flex: "1 1 90px", background: C.surfaceAlt, borderRadius: 10, padding: "14px 16px",
-      border: "1px solid " + C.border, textAlign: "center",
-    }}>
-      <div style={{ fontSize: 26, fontWeight: 800, color: color || C.text, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, fontWeight: 600, color: color || C.muted, marginTop: 2 }}>{sub}</div>}
-      <div style={{ fontSize: 11, color: C.muted, fontWeight: 500, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</div>
-    </div>
-  );
-}
-
 export default function Profile({
   session, misReservas, misPartidos, amics,
   perfilEdit, setPerfilEdit, guardarPerfil,
