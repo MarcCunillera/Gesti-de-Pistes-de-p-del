@@ -281,6 +281,7 @@ export default function App() {
           setAuthSuccess(data.message || "Email de verificacion enviado. Revisa tu correo antes de iniciar sesion.");
           setRegForm(function (f) { return Object.assign({}, f, { password: "" }); });
           setLoginForm(function (f) { return Object.assign({}, f, { email: regForm.email, password: "" }); });
+          setAuthTab("registered");
           return null;
         }
 
@@ -381,6 +382,7 @@ export default function App() {
 
   const pedirUnirse = function (rid, fecha, hora) {
     setConfirmModal({
+      variant: "join",
       titulo: "Unirse al partido",
       mensaje: "¿Confirmas que quieres unirte al partido del " + fecha + " a las " + hora + "?",
       accion: "Sí, unirme",
@@ -465,6 +467,8 @@ export default function App() {
 
   const pedirSalir = function (rid, fecha, hora) {
     setConfirmModal({
+      variant: "warning",
+      danger: false,
       titulo: "Salir del partido",
       mensaje: "¿Seguro que quieres salir del partido del " + fecha + " a las " + hora + "?",
       accion: "Sí, salir",
