@@ -582,7 +582,7 @@ export default function App() {
   };
 
   const desbloquearTodo = function () {
-    Promise.all(bloqueados.map(function (b) { return api.delBloqueado(b.id); }))
+    api.delTodosBloqueados()
       .then(function () { setBloqueados([]); showToast("Todas las franjas desbloqueadas"); })
       .catch(function (e) { showToast(e.message, "error"); });
   };

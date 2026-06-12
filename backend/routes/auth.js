@@ -1,9 +1,8 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const db = require("../db");
-const { SECRET } = require("../middleware/auth");
+const { createToken } = require("../services/jwt");
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const { sendPasswordReset } = require("../services/mail");
@@ -21,13 +20,6 @@ const authLimiter = rateLimit({
 });
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const createToken = (user) =>
-  jwt.sign(
-    { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol },
-    SECRET,
-    { expiresIn: "7d" }
-  );
 
 const publicUser = (user) => {
   const { password: _, ...userData } = user;
