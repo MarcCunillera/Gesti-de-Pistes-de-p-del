@@ -2,7 +2,6 @@
 // Versió: canviar el número força una actualització de la caché
 const CACHE_VERSION = "padel-v1";
 const STATIC_CACHE  = CACHE_VERSION + "-static";
-const API_CACHE     = CACHE_VERSION + "-api";
 
 // Recursos estàtics a pre-caché en el moment de la instal·lació
 const PRECACHE_URLS = ["/", "/index.html", "/Escut_de_Torrelameu.svg"];
@@ -25,7 +24,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.startsWith("padel-") && k !== STATIC_CACHE && k !== API_CACHE)
+            .filter((k) => k.startsWith("padel-") && k !== STATIC_CACHE)
             .map((k) => caches.delete(k))
         )
       )
@@ -42,10 +41,8 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   if (!url.protocol.startsWith("http")) return;
 
-  // ── API: Network-first amb caché de fallback ──────────────────────────────
-  // (les reserves s'han d'actualitzar sempre que hi hagi xarxa)
+  // API requests must always hit the network. Reservation state cannot be stale.
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirstWithCache(request, API_CACHE));
     return;
   }
 
@@ -77,25 +74,6 @@ async function cacheFirst(request, cacheName) {
     cache.put(request, response.clone());
   }
   return response;
-}
-
-/** Network-first: intenta xarxa, si falla retorna caché */
-async function networkFirstWithCache(request, cacheName) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    return new Response(
-      JSON.stringify({ error: "Sense connexió" }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
-    );
-  }
 }
 
 /** Per navegació: network-first però sempre retorna index.html si falla */

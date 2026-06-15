@@ -1,8 +1,9 @@
 import { colorAvatar, iniciales } from "../utils/helpers";
 
-const BACKEND =
-  import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
-  "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const BACKEND = API_BASE.startsWith("http")
+  ? API_BASE.replace(/\/api\/?$/, "")
+  : "";
 
 export default function UserAvatar({
   user,

@@ -11,6 +11,26 @@ const uploadsDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const colorRegex = /^#[0-9a-fA-F]{6}$/;
+const ladosValidos = new Set(["derecha", "reves", "ambos"]);
+const manosValidas = new Set(["diestro", "zurdo"]);
+const telefonoRegex = /^[0-9+\s().-]{0,24}$/;
+
+function isEmptyOrValid(value, validValues) {
+  return value === undefined || value === null || value === "" || validValues.has(value);
+}
+
+function validateProfileFields({ avatar_color, lado, mano, telefono }) {
+  if (avatar_color !== undefined && avatar_color !== null && avatar_color !== "" && !colorRegex.test(String(avatar_color))) {
+    return "Color de avatar invalido";
+  }
+  if (!isEmptyOrValid(lado, ladosValidos)) return "Lado invalido";
+  if (!isEmptyOrValid(mano, manosValidas)) return "Mano invalida";
+  if (telefono !== undefined && telefono !== null && telefono !== "" && !telefonoRegex.test(String(telefono))) {
+    return "Telefono invalido";
+  }
+  return null;
+}
 
 function deleteAvatarFile(avatarPath) {
   if (!avatarPath || !avatarPath.startsWith("/uploads/")) return;
@@ -54,7 +74,7 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 
   const rows = await db.all(
-    `SELECT id, nombre, avatar, avatar_color, lado, mano, telefono, onboarding_done,
+    `SELECT id, nombre, avatar, avatar_color, lado, mano,
             (SELECT COUNT(*)::int FROM amics WHERE amics.user_id = users.id) as amigos_count
      FROM users
      WHERE activo = 1
@@ -75,6 +95,9 @@ router.get("/me", authMiddleware, async (req, res) => {
 router.patch("/me", authMiddleware, async (req, res) => {
   const { nombre, email, avatar_color, currentPassword, newPassword, lado, mano, telefono } = req.body;
   const user = await db.get("SELECT * FROM users WHERE id = ?", [req.user.id]);
+
+  const validationError = validateProfileFields({ avatar_color, lado, mano, telefono });
+  if (validationError) return res.status(400).json({ error: validationError });
 
   if (newPassword) {
     if (!currentPassword) return res.status(400).json({ error: "Se requiere la contrasena actual" });
@@ -127,13 +150,8 @@ router.patch("/me", authMiddleware, async (req, res) => {
 router.patch("/me/onboarding", authMiddleware, async (req, res) => {
   const { telefono, lado, mano, avatar_color } = req.body || {};
 
-  if (lado !== undefined && lado !== null && lado !== "" && !["derecha", "reves", "ambos"].includes(lado)) {
-    return res.status(400).json({ error: "Lado invalido" });
-  }
-
-  if (mano !== undefined && mano !== null && mano !== "" && !["diestro", "zurdo"].includes(mano)) {
-    return res.status(400).json({ error: "Mano invalida" });
-  }
+  const validationError = validateProfileFields({ avatar_color, lado, mano, telefono });
+  if (validationError) return res.status(400).json({ error: validationError });
 
   await db.run(
     `UPDATE users

@@ -7,7 +7,7 @@ router.get("/", authMiddleware, async (req, res) => {
     `SELECT u.id, u.nombre, u.email, u.avatar, u.avatar_color
      FROM amics a
      JOIN users u ON u.id = a.amic_id
-     WHERE a.user_id = ?
+     WHERE a.user_id = ? AND u.activo = 1
      ORDER BY u.nombre`,
     [req.user.id]
   );
@@ -17,10 +17,10 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/solicituds", authMiddleware, async (req, res) => {
   const sols = await db.all(
     `SELECT s.id, s.estat, s.created_at,
-            u.id as de_id, u.nombre as de_nombre, u.email as de_email, u.avatar, u.avatar_color
+            u.id as de_id, u.nombre as de_nombre, u.avatar, u.avatar_color
      FROM solicituds_amic s
      JOIN users u ON u.id = s.de_user_id
-     WHERE s.a_user_id = ? AND s.estat = 'pendent'
+     WHERE s.a_user_id = ? AND s.estat = 'pendent' AND u.activo = 1
      ORDER BY s.created_at DESC`,
     [req.user.id]
   );
@@ -30,10 +30,10 @@ router.get("/solicituds", authMiddleware, async (req, res) => {
 router.get("/solicituds/enviades", authMiddleware, async (req, res) => {
   const sols = await db.all(
     `SELECT s.id, s.estat, s.created_at,
-            u.id as a_id, u.nombre as a_nombre, u.email as a_email, u.avatar, u.avatar_color
+            u.id as a_id, u.nombre as a_nombre, u.avatar, u.avatar_color
      FROM solicituds_amic s
      JOIN users u ON u.id = s.a_user_id
-     WHERE s.de_user_id = ? AND s.estat = 'pendent'
+     WHERE s.de_user_id = ? AND s.estat = 'pendent' AND u.activo = 1
      ORDER BY s.created_at DESC`,
     [req.user.id]
   );
@@ -41,20 +41,20 @@ router.get("/solicituds/enviades", authMiddleware, async (req, res) => {
 });
 
 router.post("/solicituds", authMiddleware, async (req, res) => {
-  const { a_user_id } = req.body;
-  if (!a_user_id) return res.status(400).json({ error: "a_user_id requerido" });
-  if (Number(a_user_id) === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
+  const aUserId = Number(req.body.a_user_id);
+  if (!Number.isInteger(aUserId)) return res.status(400).json({ error: "a_user_id requerido" });
+  if (aUserId === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
 
-  const target = await db.get("SELECT id FROM users WHERE id = ?", [a_user_id]);
+  const target = await db.get("SELECT id FROM users WHERE id = ? AND activo = 1", [aUserId]);
   if (!target) return res.status(404).json({ error: "Usuario no encontrado" });
 
-  const jaAmic = await db.get("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?", [req.user.id, a_user_id]);
+  const jaAmic = await db.get("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?", [req.user.id, aUserId]);
   if (jaAmic) return res.status(409).json({ error: "Ya sois amigos" });
 
   try {
     const r = await db.run(
       "INSERT INTO solicituds_amic (de_user_id, a_user_id) VALUES (?, ?) RETURNING id",
-      [req.user.id, a_user_id]
+      [req.user.id, aUserId]
     );
     res.status(201).json({ id: r.insertedId, estat: "pendent" });
   } catch {
@@ -69,6 +69,10 @@ router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
   const sol = await db.get("SELECT * FROM solicituds_amic WHERE id = ?", [req.params.id]);
   if (!sol) return res.status(404).json({ error: "Solicitud no encontrada" });
   if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sin permiso" });
+  if (sol.estat !== "pendent") return res.status(400).json({ error: "La solicitud ya no esta pendiente" });
+
+  const requester = await db.get("SELECT id FROM users WHERE id = ? AND activo = 1", [sol.de_user_id]);
+  if (!requester) return res.status(409).json({ error: "El usuario ya no esta activo" });
 
   await db.tx(async (trx) => {
     await trx.run("UPDATE solicituds_amic SET estat = ? WHERE id = ?", [estat, sol.id]);

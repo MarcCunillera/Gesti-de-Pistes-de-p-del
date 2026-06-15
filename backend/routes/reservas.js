@@ -132,9 +132,10 @@ router.use(async (req, res, next) => {
 });
 
 router.get("/all", async (req, res) => {
+  const where = req.user.rol === "admin" ? "" : "WHERE r.estado = 'confirmada'";
   const rows = await db.all(
     `SELECT r.* FROM reservas r
-     WHERE r.estado = 'confirmada'
+     ${where}
      ORDER BY r.fecha, r.hora`
   );
   res.json(await Promise.all(rows.map(enrichReserva)));
@@ -213,12 +214,12 @@ router.get("/solicituds/invitades", async (req, res) => {
   const rows = await db.all(
     `SELECT sp.id, sp.reserva_id, sp.estat, sp.created_at,
             r.fecha, r.hora,
-            u.id as de_id, u.nombre as de_nombre, u.email as de_email,
+            u.id as de_id, u.nombre as de_nombre,
             u.avatar, u.avatar_color
      FROM solicituds_partida sp
      JOIN reservas r ON r.id = sp.reserva_id
      JOIN users u ON u.id = sp.de_user_id
-     WHERE r.user_id = ? AND sp.estat = 'invitat' AND r.estado = 'confirmada'
+     WHERE r.user_id = ? AND sp.estat = 'invitat' AND r.estado = 'confirmada' AND u.activo = 1
      ORDER BY sp.created_at`,
     [req.user.id]
   );
@@ -229,12 +230,12 @@ router.get("/solicituds/pendent", async (req, res) => {
   const rows = await db.all(
     `SELECT sp.id, sp.reserva_id, sp.estat, sp.created_at,
             r.fecha, r.hora,
-            u.id as de_id, u.nombre as de_nombre, u.email as de_email,
+            u.id as de_id, u.nombre as de_nombre,
             u.avatar, u.avatar_color
      FROM solicituds_partida sp
      JOIN reservas r ON r.id = sp.reserva_id
      JOIN users u ON u.id = sp.de_user_id
-     WHERE r.user_id = ? AND sp.estat = 'pendent' AND r.estado = 'confirmada'
+     WHERE r.user_id = ? AND sp.estat = 'pendent' AND r.estado = 'confirmada' AND u.activo = 1
      ORDER BY sp.created_at`,
     [req.user.id]
   );
@@ -363,16 +364,24 @@ router.post("/:id/invitar", async (req, res) => {
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso - no eres el organizador" });
 
-  const { user_id } = req.body;
-  if (!user_id) return res.status(400).json({ error: "user_id requerido" });
+  const userId = Number(req.body.user_id);
+  if (!Number.isInteger(userId)) return res.status(400).json({ error: "user_id requerido" });
+
+  const userInvitat = await db.get("SELECT id, nombre, email, activo FROM users WHERE id = ?", [userId]);
+  if (!userInvitat || userInvitat.activo !== 1) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (userId === req.user.id) return res.status(400).json({ error: "No puedes invitarte a ti mismo" });
+  if (req.user.rol !== "admin") {
+    const esAmic = await db.get("SELECT 1 FROM amics WHERE user_id = ? AND amic_id = ?", [req.user.id, userId]);
+    if (!esAmic) return res.status(403).json({ error: "Solo puedes invitar a tus amigos" });
+  }
 
   const jugadors = await getJugadors(r.id);
   if (jugadors.length >= 4) return res.status(409).json({ error: "Partida completa" });
-  if (jugadors.find((j) => j.id === user_id)) return res.status(409).json({ error: "El jugador ya esta en la partida" });
+  if (jugadors.find((j) => j.id === userId)) return res.status(409).json({ error: "El jugador ya esta en la partida" });
 
   const existent = await db.get(
     "SELECT id, estat FROM solicituds_partida WHERE reserva_id = ? AND de_user_id = ?",
-    [r.id, user_id]
+    [r.id, userId]
   );
 
   if (existent) {
@@ -380,10 +389,9 @@ router.post("/:id/invitar", async (req, res) => {
     if (existent.estat === "acceptada") return res.status(409).json({ error: "El jugador ya esta en la partida" });
     await db.run("UPDATE solicituds_partida SET estat = 'invitat' WHERE id = ?", [existent.id]);
   } else {
-    await db.run("INSERT INTO solicituds_partida (reserva_id, de_user_id, estat) VALUES (?, ?, 'invitat')", [r.id, user_id]);
+    await db.run("INSERT INTO solicituds_partida (reserva_id, de_user_id, estat) VALUES (?, ?, 'invitat')", [r.id, userId]);
   }
 
-  const userInvitat = await db.get("SELECT id, nombre, email FROM users WHERE id = ?", [user_id]);
   const organitzador = await db.get("SELECT id, nombre, email FROM users WHERE id = ?", [req.user.id]);
 
   try {

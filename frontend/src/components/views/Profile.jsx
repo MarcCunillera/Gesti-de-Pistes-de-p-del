@@ -2,9 +2,10 @@ import { useState, useRef } from "react";
 import { colorAvatar, iniciales } from "../../utils/helpers";
 import PasswordStrength from "../auth/PasswordStrength";
 
-const AVATAR_BACKEND =
-  import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ||
-  "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const AVATAR_BACKEND = API_BASE.startsWith("http")
+  ? API_BASE.replace(/\/api\/?$/, "")
+  : "";
 
 const PALETTE = [
   "#1a2e1a", "#1e3a5f", "#6b21a8", "#9a3412",

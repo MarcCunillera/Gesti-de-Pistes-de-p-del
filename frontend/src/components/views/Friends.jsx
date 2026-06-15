@@ -84,7 +84,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
     api.enviarSolicitud(userId)
       .then(function(data) {
         showToast("Solicitud enviada a " + (u ? u.nombre : ""));
-        if (u) setEnviades(function(prev) { return prev.concat([{ id: data.id, a_id: u.id, a_nombre: u.nombre, a_email: u.email, avatar: u.avatar, avatar_color: u.avatar_color }]); });
+        if (u) setEnviades(function(prev) { return prev.concat([{ id: data.id, a_id: u.id, a_nombre: u.nombre, avatar: u.avatar, avatar_color: u.avatar_color }]); });
         // Limpiar búsqueda para feedback visual claro
         setBuscar("");
         setBuscarDebounced("");
@@ -179,7 +179,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       <Avatar user={a} size={38} onClick={function(e) { e.stopPropagation(); obrirPerfil(a); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{a.nombre}</div>
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>
+                        {a.email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>}
                       </div>
                     </div>
                     <Btn onClick={function(e) { e.stopPropagation(); eliminarAmic(a.id); }} variant="danger">Eliminar</Btn>
@@ -261,7 +261,6 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{u.email}</div>
                       </div>
                     </div>
                     <Btn
@@ -291,7 +290,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                         <Avatar user={userEnviat} size={38} onClick={function() { obrirPerfil(userEnviat); }} />
                         <div>
                           <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.a_nombre}</div>
-                          <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>
+                          {s.a_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>}
                         </div>
                       </div>
                       <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: "1px solid #e5e7eb" }}>Pendiente</span>
@@ -324,7 +323,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       <Avatar user={userSolicitant} size={38} onClick={function() { obrirPerfil(userSolicitant); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.de_nombre}</div>
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.de_email}</div>
+                        {s.de_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.de_email}</div>}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>

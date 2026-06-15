@@ -6,5 +6,9 @@ export default defineConfig({
   server: {
     port: 3003,
     strictPort: true, // si el port està ocupat, dona error en lloc de buscar un altre
+    proxy: {
+      "/api": "http://localhost:4000",
+      "/uploads": "http://localhost:4000",
+    },
   },
 });
