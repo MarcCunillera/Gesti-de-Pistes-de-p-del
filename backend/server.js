@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const helmet = require("helmet");
 const path = require("path");
 const fs = require("fs");
 const db = require("./db");
@@ -40,14 +39,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Cabeceras de seguridad HTTP (CSP desactivado para la API JSON pura;
-// los uploads se sirven cross-origin desde el mismo dominio)
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-}));
-
-app.use(express.json({ limit: "50kb" }));
+app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", require("./routes/auth"));

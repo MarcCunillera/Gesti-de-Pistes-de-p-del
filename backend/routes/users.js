@@ -217,4 +217,15 @@ router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   });
 });
 
+router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  const u = await db.get("SELECT id, nombre, activo FROM users WHERE id = ?", [userId]);
+
+  if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (userId === req.user.id) return res.status(400).json({ error: "No puedes desactivar tu propia cuenta" });
+
+  await db.run("UPDATE users SET activo = 0 WHERE id = ?", [userId]);
+  res.json({ ok: true, message: "Usuario desactivado" });
+});
+
 module.exports = router;

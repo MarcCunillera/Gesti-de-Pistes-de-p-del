@@ -158,24 +158,17 @@ router.post("/", async (req, res) => {
   );
   if (ocupat) return res.status(409).json({ error: "Franja ya reservada" });
 
+  const maxReservas = parseInt(await getConfigValue("maxReservas", "3"), 10);
+  const today = localDateKey();
+  const activas = await db.get(
+    "SELECT COUNT(*)::int as n FROM reservas WHERE user_id = ? AND fecha >= ? AND estado = 'confirmada'",
+    [req.user.id, today]
+  );
+  if (activas.n >= maxReservas) return res.status(409).json({ error: `Limite de ${maxReservas} reservas activas` });
+
   let reservaId;
   try {
     await db.tx(async (trx) => {
-      // Lock por usuario: serializa creaciones concurrentes del mismo usuario
-      await trx.query("SELECT pg_advisory_xact_lock(?)", [req.user.id]);
-
-      const maxReservas = parseInt(await getConfigValue("maxReservas", "3"), 10);
-      const today = localDateKey();
-      const activas = await trx.get(
-        "SELECT COUNT(*)::int as n FROM reservas WHERE user_id = ? AND fecha >= ? AND estado = 'confirmada'",
-        [req.user.id, today]
-      );
-      if (activas.n >= maxReservas) {
-        const err = new Error(`Limite de ${maxReservas} reservas activas`);
-        err.status = 409;
-        throw err;
-      }
-
       const result = await trx.run(
         "INSERT INTO reservas (user_id, fecha, hora, estado, abierto) VALUES (?, ?, ?, 'confirmada', ?) RETURNING id",
         [req.user.id, fecha, hora, abierto ? 1 : 0]
@@ -184,7 +177,6 @@ router.post("/", async (req, res) => {
       await trx.run("INSERT INTO reserva_jugadores (reserva_id, user_id) VALUES (?, ?)", [reservaId, req.user.id]);
     });
   } catch (err) {
-    if (err.status === 409) return res.status(409).json({ error: err.message });
     if (err.code === "23505") return res.status(409).json({ error: "Franja ya reservada" });
     console.error("Error creando reserva:", err);
     return res.status(500).json({ error: "Error interno creando la reserva" });
@@ -264,11 +256,6 @@ router.patch("/solicituds/:id", async (req, res) => {
   if (!["acceptada", "rebutjada"].includes(estat)) return res.status(400).json({ error: "Estado invalido" });
   if (esOrganitzador && sp.estat !== "pendent") return res.status(400).json({ error: "Esta solicitud no esta pendiente" });
   if (esInvitat && sp.estat !== "invitat") return res.status(400).json({ error: "Esta invitacion no esta activa" });
-
-  // No se puede aceptar una solicitud de una partida que ya ha empezado
-  if (estat === "acceptada" && isPastSlot(r.fecha, r.hora)) {
-    return res.status(409).json({ error: "No se puede aceptar: la partida ya ha empezado" });
-  }
 
   if (estat === "acceptada") {
     try {
@@ -376,8 +363,8 @@ router.post("/:id/invitar", async (req, res) => {
   if (!r) return res.status(404).json({ error: "Reserva no encontrada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sin permiso - no eres el organizador" });
 
-  const user_id = parseInt(req.body.user_id, 10);
-  if (!user_id || isNaN(user_id)) return res.status(400).json({ error: "user_id invalido" });
+  const { user_id } = req.body;
+  if (!user_id) return res.status(400).json({ error: "user_id requerido" });
 
   const jugadors = await getJugadors(r.id);
   if (jugadors.length >= 4) return res.status(409).json({ error: "Partida completa" });
@@ -486,12 +473,6 @@ router.post("/bloqueados/batch", adminMiddleware, async (req, res) => {
   res.status(201).json({ created });
 });
 
-// Elimina todos los bloqueados de una vez (admin)
-router.delete("/bloqueados", adminMiddleware, async (req, res) => {
-  await db.run("DELETE FROM bloqueados");
-  res.json({ ok: true });
-});
-
 router.delete("/bloqueados/:id", adminMiddleware, async (req, res) => {
   await db.run("DELETE FROM bloqueados WHERE id = ?", [req.params.id]);
   res.json({ ok: true });
@@ -554,27 +535,10 @@ router.delete("/:id", async (req, res) => {
   }
 
   const user = await db.get("SELECT id, nombre, email FROM users WHERE id = ?", [r.user_id]);
-  // Obtener otros jugadores (no el organizador) para notificarles
-  const otrosJugadores = await db.all(
-    `SELECT u.id, u.nombre, u.email
-     FROM reserva_jugadores rj
-     JOIN users u ON u.id = rj.user_id
-     WHERE rj.reserva_id = ? AND rj.user_id != ?`,
-    [r.id, r.user_id]
-  );
-
   try {
     await sendReservaCancelada(user, r);
   } catch (err) {
-    console.error("Error enviando correo de cancelacion al organizador:", err.message);
-  }
-
-  for (const jugador of otrosJugadores) {
-    try {
-      await sendReservaCancelada(jugador, r);
-    } catch (err) {
-      console.error(`Error enviando correo de cancelacion a ${jugador.email}:`, err.message);
-    }
+    console.error("Error enviando correo de cancelacion:", err.message);
   }
 
   res.json({ ok: true });

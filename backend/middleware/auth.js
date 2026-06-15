@@ -1,5 +1,13 @@
+const jwt    = require("jsonwebtoken");
 const db = require("../db");
-const { verifyToken } = require("../services/jwt");
+
+// El secret SEMPRE ve de la variable d'entorn.
+// Si no existeix, el procés s'atura per evitar desplegar amb secret insegur.
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET) {
+  console.error("ERROR: JWT_SECRET no definit. Defineix-lo al fitxer .env");
+  process.exit(1);
+}
 
 async function authMiddleware(req, res, next) {
   const header = req.headers["authorization"];
@@ -13,7 +21,7 @@ async function authMiddleware(req, res, next) {
     : header;
 
   try {
-    const decoded = verifyToken(token);
+    const decoded = jwt.verify(token, SECRET);
 
     const user = await db.get(
       "SELECT id, nombre, email, rol, activo, email_verified FROM users WHERE id = ?",
@@ -56,4 +64,4 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = { authMiddleware, adminMiddleware, SECRET };

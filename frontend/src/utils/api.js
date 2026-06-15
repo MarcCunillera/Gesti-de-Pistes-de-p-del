@@ -95,7 +95,6 @@ export const api = {
   addBloqueado: (fecha, hora) => req("POST", "/reservas/bloqueados", { fecha, hora }),
   addBloqueadoBatch: (fechaInicio, fechaFin, horas, diasSemana) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas, diasSemana }),
   delBloqueado: (id) => req("DELETE", `/reservas/bloqueados/${id}`),
-  delTodosBloqueados: () => req("DELETE", "/reservas/bloqueados"),
 
   // Config
   getConfig: () => req("GET", "/reservas/config"),
