@@ -115,7 +115,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
 
       {/* Tabs + búsqueda */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", background: surfaceAlt, borderRadius: 10, padding: 3, gap: 2, border: `1px solid ${border}` }}>
+        <div style={{ display: "flex", background: surfaceAlt, borderRadius: 10, padding: 3, gap: 2, border: `1px solid ${border}`, width: "100%", boxSizing: "border-box", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
           {TABS.map((t) => (
             <button
               key={t.key}

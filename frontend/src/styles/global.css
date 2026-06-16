@@ -1078,3 +1078,106 @@ html[data-theme="dark"] .auth-success {
     padding: 16px 10px !important;
   }
 }
+
+/* Admin users responsive */
+.admin-user-name,
+.admin-user-meta {
+  min-width: 0;
+}
+
+.admin-user-name {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .admin-users-view {
+    max-width: 100% !important;
+  }
+
+  .admin-users-toolbar {
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .admin-users-search {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+
+  .admin-user-card {
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+
+  .admin-user-main {
+    min-width: 0;
+  }
+
+  .admin-user-info {
+    min-width: 0;
+  }
+
+  .admin-user-name-row {
+    line-height: 1.2;
+  }
+
+  .admin-user-meta {
+    max-width: 100%;
+    line-height: 1.35;
+  }
+
+  .admin-user-actions {
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+  }
+
+  .admin-user-status {
+    white-space: nowrap;
+    align-self: flex-end;
+  }
+
+  .admin-user-action,
+  .admin-user-role-chip {
+    min-width: 96px;
+    text-align: center;
+    min-height: 32px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .admin-user-card {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .admin-user-main {
+    width: 100%;
+  }
+
+  .admin-user-actions {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end !important;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .admin-user-status {
+    flex: 1 0 100%;
+    align-self: auto;
+  }
+
+  .admin-user-action,
+  .admin-user-role-chip {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

@@ -27,8 +27,8 @@ export default function AdminUsers({
   const badgeCorreo = { background: isDark ? "rgba(249,115,22,.16)" : "#fff7ed", color: isDark ? "#fdba74" : "#c2410c", border: isDark ? "1px solid rgba(251,146,60,.32)" : "none" };
 
   function actionStyle(kind) {
-    if (kind === "danger") return { background: isDark ? "rgba(239,68,68,.12)" : "#fdecea", color: isDark ? "#fca5a5" : "#c0392b", border: `1px solid ${isDark ? 'rgba(248,113,113,.32)' : '#fecaca'}` };
-    if (kind === "success") return { background: isDark ? "rgba(34,197,94,.14)" : "#e8f5e9", color: isDark ? "#86efac" : "#2d6a4f", border: `1px solid ${isDark ? 'rgba(74,222,128,.32)' : '#bbf7d0'}` };
+    if (kind === "danger") return { background: isDark ? "rgba(239,68,68,.12)" : "#fff", color: isDark ? "#fca5a5" : "#dc2626", border: `1px solid ${isDark ? 'rgba(248,113,113,.32)' : '#fca5a5'}` };
+    if (kind === "success") return { background: isDark ? "rgba(34,197,94,.14)" : "#f0fdf4", color: isDark ? "#86efac" : "#15803d", border: `1px solid ${isDark ? 'rgba(74,222,128,.32)' : '#86efac'}` };
     if (kind === "warn") return { background: isDark ? "rgba(249,115,22,.16)" : "#fff7ed", color: isDark ? "#fdba74" : "#c2410c", border: `1px solid ${isDark ? 'rgba(251,146,60,.32)' : '#fed7aa'}` };
     return { background: isDark ? "rgba(16,185,129,.16)" : "#ecfdf5", color: isDark ? "#6ee7b7" : "#047857", border: `1px solid ${isDark ? 'rgba(52,211,153,.32)' : '#a7f3d0'}` };
   }
@@ -55,39 +55,44 @@ export default function AdminUsers({
   };
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto" }}>
-      <div style={{ marginBottom: 20 }}>
+    <div className="admin-users-view" style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ marginBottom: 24 }}>
         <h2
           style={{
             color: textMain,
-            margin: "0 0 4px",
-            fontSize: 22,
-            fontWeight: 800,
+            margin: 0,
+            fontSize: 20,
+            fontWeight: 700,
+            letterSpacing: -0.3,
           }}
         >
           Gestió d'usuaris
         </h2>
 
-        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>
+        <p style={{ margin: "3px 0 0", color: textMuted, fontSize: 13 }}>
           {users.length} usuari{users.length !== 1 ? "s" : ""} registrat
           {users.length !== 1 ? "s" : ""}
         </p>
       </div>
 
       <div
+        className="admin-users-toolbar"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 10,
-          marginBottom: 14,
+          marginBottom: 10,
+          flexWrap: "wrap",
         }}
       >
         <input
+          className="admin-users-search"
           placeholder="Buscar per nom o correu..."
           value={buscar}
           onChange={(e) => handleBuscar(e.target.value)}
           style={{
             flex: 1,
+            minWidth: 0,
             padding: "9px 14px",
             border: `1.5px solid ${border}`,
             borderRadius: 8,
@@ -98,7 +103,7 @@ export default function AdminUsers({
           }}
         />
 
-        <span style={{ fontSize: 12, color: textMuted, whiteSpace: "nowrap" }}>
+        <span className="admin-users-count" style={{ fontSize: 12, color: textMuted, whiteSpace: "nowrap" }}>
           {filtrados.length} usuari{filtrados.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -120,6 +125,7 @@ export default function AdminUsers({
       ) : (
         visibles.map((u) => (
           <div
+            className="admin-user-card"
             key={u.id}
             onClick={() => {
               if (onOpenUserProfile) onOpenUserProfile(u);
@@ -131,25 +137,28 @@ export default function AdminUsers({
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: 14,
-              boxShadow: isDark ? cardShadow : "0 1px 4px rgba(0,0,0,.07)",
-              marginBottom: 8,
+              gap: 12,
+              boxShadow: isDark ? cardShadow : "0 1px 3px rgba(0,0,0,.04)",
+              marginBottom: 6,
               border: `1px solid ${border}`,
               cursor: "pointer",
             }}
           >
             <div
+              className="admin-user-main"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
                 minWidth: 0,
+                flex: "1 1 auto",
               }}
             >
-              <UserAvatar user={u} size={40} />
+              <UserAvatar user={u} size={38} />
 
-              <div style={{ minWidth: 0 }}>
+              <div className="admin-user-info" style={{ minWidth: 0 }}>
                 <div
+                  className="admin-user-name-row"
                   style={{
                     fontWeight: 700,
                     color: textMain,
@@ -159,7 +168,7 @@ export default function AdminUsers({
                     flexWrap: "wrap",
                   }}
                 >
-                  <span>{u.nombre}</span>
+                  <span className="admin-user-name" style={{ fontSize: 14, fontWeight: 600 }}>{u.nombre}</span>
 
                   {u.rol === "admin" && (
                     <span
@@ -170,6 +179,7 @@ export default function AdminUsers({
                         borderRadius: 4,
                         padding: "1px 6px",
                         fontSize: 10,
+                        fontWeight: 800,
                       }}
                     >
                       ADMIN
@@ -210,6 +220,7 @@ export default function AdminUsers({
                 </div>
 
                 <div
+                  className="admin-user-meta"
                   style={{
                     fontSize: 12,
                     color: textMuted,
@@ -230,19 +241,23 @@ export default function AdminUsers({
             </div>
 
             <div
+              className="admin-user-actions"
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "flex-end",
                 gap: 8,
                 flexWrap: "wrap",
+                flex: "0 0 auto",
               }}
             >
               <span
+                className="admin-user-status"
                 style={{
                   fontSize: 12,
                   color: u.activo ? (isDark ? "#86efac" : "#2d6a4f") : (isDark ? "#fca5a5" : "#c0392b"),
                   fontWeight: 700,
+                  lineHeight: 1.2,
                 }}
               >
                 {u.activo ? "Actiu" : "Inactiu"}
@@ -250,12 +265,13 @@ export default function AdminUsers({
 
               {u.protected_admin && (
                 <span
+                  className="admin-user-role-chip"
                   style={{
                     background: badgePrincipal.background,
                     color: badgePrincipal.color,
                     border: badgePrincipal.border,
                     borderRadius: 6,
-                    padding: "6px 10px",
+                    padding: "6px 12px",
                     fontSize: 12,
                     fontWeight: 700,
                   }}
@@ -266,14 +282,15 @@ export default function AdminUsers({
 
               {!u.protected_admin && u.rol !== "admin" && (
                 <button
+                  className="admin-user-action"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleActivo(u.id, !u.activo);
                   }}
                   style={{
                     ...(u.activo ? actionStyle("danger") : actionStyle("success")),
-                    borderRadius: 6,
-                    padding: "6px 12px",
+                    borderRadius: 7,
+                    padding: "7px 14px",
                     cursor: "pointer",
                     fontSize: 12,
                     fontWeight: 600,
@@ -285,6 +302,7 @@ export default function AdminUsers({
 
               {u.id !== session?.id && !u.protected_admin && (
                 <button
+                  className="admin-user-action"
                   onClick={(e) => {
                     e.stopPropagation();
                     cambiarRolUsuario(
@@ -294,8 +312,8 @@ export default function AdminUsers({
                   }}
                   style={{
                     ...(u.rol === "admin" ? actionStyle("warn") : actionStyle("confirm")),
-                    borderRadius: 6,
-                    padding: "6px 12px",
+                    borderRadius: 7,
+                    padding: "7px 14px",
                     cursor: "pointer",
                     fontSize: 12,
                     fontWeight: 600,
