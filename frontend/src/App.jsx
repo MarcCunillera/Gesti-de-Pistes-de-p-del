@@ -520,7 +520,7 @@ export default function App() {
     var h = generarHorarios(configEdit.horaInicio, configEdit.horaFin, configEdit.duracion);
     if (!h.length) { showToast("Configuració no vàlida", "error"); return; }
     api.saveConfig(configEdit)
-      .then(function () { setConfig(configEdit); showToast("Ajustos desats"); })
+      .then(function () { setConfig(configEdit); showToast("Configuració desada"); })
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
@@ -773,15 +773,15 @@ export default function App() {
 
   var navItems = [
     { id: "calendario", label: "Calendari" },
-    { id: "misreservas", label: "Les meves reserves", badge: (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) > 0 ? (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) : null },
+    { id: "misreservas", label: "Reserves", badge: (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) > 0 ? (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) : null },
     { id: "amics", label: "Amics", badge: solicitudsAmicCount || null },
     { id: "perfil", label: "Perfil" },
   ];
   if (session.rol === "admin") {
     navItems = navItems.concat([
-      { id: "admin_reservas", label: "Reserves" },
+      { id: "admin_reservas", label: "Historial de reserves" },
       { id: "admin_usuarios", label: "Usuaris" },
-      { id: "ajustes", label: "Ajustos" },
+      { id: "ajustes", label: "Configuració" },
     ]);
   }
 

@@ -17,6 +17,21 @@ export default function AdminUsers({
   var textMain = t?.text || "#111827";
   var textMuted = t?.textSecondary || "#6b7280";
   var primary = t?.primary || "#1a2e1a";
+  var surfaceAlt = t?.surfaceAlt || "#f9fafb";
+  var inputBg = t?.inputBg || "#fff";
+  var cardShadow = t?.cardShadow || "0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06)";
+  var isDark = !["#fff", "#ffffff"].includes((surface || "").toLowerCase());
+
+  const badgeAdmin = { background: isDark ? "rgba(245,158,11,.16)" : "#f39c12", color: isDark ? "#fcd34d" : "#fff", border: isDark ? "1px solid rgba(251,191,36,.32)" : "none" };
+  const badgePrincipal = { background: isDark ? "rgba(99,102,241,.16)" : "#eef2ff", color: isDark ? "#c7d2fe" : "#3730a3", border: isDark ? "1px solid rgba(129,140,248,.32)" : "none" };
+  const badgeCorreo = { background: isDark ? "rgba(249,115,22,.16)" : "#fff7ed", color: isDark ? "#fdba74" : "#c2410c", border: isDark ? "1px solid rgba(251,146,60,.32)" : "none" };
+
+  function actionStyle(kind) {
+    if (kind === "danger") return { background: isDark ? "rgba(239,68,68,.12)" : "#fdecea", color: isDark ? "#fca5a5" : "#c0392b", border: `1px solid ${isDark ? 'rgba(248,113,113,.32)' : '#fecaca'}` };
+    if (kind === "success") return { background: isDark ? "rgba(34,197,94,.14)" : "#e8f5e9", color: isDark ? "#86efac" : "#2d6a4f", border: `1px solid ${isDark ? 'rgba(74,222,128,.32)' : '#bbf7d0'}` };
+    if (kind === "warn") return { background: isDark ? "rgba(249,115,22,.16)" : "#fff7ed", color: isDark ? "#fdba74" : "#c2410c", border: `1px solid ${isDark ? 'rgba(251,146,60,.32)' : '#fed7aa'}` };
+    return { background: isDark ? "rgba(16,185,129,.16)" : "#ecfdf5", color: isDark ? "#6ee7b7" : "#047857", border: `1px solid ${isDark ? 'rgba(52,211,153,.32)' : '#a7f3d0'}` };
+  }
 
   const [buscar, setBuscar] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -78,6 +93,8 @@ export default function AdminUsers({
             borderRadius: 8,
             fontSize: 13,
             outline: "none",
+            background: inputBg,
+            color: textMain,
           }}
         />
 
@@ -95,6 +112,7 @@ export default function AdminUsers({
             textAlign: "center",
             color: textMuted,
             fontSize: 13,
+            border: `1px solid ${border}`,
           }}
         >
           No s'han trobat usuaris per a "{buscar}"
@@ -114,7 +132,7 @@ export default function AdminUsers({
               alignItems: "center",
               justifyContent: "space-between",
               gap: 14,
-              boxShadow: "0 1px 4px rgba(0,0,0,.07)",
+              boxShadow: isDark ? cardShadow : "0 1px 4px rgba(0,0,0,.07)",
               marginBottom: 8,
               border: `1px solid ${border}`,
               cursor: "pointer",
@@ -146,8 +164,9 @@ export default function AdminUsers({
                   {u.rol === "admin" && (
                     <span
                       style={{
-                        background: "#f39c12",
-                        color: "#fff",
+                        background: badgeAdmin.background,
+                        color: badgeAdmin.color,
+                        border: badgeAdmin.border,
                         borderRadius: 4,
                         padding: "1px 6px",
                         fontSize: 10,
@@ -160,8 +179,9 @@ export default function AdminUsers({
                   {u.protected_admin && (
                     <span
                       style={{
-                        background: "#eef2ff",
-                        color: "#3730a3",
+                        background: badgePrincipal.background,
+                        color: badgePrincipal.color,
+                        border: badgePrincipal.border,
                         borderRadius: 4,
                         padding: "1px 6px",
                         fontSize: 10,
@@ -175,8 +195,9 @@ export default function AdminUsers({
                   {Number(u.email_verified) !== 1 && (
                     <span
                       style={{
-                        background: "#fff7ed",
-                        color: "#c2410c",
+                        background: badgeCorreo.background,
+                        color: badgeCorreo.color,
+                        border: badgeCorreo.border,
                         borderRadius: 4,
                         padding: "1px 6px",
                         fontSize: 10,
@@ -220,7 +241,7 @@ export default function AdminUsers({
               <span
                 style={{
                   fontSize: 12,
-                  color: u.activo ? "#2d6a4f" : "#c0392b",
+                  color: u.activo ? (isDark ? "#86efac" : "#2d6a4f") : (isDark ? "#fca5a5" : "#c0392b"),
                   fontWeight: 700,
                 }}
               >
@@ -230,8 +251,9 @@ export default function AdminUsers({
               {u.protected_admin && (
                 <span
                   style={{
-                    background: "#eef2ff",
-                    color: "#3730a3",
+                    background: badgePrincipal.background,
+                    color: badgePrincipal.color,
+                    border: badgePrincipal.border,
                     borderRadius: 6,
                     padding: "6px 10px",
                     fontSize: 12,
@@ -249,9 +271,7 @@ export default function AdminUsers({
                     toggleActivo(u.id, !u.activo);
                   }}
                   style={{
-                    background: u.activo ? "#fdecea" : "#e8f5e9",
-                    color: u.activo ? "#c0392b" : "#2d6a4f",
-                    border: "none",
+                    ...(u.activo ? actionStyle("danger") : actionStyle("success")),
                     borderRadius: 6,
                     padding: "6px 12px",
                     cursor: "pointer",
@@ -273,9 +293,7 @@ export default function AdminUsers({
                     );
                   }}
                   style={{
-                    background: u.rol === "admin" ? "#fff7ed" : "#ecfdf5",
-                    color: u.rol === "admin" ? "#c2410c" : "#047857",
-                    border: "none",
+                    ...(u.rol === "admin" ? actionStyle("warn") : actionStyle("confirm")),
                     borderRadius: 6,
                     padding: "6px 12px",
                     cursor: "pointer",
@@ -326,7 +344,7 @@ export default function AdminUsers({
                 border: `1.5px solid ${n === paginaActual ? primary : border}`,
                 borderRadius: 6,
                 background: n === paginaActual ? primary : surface,
-                color: n === paginaActual ? "#fff" : textMain,
+                color: n === paginaActual ? (isDark ? "#0f172a" : "#fff") : textMain,
                 cursor: "pointer",
                 fontWeight: n === paginaActual ? 700 : 400,
                 fontSize: 13,

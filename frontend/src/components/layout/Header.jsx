@@ -33,22 +33,33 @@ function IconLogout() {
 }
 
 export default function Header({ session, setVista, setSession, dark, toggleDark, t }) {
+  const surface = t?.surface || "#fff";
+  const border = t?.border || "#e5e7eb";
+  const text = t?.text || "#111827";
+  const secondary = t?.textSecondary || "#6b7280";
+  const isDark = !["#fff", "#ffffff"].includes((surface || "").toLowerCase());
+  const dangerBg = isDark ? "rgba(239,68,68,.14)" : "#fff5f5";
+  const dangerBorder = isDark ? "rgba(248,113,113,.34)" : "#fecaca";
+  const dangerText = isDark ? "#fca5a5" : "#dc2626";
+
   return (
     <header
       className="app-header"
       style={{
-        background: t?.surface || "#fff",
-        borderBottomColor: t?.border || "#e5e7eb",
+        background: surface,
+        borderBottomColor: border,
+        boxShadow: isDark ? "0 1px 0 rgba(148,163,184,.12), 0 10px 24px rgba(2,6,23,.28)" : undefined,
       }}
     >
       <button
         type="button"
         className="app-header-brand"
         onClick={() => setVista("calendario")}
+        style={{ color: text }}
       >
         <img src="/Escut_de_Torrelameu.svg" alt="Torrelameu" />
-        <span>
-          <strong>Pàdel Torrelameu</strong>
+        <span style={{ color: text }}>
+          <strong style={{ color: text }}>Pàdel Torrelameu</strong>
         </span>
       </button>
 
@@ -57,7 +68,12 @@ export default function Header({ session, setVista, setSession, dark, toggleDark
           type="button"
           className="app-icon-btn"
           onClick={toggleDark}
-          title={dark ? "Modo claro" : "Modo oscuro"}
+          title={dark ? "Mode clar" : "Mode fosc"}
+          style={{
+            borderColor: border,
+            background: surface,
+            color: secondary,
+          }}
         >
           {dark ? <IconSun /> : <IconMoon />}
         </button>
@@ -66,11 +82,16 @@ export default function Header({ session, setVista, setSession, dark, toggleDark
           type="button"
           className="app-user-chip"
           onClick={() => setVista("perfil")}
+          style={{
+            borderColor: border,
+            background: surface,
+            color: text,
+          }}
         >
           <UserAvatar user={session} size={28} />
-          <span>
-            <strong>{session.nombre}</strong>
-            {session.rol === "admin" && <small>Admin</small>}
+          <span style={{ color: text }}>
+            <strong style={{ color: text }}>{session.nombre}</strong>
+            {session.rol === "admin" && <small style={{ color: secondary }}>Admin</small>}
           </span>
         </button>
 
@@ -78,7 +99,12 @@ export default function Header({ session, setVista, setSession, dark, toggleDark
           type="button"
           className="app-icon-btn"
           onClick={() => setSession(null)}
-          title="Cerrar sesión"
+          title="Sortir"
+          style={{
+            borderColor: dangerBorder,
+            background: dangerBg,
+            color: dangerText,
+          }}
         >
           <IconLogout />
         </button>

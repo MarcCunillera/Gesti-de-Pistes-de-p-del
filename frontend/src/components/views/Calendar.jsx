@@ -15,15 +15,17 @@ function useWindowWidth() {
 const DIAS = ["Dg", "Dl", "Dt", "Dc", "Dj", "Dv", "Ds"];
 const MESES = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"];
 
-const ESTADOS = {
-  libre:     { bg: "#f0fdf4", border: "#86efac", color: "#16a34a", dot: "#22c55e",    label: "Lliure" },
-  ocupado:   { bg: "#fef2f2", border: "#fca5a5", color: "#dc2626", dot: "#ef4444",    label: "Ocupat" },
-  propio:    { bg: "#fffbeb", border: "#fcd34d", color: "#d97706", dot: "#f59e0b",    label: "La teva reserva" },
-  unido:     { bg: "#eff6ff", border: "#93c5fd", color: "#2563eb", dot: "#60a5fa",    label: "Hi participes" },
-  abierto:   { bg: "#f0f9ff", border: "#7dd3fc", color: "#0284c7", dot: "#38bdf8",    label: "Partit obert" },
-  bloqueado: { bg: "#f9fafb", border: "#e5e7eb", color: "#9ca3af", dot: "#d1d5db",    label: "Bloquejat" },
-  pasado:    { bg: "transparent", border: "transparent", color: "#d1d5db", dot: null, label: "" },
-};
+function getEstados(dark, border, surfaceAlt) {
+  return {
+    libre:     { bg: dark ? "rgba(34,197,94,.14)" : "#f0fdf4", border: dark ? "rgba(74,222,128,.32)" : "#86efac", color: dark ? "#86efac" : "#16a34a", dot: "#22c55e", label: "Lliure" },
+    ocupado:   { bg: dark ? "rgba(239,68,68,.12)" : "#fef2f2", border: dark ? "rgba(248,113,113,.32)" : "#fca5a5", color: dark ? "#fca5a5" : "#dc2626", dot: "#ef4444", label: "Ocupat" },
+    propio:    { bg: dark ? "rgba(245,158,11,.14)" : "#fffbeb", border: dark ? "rgba(251,191,36,.32)" : "#fcd34d", color: dark ? "#fcd34d" : "#d97706", dot: "#f59e0b", label: "La teva reserva" },
+    unido:     { bg: dark ? "rgba(59,130,246,.14)" : "#eff6ff", border: dark ? "rgba(96,165,250,.32)" : "#93c5fd", color: dark ? "#93c5fd" : "#2563eb", dot: "#60a5fa", label: "Hi participes" },
+    abierto:   { bg: dark ? "rgba(14,165,233,.14)" : "#f0f9ff", border: dark ? "rgba(56,189,248,.32)" : "#7dd3fc", color: dark ? "#7dd3fc" : "#0284c7", dot: "#38bdf8", label: "Partit obert" },
+    bloqueado: { bg: dark ? surfaceAlt : "#f9fafb", border: dark ? border : "#e5e7eb", color: dark ? "#94a3b8" : "#9ca3af", dot: "#d1d5db", label: "Bloquejat" },
+    pasado:    { bg: "transparent", border: "transparent", color: dark ? "#475569" : "#d1d5db", dot: null, label: "" },
+  };
+}
 
 const LEYENDA = ["libre", "ocupado", "propio", "abierto", "unido", "bloqueado"];
 
@@ -31,14 +33,14 @@ function Dot({ color, size = 8 }) {
   return <span style={{ display: "inline-block", width: size, height: size, borderRadius: "50%", background: color, flexShrink: 0 }} />;
 }
 
-function Celda({ estado, sublabel, onClick, esHoy }) {
+function Celda({ estado, sublabel, onClick, esHoy, dark, estados }) {
   const [hover, setHover] = useState(false);
-  const e = ESTADOS[estado];
+  const e = estados[estado];
   const activo = !!onClick;
   if (estado === "pasado") {
     return (
       <div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 11, color: "#e5e7eb" }}>—</span>
+        <span style={{ fontSize: 11, color: e.color }}>—</span>
       </div>
     );
   }
@@ -48,7 +50,7 @@ function Celda({ estado, sublabel, onClick, esHoy }) {
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{
-        background: hover && activo ? (estado === "libre" ? "#dcfce7" : e.bg) : e.bg,
+        background: hover && activo ? (estado === "libre" ? (dark ? "rgba(34,197,94,.2)" : "#dcfce7") : e.bg) : e.bg,
         border: `1.5px solid ${hover && activo ? e.border : esHoy ? e.border : e.border + "99"}`,
         borderRadius: 8,
         padding: "7px 6px",
@@ -88,6 +90,8 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
   const textMain   = t?.text       || "#111827";
   const textMuted  = t?.textMuted  || "#6b7280";
   const primary    = t?.primary    || "#14532d";
+  const dark       = !["#fff", "#ffffff"].includes((surface || "").toLowerCase());
+  const estados    = useMemo(() => getEstados(dark, border, surfaceAlt), [dark, border, surfaceAlt]);
 
   const misF = new Set(
     (reservas || [])
@@ -192,7 +196,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
   const Leyenda = (
     <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap", alignItems: "center" }}>
       {LEYENDA.map(k => {
-        const e = ESTADOS[k];
+        const e = estados[k];
         return (
           <div key={k} style={{ display: "flex", alignItems: "center", gap: 6, background: e.bg, border: `1.5px solid ${e.border}`, borderRadius: 20, padding: "4px 12px" }}>
             <Dot color={e.dot} />
@@ -217,7 +221,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
     <div style={{ marginTop: 32 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: textMain }}>Partits oberts</h3>
-        <span style={{ fontSize: 11, fontWeight: 700, background: "#e0f2fe", color: "#0284c7", border: "1px solid #7dd3fc", borderRadius: 20, padding: "2px 9px" }}>{partitsOrdenats.length}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, background: dark ? "rgba(14,165,233,.14)" : "#e0f2fe", color: dark ? "#7dd3fc" : "#0284c7", border: `1px solid ${dark ? 'rgba(56,189,248,.32)' : '#7dd3fc'}`, borderRadius: 20, padding: "2px 9px" }}>{partitsOrdenats.length}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {partitsOrdenats.map(function(r) {
@@ -225,7 +229,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
           var esAmic = amicIds.has(r.userId);
           var lliures = 4 - (r.jugadores?.length || 0);
           return (
-            <div key={r.id} style={{ background: surface, borderRadius: 12, border: `1px solid ${border}`, boxShadow: "0 1px 3px rgba(0,0,0,.05)", overflow: "hidden" }}>
+            <div key={r.id} style={{ background: surface, borderRadius: 12, border: `1px solid ${border}`, boxShadow: dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.05)", overflow: "hidden" }}>
               <div style={{ height: 2, background: "#38bdf8" }} />
               <div style={{ padding: "14px 18px" }}>
                 {/* Fila superior: info + botó */}
@@ -234,19 +238,19 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginBottom: 3 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: textMain }}>{formatFecha(r.fecha)}</span>
                       <span style={{ fontWeight: 500, fontSize: 14, color: textMuted }}>{r.hora}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 6, padding: "2px 8px" }}>Obert</span>
-                      {esAmic && <span style={{ fontSize: 11, fontWeight: 600, background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 6, padding: "2px 8px" }}>Amic</span>}
+                      <span style={{ fontSize: 11, fontWeight: 600, background: dark ? "rgba(59,130,246,.14)" : "#eff6ff", color: dark ? "#93c5fd" : "#1d4ed8", border: `1px solid ${dark ? 'rgba(96,165,250,.32)' : '#bfdbfe'}`, borderRadius: 6, padding: "2px 8px" }}>Obert</span>
+                      {esAmic && <span style={{ fontSize: 11, fontWeight: 600, background: dark ? "rgba(34,197,94,.14)" : "#f0fdf4", color: dark ? "#86efac" : "#15803d", border: `1px solid ${dark ? 'rgba(74,222,128,.32)' : '#86efac'}`, borderRadius: 6, padding: "2px 8px" }}>Amic</span>}
                     </div>
                     <div style={{ fontSize: 12, color: textMuted }}>
                       Organitza <strong style={{ color: textMain, fontWeight: 600 }}>{org?.nombre || "?"}</strong>
                       <span style={{ margin: "0 5px" }}>·</span>
-                      <span style={{ fontWeight: 600, color: lliures > 0 ? "#0284c7" : textMuted }}>{r.jugadores?.length}/4</span>
-                      {lliures > 0 && <span style={{ color: "#0284c7" }}> · {lliures} {lliures === 1 ? "plaça lliure" : "places lliures"}</span>}
+                      <span style={{ fontWeight: 600, color: lliures > 0 ? (dark ? "#7dd3fc" : "#0284c7") : textMuted }}>{r.jugadores?.length}/4</span>
+                      {lliures > 0 && <span style={{ color: dark ? "#7dd3fc" : "#0284c7" }}> · {lliures} {lliures === 1 ? "plaça lliure" : "places lliures"}</span>}
                     </div>
                   </div>
                   <button
                     onClick={() => pedirUnirse(r.id, formatFecha(r.fecha), r.hora)}
-                    style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 8, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, transition: "opacity 0.12s" }}
+                    style={{ background: dark ? "rgba(59,130,246,.14)" : "#eff6ff", color: dark ? "#93c5fd" : "#1d4ed8", border: `1px solid ${dark ? 'rgba(96,165,250,.32)' : '#bfdbfe'}`, borderRadius: 8, padding: "7px 16px", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, transition: "opacity 0.12s" }}
                     onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
                     onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                   >
@@ -254,23 +258,23 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                   </button>
                 </div>
                 {/* Avatars jugadors */}
-                <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "12px 14px 8px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
+                <div style={{ background: surfaceAlt, border: `1px solid ${dark ? border : '#f3f4f6'}`, borderRadius: 10, padding: "12px 14px 8px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                   {(r.jugadores || []).map(function(id) {
                     var u = usersMap.get(id);
                     var jugador = u || { id, nombre: "?" };
                     var esOrg = id === r.userId;
                     return (
                       <div key={id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                        <UserAvatar user={jugador} size={36} outline={esOrg ? "2px solid #374151" : "none"} outlineOffset={2} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(jugador); }} />
-                        <span style={{ fontSize: 10, color: esOrg ? "#374151" : textMuted, fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
+                        <UserAvatar user={jugador} size={36} outline={esOrg ? `2px solid ${dark ? '#94a3b8' : '#374151'}` : "none"} outlineOffset={2} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(jugador); }} />
+                        <span style={{ fontSize: 10, color: esOrg ? (dark ? "#cbd5e1" : "#374151") : textMuted, fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{esOrg ? "Org." : u?.nombre?.split(" ")[0] || "?"}</span>
                       </div>
                     );
                   })}
                   {Array.from({ length: lliures }).map(function(_, i) {
                     return (
                       <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.35 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
-                        <span style={{ fontSize: 10, color: "#64748b" }}>Lliure</span>
+                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: dark ? "#1e293b" : "#e2e8f0", border: `1.5px dashed ${dark ? '#64748b' : '#94a3b8'}`, display: "flex", alignItems: "center", justifyContent: "center", color: dark ? "#64748b" : "#94a3b8", fontSize: 16 }}>+</div>
+                        <span style={{ fontSize: 10, color: dark ? "#94a3b8" : "#64748b" }}>Lliure</span>
                       </div>
                     );
                   })}
@@ -298,21 +302,21 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
             const activas = HORARIOS.filter(h => calcEstado(fecha, h).estado !== "pasado");
 
             return (
-              <div key={fecha} style={{ background: surface, borderRadius: 14, border: `1.5px solid ${esHoy ? "#86efac" : border}`, overflow: "hidden", boxShadow: obert ? "0 4px 16px rgba(0,0,0,.08)" : "none" }}>
+              <div key={fecha} style={{ background: surface, borderRadius: 14, border: `1.5px solid ${esHoy ? (dark ? 'rgba(74,222,128,.32)' : '#86efac') : border}`, overflow: "hidden", boxShadow: obert ? (dark ? "0 6px 18px rgba(0,0,0,.28)" : "0 4px 16px rgba(0,0,0,.08)") : "none" }}>
                 <button
                   onClick={() => setDiaAbierto(obert ? null : fecha)}
-                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: esHoy ? "#f0fdf4" : surfaceAlt, border: "none", cursor: "pointer", textAlign: "left" }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: esHoy ? (dark ? "rgba(34,197,94,.14)" : "#f0fdf4") : surfaceAlt, border: "none", cursor: "pointer", textAlign: "left" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 42, height: 42, borderRadius: 10, background: esHoy ? "#dcfce7" : surface, border: `1.5px solid ${esHoy ? "#86efac" : border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 16, fontWeight: 800, color: esHoy ? "#14532d" : textMain, lineHeight: 1 }}>{fecha.split("-")[2]}</span>
-                      <span style={{ fontSize: 9, fontWeight: 600, color: esHoy ? "#16a34a" : textMuted, textTransform: "uppercase", letterSpacing: 0.3 }}>{mesNom}</span>
+                    <div style={{ width: 42, height: 42, borderRadius: 10, background: esHoy ? (dark ? "rgba(34,197,94,.2)" : "#dcfce7") : surface, border: `1.5px solid ${esHoy ? (dark ? 'rgba(74,222,128,.32)' : '#86efac') : border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: esHoy ? (dark ? "#bbf7d0" : "#14532d") : textMain, lineHeight: 1 }}>{fecha.split("-")[2]}</span>
+                      <span style={{ fontSize: 9, fontWeight: 600, color: esHoy ? (dark ? "#86efac" : "#16a34a") : textMuted, textTransform: "uppercase", letterSpacing: 0.3 }}>{mesNom}</span>
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: esHoy ? "#14532d" : textMain }}>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: esHoy ? (dark ? "#bbf7d0" : "#14532d") : textMain }}>
                         {diaNom}
-                        {esHoy && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: "#dcfce7", color: "#16a34a", border: "1px solid #86efac", borderRadius: 10, padding: "1px 7px" }}>Avui</span>}
-                        {misF.has(fecha) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 10, padding: "1px 7px" }}>Reserva</span>}
+                        {esHoy && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: dark ? "rgba(34,197,94,.2)" : "#dcfce7", color: dark ? "#86efac" : "#16a34a", border: `1px solid ${dark ? 'rgba(74,222,128,.32)' : '#86efac'}`, borderRadius: 10, padding: "1px 7px" }}>Avui</span>}
+                        {misF.has(fecha) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: dark ? "rgba(245,158,11,.14)" : "#fffbeb", color: dark ? "#fcd34d" : "#d97706", border: `1px solid ${dark ? 'rgba(251,191,36,.32)' : '#fcd34d'}`, borderRadius: 10, padding: "1px 7px" }}>Reserva</span>}
                       </div>
                       <div style={{ fontSize: 12, color: textMuted, marginTop: 1 }}>{activas.length} franges disponibles</div>
                     </div>
@@ -325,7 +329,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     {HORARIOS.map(hora => {
                       const { estado, sublabel, onClick } = calcEstado(fecha, hora);
                       if (estado === "pasado") return null;
-                      const e = ESTADOS[estado];
+                      const e = estados[estado];
                       return (
                         <div
                           key={hora}
@@ -397,7 +401,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     const esHoy = fecha === hoy();
                     return (
                       <td key={fecha} style={{ padding: "4px 5px", background: hi % 2 === 0 ? surfaceAlt : surface, verticalAlign: "middle" }}>
-                        <Celda estado={estado} sublabel={sublabel} onClick={onClick} esHoy={esHoy} />
+                        <Celda estado={estado} sublabel={sublabel} onClick={onClick} esHoy={esHoy} dark={dark} estados={estados} />
                       </td>
                     );
                   })}

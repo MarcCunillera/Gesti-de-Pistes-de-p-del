@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import Avatar from "../UserAvatar";
 
-function Btn({ onClick, variant, children, style }) {
+function Btn({ onClick, variant, children, style, theme, dark }) {
   const [hover, setHover] = useState(false);
   const variants = {
-    primary: { bg: "#1a2e1a", color: "#fff", border: "#1a2e1a" },
-    default: { bg: "#f9fafb", color: "#374151", border: "#e5e7eb" },
-    danger:  { bg: "#fff", color: "#dc2626", border: "#fca5a5" },
-    confirm: { bg: "#f0fdf4", color: "#15803d", border: "#86efac" },
+    primary: { bg: dark ? theme.primary : "#1a2e1a", color: dark ? "#0f172a" : "#fff", border: dark ? theme.primary : "#1a2e1a" },
+    default: { bg: dark ? theme.surfaceAlt : "#f9fafb", color: dark ? theme.text : "#374151", border: dark ? theme.border : "#e5e7eb" },
+    danger:  { bg: dark ? "rgba(239,68,68,.12)" : "#fff", color: dark ? "#fca5a5" : "#dc2626", border: dark ? "rgba(248,113,113,.32)" : "#fca5a5" },
+    confirm: { bg: dark ? "rgba(34,197,94,.14)" : "#f0fdf4", color: dark ? "#86efac" : "#15803d", border: dark ? "rgba(74,222,128,.32)" : "#86efac" },
   };
   const s = variants[variant || "default"];
   return (
@@ -37,6 +37,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
     secondary:  t?.textSecondary || "#6b7280",
     muted:      t?.textMuted  || "#9ca3af",
   };
+  var dark = !["#fff", "#ffffff"].includes((C.surface || "").toLowerCase());
 
   useEffect(function() {
     var firstLoad = amics.length === 0 && solicituds.length === 0 && enviades.length === 0;
@@ -135,20 +136,20 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Amics</h2>
         <p style={{ margin: "3px 0 0", fontSize: 13, color: C.muted }}>
           {amics.length} amic{amics.length !== 1 ? "s" : ""}
-          {solicituds.length > 0 && <span style={{ marginLeft: 10, fontWeight: 600, color: "#374151" }}>{solicituds.length} sol·licitud{solicituds.length !== 1 ? "s" : ""} pendent{solicituds.length !== 1 ? "s" : ""}</span>}
+          {solicituds.length > 0 && <span style={{ marginLeft: 10, fontWeight: 600, color: C.secondary }}>{solicituds.length} sol·licitud{solicituds.length !== 1 ? "s" : ""} pendent{solicituds.length !== 1 ? "s" : ""}</span>}
         </p>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 2, background: "#f3f4f6", borderRadius: 9, padding: 3, marginBottom: 24, width: "fit-content", border: "1px solid #e5e7eb" }}>
+      <div style={{ display: "flex", gap: 2, background: C.surfaceAlt, borderRadius: 9, padding: 3, marginBottom: 24, width: "fit-content", border: `1px solid ${C.border}` }}>
         {TABS.map(function(tb) {
           var active = tab === tb.key;
           return (
             <button key={tb.key} onClick={function() { setTab(tb.key); }}
-              style={{ padding: "7px 16px", border: "none", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: active ? 700 : 500, background: active ? "#fff" : "transparent", color: active ? "#111827" : "#6b7280", boxShadow: active ? "0 1px 3px rgba(0,0,0,.08)" : "none", transition: "all .12s", display: "flex", alignItems: "center", gap: 6 }}>
+              style={{ padding: "7px 16px", border: "none", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: active ? 700 : 500, background: active ? C.surface : "transparent", color: active ? C.text : C.secondary, boxShadow: active ? (dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.08)") : "none", transition: "all .12s", display: "flex", alignItems: "center", gap: 6 }}>
               {tb.label}
               {tb.key === "pendents" && solicituds.length > 0 && (
-                <span style={{ background: "#111827", color: "#fff", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>{solicituds.length}</span>
+                <span style={{ background: dark ? C.primary : "#111827", color: dark ? "#0f172a" : "#fff", borderRadius: 20, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>{solicituds.length}</span>
               )}
             </button>
           );
@@ -161,9 +162,9 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
           {loading ? (
             <div style={{ color: C.muted, fontSize: 13 }}>Carregant...</div>
           ) : amics.length === 0 ? (
-            <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: "1px solid #e5e7eb" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>👥</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 4 }}>Encara no tens amics</div>
+            <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: `1px solid ${C.border}` }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: C.surfaceAlt, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>👥</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 4 }}>Encara no tens amics</div>
               <div style={{ fontSize: 12, color: C.muted }}>Fes servir "Afegir amic" per cercar</div>
             </div>
           ) : (
@@ -173,16 +174,16 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                   <div
                     key={a.id}
                     onClick={function() { obrirPerfil(a); }}
-                    style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}
+                    style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${C.border}`, boxShadow: dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <Avatar user={a} size={38} onClick={function(e) { e.stopPropagation(); obrirPerfil(a); }} />
                       <div>
-                        <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{a.nombre}</div>
+                        <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{a.nombre}</div>
                         {a.email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>}
                       </div>
                     </div>
-                    <Btn onClick={function(e) { e.stopPropagation(); eliminarAmic(a.id); }} variant="danger">Eliminar</Btn>
+                    <Btn onClick={function(e) { e.stopPropagation(); eliminarAmic(a.id); }} variant="danger" theme={C} dark={dark}>Eliminar</Btn>
                   </div>
                 );
               })}
@@ -207,17 +208,19 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {sugerencias.map(function(u) {
                     return (
-                      <div key={u.id} onClick={function() { obrirPerfil(u); }} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}>
+                      <div key={u.id} onClick={function() { obrirPerfil(u); }} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${C.border}`, boxShadow: dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                           <div>
-                            <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
+                            <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{u.nombre}</div>
                           </div>
                         </div>
                         <Btn
                           onClick={function(e) { e.stopPropagation(); enviarSolicitud(u.id); }}
                           variant="confirm"
                           style={{ opacity: enviandoId === u.id ? 0.5 : 1, pointerEvents: enviandoId ? "none" : "auto" }}
+                          theme={C}
+                          dark={dark}
                         >
                           {enviandoId === u.id ? "Enviant…" : "+ Afegir"}
                         </Btn>
@@ -238,7 +241,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             placeholder="Cercar per nom..."
             value={buscar}
             onChange={function(e) { setBuscar(e.target.value); }}
-            style={{ width: "100%", padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 13, boxSizing: "border-box", marginBottom: 14, outline: "none", color: "#111827" }}
+            style={{ width: "100%", padding: "10px 14px", border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, boxSizing: "border-box", marginBottom: 14, outline: "none", color: C.text, background: dark ? C.surfaceAlt : "#fff" }}
             autoFocus
           />
           {buscar.length > 0 && buscar.length < 2 && (
@@ -248,7 +251,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             <div style={{ color: C.muted, fontSize: 12, textAlign: "center" }}>Cercant…</div>
           )}
           {buscarDebounced.length >= 2 && buscar === buscarDebounced && resultats.length === 0 && (
-            <div style={{ background: C.surface, borderRadius: 12, padding: "24px 20px", textAlign: "center", color: C.muted, border: "1px solid #e5e7eb", fontSize: 13 }}>
+            <div style={{ background: C.surface, borderRadius: 12, padding: "24px 20px", textAlign: "center", color: C.muted, border: `1px solid ${C.border}`, fontSize: 13 }}>
               No s'han trobat usuaris per a "{buscar}"
             </div>
           )}
@@ -256,17 +259,19 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {resultats.map(function(u) {
                 return (
-                  <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
+                  <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${C.border}`, boxShadow: dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.04)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                       <div>
-                        <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{u.nombre}</div>
+                        <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{u.nombre}</div>
                       </div>
                     </div>
                     <Btn
                       onClick={function() { enviarSolicitud(u.id); }}
                       variant="confirm"
                       style={{ opacity: enviandoId === u.id ? 0.5 : 1, pointerEvents: enviandoId ? "none" : "auto" }}
+                      theme={C}
+                      dark={dark}
                     >
                       {enviandoId === u.id ? "Enviant…" : "+ Afegir"}
                     </Btn>
@@ -285,15 +290,15 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                 {enviades.map(function(s) {
                   var userEnviat = { id: s.a_id, nombre: s.a_nombre, email: s.a_email, avatar: s.avatar, avatar_color: s.avatar_color };
                   return (
-                    <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", opacity: 0.75 }}>
+                    <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${C.border}`, opacity: 0.75 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                         <Avatar user={userEnviat} size={38} onClick={function() { obrirPerfil(userEnviat); }} />
                         <div>
-                          <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.a_nombre}</div>
+                          <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{s.a_nombre}</div>
                           {s.a_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: "1px solid #e5e7eb" }}>Pendent</span>
+                      <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: `1px solid ${C.border}` }}>Pendent</span>
                     </div>
                   );
                 })}
@@ -309,26 +314,26 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
           {loading ? (
             <div style={{ color: C.muted, fontSize: 13 }}>Carregant...</div>
           ) : solicituds.length === 0 ? (
-            <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: "1px solid #e5e7eb" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>🎉</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>No tens sol·licituds pendents</div>
+            <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: `1px solid ${C.border}` }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: C.surfaceAlt, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>🎉</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>No tens sol·licituds pendents</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {solicituds.map(function(s) {
                 var userSolicitant = { id: s.de_id, nombre: s.de_nombre, email: s.de_email, avatar: s.avatar, avatar_color: s.avatar_color };
                 return (
-                  <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", gap: 12 }}>
+                  <div key={s.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: `1px solid ${C.border}`, boxShadow: dark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.25)") : "0 1px 3px rgba(0,0,0,.04)", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
                       <Avatar user={userSolicitant} size={38} onClick={function() { obrirPerfil(userSolicitant); }} />
                       <div>
-                        <div style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{s.de_nombre}</div>
+                        <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{s.de_nombre}</div>
                         {s.de_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.de_email}</div>}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <Btn onClick={function() { responder(s.id, "acceptada"); }} variant="primary">Acceptar</Btn>
-                      <Btn onClick={function() { responder(s.id, "rebutjada"); }}>Rebutjar</Btn>
+                      <Btn onClick={function() { responder(s.id, "acceptada"); }} variant="primary" theme={C} dark={dark}>Acceptar</Btn>
+                      <Btn onClick={function() { responder(s.id, "rebutjada"); }} theme={C} dark={dark}>Rebutjar</Btn>
                     </div>
                   </div>
                 );
