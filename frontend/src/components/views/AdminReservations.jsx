@@ -3,10 +3,10 @@ import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 
 const TABS = [
-  { key: "proximas", label: "Próximas" },
-  { key: "pasadas", label: "Pasadas" },
-  { key: "canceladas", label: "Canceladas" },
-  { key: "todas", label: "Todas" },
+  { key: "proximas", label: "Pròximes" },
+  { key: "pasadas", label: "Passades" },
+  { key: "canceladas", label: "Cancelades" },
+  { key: "todas", label: "Totes" },
 ];
 
 function normalizarBusqueda(value) {
@@ -34,8 +34,8 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
     const dt = new Date(`${r.fecha}T${r.hora}`);
     if (r.estado === "cancelada") return "Cancelada";
     if (dt < ahora) return "Completada";
-    if (r.abierto) return `Abierto ${r.jugadores?.length || 0}/4`;
-    return "Privado";
+    if (r.abierto) return `Obert ${r.jugadores?.length || 0}/4`;
+    return "Privada";
   };
 
   const conUsuario = reservas.map((r) => ({
@@ -62,7 +62,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
         formatFecha(r.fecha),
         r.hora,
         r.estado,
-        r.abierto ? "abierto partido abierto" : "privado reserva privada",
+        r.abierto ? "obert partit obert" : "privat reserva privada",
         getEstadoLabel(r),
         ...r.jugadoresData.map((u) => u.nombre),
         ...r.jugadoresData.map((u) => u.email),
@@ -91,23 +91,23 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
     const dt = new Date(`${r.fecha}T${r.hora}`);
     if (r.estado === "cancelada") return { label: "Cancelada", bg: "#fef2f2", color: "#dc2626", border: "#fecaca", bar: "#f87171" };
     if (dt < ahora) return { label: "Completada", bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", bar: "#4ade80" };
-    if (r.abierto) return { label: `Abierto ${r.jugadores?.length}/4`, bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", bar: "#60a5fa" };
-    return { label: "Privado", bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", bar: "#4ade80" };
+    if (r.abierto) return { label: `Obert ${r.jugadores?.length}/4`, bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe", bar: "#60a5fa" };
+    return { label: "Privada", bg: "#f0fdf4", color: "#15803d", border: "#bbf7d0", bar: "#4ade80" };
   };
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
       <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: textMain, margin: "0 0 4px", fontSize: 22, fontWeight: 800 }}>Gestión de Reservas</h2>
-        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>{reservas.length} reservas en total</p>
+        <h2 style={{ color: textMain, margin: "0 0 4px", fontSize: 22, fontWeight: 800 }}>Gestió de reserves</h2>
+        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>{reservas.length} reserves en total</p>
       </div>
 
       {/* Stats */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-        {statCard("Próximas", proximas, "#e8f5e9", "#1a472a")}
-        {statCard("Completadas", pasadas, "#f0fdf4", "#16a34a")}
-        {statCard("Canceladas", canceladas, "#fef2f2", "#c0392b")}
-        {statCard("Partidos abiertos", partidos, "#e8f0fe", "#1a73e8")}
+        {statCard("Pròximes", proximas, "#e8f5e9", "#1a472a")}
+        {statCard("Completades", pasadas, "#f0fdf4", "#16a34a")}
+        {statCard("Cancelades", canceladas, "#fef2f2", "#c0392b")}
+        {statCard("Partits oberts", partidos, "#e8f0fe", "#1a73e8")}
       </div>
 
       {/* Tabs + búsqueda */}
@@ -126,7 +126,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
         <input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar usuario, jugador, fecha..."
+          placeholder="Buscar usuari, jugador, data..."
           style={{ flex: 1, minWidth: 180, padding: "8px 12px", borderRadius: 8, border: `1px solid ${border}`, fontSize: 13, outline: 'none' }}
         />
       </div>
@@ -134,7 +134,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
       {/* Lista */}
       {filtradas.length === 0 ? (
         <div style={{ background: surface, borderRadius: 14, padding: "40px 24px", textAlign: "center", border: `1px solid ${border}`, color: textMuted }}>
-          <div style={{ fontSize: 14 }}>No hay reservas en esta sección</div>
+          <div style={{ fontSize: 14 }}>No hi ha reserves en aquesta secció</div>
         </div>
       ) : (
         <div>
@@ -155,7 +155,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: textMuted }}>
                       <UserAvatar user={r.usuario || { id: r.userId, nombre: "?" }} size={22} onClick={function() { if (onOpenUserProfile) onOpenUserProfile(r.usuario || { id: r.userId, nombre: "?" }); }} />
-                      <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuario eliminado"}</span>
+                      <span style={{ fontWeight: 600 }}>{r.usuario?.nombre || "Usuari eliminat"}</span>
                       {r.jugadores?.length > 1 && (
                         <span style={{ color: textMuted, fontSize: 12 }}>
                           · {r.jugadoresData.map((u) => u.nombre).filter(Boolean).join(", ")}
@@ -168,7 +168,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
                       onClick={() => cancelarReserva(r.id, r)}
                       style={{ background: "#fff", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontWeight: 600, fontSize: 12, flexShrink: 0 }}
                     >
-                      Cancelar
+                      Cancel·lar
                     </button>
                   ) : (
                     <span style={{ fontSize: 13, color: "#ccc", flexShrink: 0 }}>
@@ -180,7 +180,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
             );
           })}
           <div style={{ fontSize: 12, color: textMuted, textAlign: "center", marginTop: 8 }}>
-            {filtradas.length} resultado{filtradas.length !== 1 ? "s" : ""}
+            {filtradas.length} resultat{filtradas.length !== 1 ? "s" : ""}
           </div>
         </div>
       )}

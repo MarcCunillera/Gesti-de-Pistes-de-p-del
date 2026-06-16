@@ -2,19 +2,19 @@ import { useState } from "react";
 import { generarHorarios, hoy } from "../../utils/helpers";
 
 const SECCIONES = [
-  { key: "calendario", label: "Calendario" },
-  { key: "reservas", label: "Reservas" },
-  { key: "bloqueos", label: "Bloqueos" },
+  { key: "calendario", label: "Calendari" },
+  { key: "reservas", label: "Reserves" },
+  { key: "bloqueos", label: "Bloquejos" },
 ];
 
 const DIAS_SEMANA = [
-  { key: 1, label: "Lunes", short: "L" },
-  { key: 2, label: "Martes", short: "M" },
-  { key: 3, label: "Miercoles", short: "X" },
-  { key: 4, label: "Jueves", short: "J" },
-  { key: 5, label: "Viernes", short: "V" },
-  { key: 6, label: "Sabado", short: "S" },
-  { key: 0, label: "Domingo", short: "D" },
+  { key: 1, label: "Dilluns", short: "L" },
+  { key: 2, label: "Dimarts", short: "M" },
+  { key: 3, label: "Dimecres", short: "X" },
+  { key: 4, label: "Dijous", short: "J" },
+  { key: 5, label: "Divendres", short: "V" },
+  { key: 6, label: "Dissabte", short: "S" },
+  { key: 0, label: "Diumenge", short: "D" },
 ];
 
 const TODOS_LOS_DIAS = DIAS_SEMANA.map((d) => d.key);
@@ -62,24 +62,24 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
 
   const aplicarRango = () => {
     if (!rango.inicio || !rango.fin || rango.diasSemana.length === 0 || rango.horas.length === 0) {
-      setRangoMsg({ tipo: "error", txt: "Selecciona rango de fechas, dias de la semana y al menos una franja." });
+      setRangoMsg({ tipo: "error", txt: "Selecciona un rang de dates, dies de la setmana i almenys una franja." });
       return;
     }
     if (rango.fin < rango.inicio) {
-      setRangoMsg({ tipo: "error", txt: "La fecha de fin no puede ser anterior al inicio." });
+      setRangoMsg({ tipo: "error", txt: "La data de fi no pot ser anterior a la d'inici." });
       return;
     }
     bloquearRango(rango.inicio, rango.fin, rango.horas, rango.diasSemana);
     const diasTxt = rango.diasSemana.length === TODOS_LOS_DIAS.length
-      ? "todos los dias"
+      ? "tots els dies"
       : DIAS_SEMANA.filter((d) => rango.diasSemana.includes(d.key)).map((d) => d.label).join(", ");
-    setRangoMsg({ tipo: "ok", txt: `Franjas bloqueadas del ${rango.inicio} al ${rango.fin} (${diasTxt}).` });
+    setRangoMsg({ tipo: "ok", txt: `Franges bloquejades del ${rango.inicio} al ${rango.fin} (${diasTxt}).` });
     setRango({ inicio: hoy(), fin: hoy(), diasSemana: [], horas: [] });
     setTimeout(() => setRangoMsg(null), 3000);
   };
 
   const desbloquearTodo = () => {
-    if (!window.confirm("¿Desbloquear todas las franjas bloqueadas?")) return;
+    if (!window.confirm("Vols desbloquejar totes les franges bloquejades?")) return;
     if (propDesbloquear) propDesbloquear();
   };
 
@@ -95,8 +95,8 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
     <div style={{ maxWidth: 660, margin: "0 auto" }}>
       {/* Cabecera */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ color: textMain, margin: '0 0 4px', fontSize: 22, fontWeight: 800 }}>Ajustes</h2>
-        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>Configura el funcionamiento de la pista</p>
+        <h2 style={{ color: textMain, margin: '0 0 4px', fontSize: 22, fontWeight: 800 }}>Ajustos</h2>
+        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>Configura el funcionament de la pista</p>
       </div>
 
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
@@ -132,22 +132,22 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
           {seccion === "calendario" && (
             <>
               <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: primary, display: "flex", alignItems: "center", gap: 8 }}>
-                Configuración del calendario
+                Configuració del calendari
               </h3>
-              <Field textColor={textMain} label="Hora de inicio" desc="Primera franja disponible del día">
+              <Field textColor={textMain} label="Hora d'inici" desc="Primera franja disponible del dia">
                 <input type="time" value={configEdit.horaInicio} onChange={(e) => setConfigEdit((c) => ({ ...c, horaInicio: e.target.value }))} style={inputBase} />
               </Field>
-              <Field textColor={textMain} label="Hora de fin" desc="Última franja disponible del día">
+              <Field textColor={textMain} label="Hora de fi" desc="Última franja disponible del dia">
                 <input type="time" value={configEdit.horaFin} onChange={(e) => setConfigEdit((c) => ({ ...c, horaFin: e.target.value }))} style={inputBase} />
               </Field>
-              <Field textColor={textMain} label="Duración de cada franja" desc="Tiempo por reserva en minutos">
+              <Field textColor={textMain} label="Durada de cada franja" desc="Temps per reserva en minuts">
                 <select value={configEdit.duracion} onChange={(e) => setConfigEdit((c) => ({ ...c, duracion: Number(e.target.value) }))} style={selectBase}>
                   {[30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>{m} minutos</option>)}
                 </select>
               </Field>
-              <Field textColor={textMain} label="Días visibles en el calendario" desc="Rango de días mostrados a la vez">
+              <Field textColor={textMain} label="Dies visibles al calendari" desc="Rang de dies mostrats alhora">
                 <select value={configEdit.diasVista} onChange={(e) => setConfigEdit((c) => ({ ...c, diasVista: Number(e.target.value) }))} style={selectBase}>
-                  {[3, 5, 7].map((d) => <option key={d} value={d}>{d} días</option>)}
+                  {[3, 5, 7].map((d) => <option key={d} value={d}>{d} dies</option>)}
                 </select>
               </Field>
 
@@ -155,12 +155,12 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
               <div style={{ background: "#f8faf8", border: "1px solid #e5e7eb", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#555", display: "flex", gap: 16, flexWrap: "wrap" }}>
                 <span>{configEdit.horaInicio} – {configEdit.horaFin}</span>
                 <span>{configEdit.duracion} min/franja</span>
-                <span>{franjas.length} franjas · {configEdit.diasVista} días</span>
+                <span>{franjas.length} franges · {configEdit.diasVista} dies</span>
               </div>
 
               {hasChanges && (
                 <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 12, color: "#92400e" }}>
-                  Tienes cambios sin guardar
+                  Tens canvis sense desar
                 </div>
               )}
 
@@ -169,7 +169,7 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
                   onClick={handleGuardar}
                   style={{ flex: 1, background: guardado ? '#16a34a' : primary, color: "#fff", border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontWeight: 700, fontSize: 14, transition: "background 0.2s" }}
                 >
-                  {guardado ? "✓ Guardado" : "Guardar ajustes"}
+                  {guardado ? "✓ Desat" : "Desar ajustos"}
                 </button>
                 <button
                   onClick={() => setConfigEdit(config)}
@@ -186,23 +186,23 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
           {seccion === "reservas" && (
             <>
               <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: primary, display: "flex", alignItems: "center", gap: 8 }}>
-                Política de reservas
+                Política de reserves
               </h3>
-              <Field textColor={textMain} label="Límite de reservas por usuario" desc="Máximo de reservas activas simultáneas permitidas">
+              <Field textColor={textMain} label="Límit de reserves per usuari" desc="Màxim de reserves actives simultànies permeses">
                 <select value={configEdit.maxReservas ?? 3} onChange={(e) => setConfigEdit((c) => ({ ...c, maxReservas: Number(e.target.value) }))} style={selectBase}>
-                  {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} reserva{n !== 1 ? "s" : ""} máximo</option>)}
+                  {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} reserva{n !== 1 ? "s" : ""} màxim</option>)}
                 </select>
               </Field>
 
               <div style={{ background: "#f8faf8", border: "1px solid #e5e7eb", borderRadius: 10, padding: "14px 16px", marginBottom: 20, fontSize: 13, color: "#555" }}>
-                <div style={{ fontWeight: 700, color: primary, marginBottom: 6 }}>Resumen actual</div>
-                <div>· Cada usuario puede tener hasta <strong>{configEdit.maxReservas ?? 3}</strong> reservas activas simultáneas</div>
-                <div style={{ marginTop: 4 }}>· Las reservas pasadas no cuentan para el límite</div>
+                <div style={{ fontWeight: 700, color: primary, marginBottom: 6 }}>Resum actual</div>
+                <div>· Cada usuari pot tenir fins a <strong>{configEdit.maxReservas ?? 3}</strong> reserves actives simultànies</div>
+                <div style={{ marginTop: 4 }}>· Les reserves passades no compten per al límit</div>
               </div>
 
               {hasChanges && (
                 <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 12, color: "#92400e" }}>
-                  Tienes cambios sin guardar
+                  Tens canvis sense desar
                 </div>
               )}
 
@@ -211,7 +211,7 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
                   onClick={handleGuardar}
                   style={{ flex: 1, background: guardado ? '#16a34a' : primary, color: "#fff", border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontWeight: 700, fontSize: 14, transition: "background 0.2s" }}
                 >
-                  {guardado ? "✓ Guardado" : "Guardar ajustes"}
+                  {guardado ? "✓ Desat" : "Desar ajustos"}
                 </button>
                 <button
                   onClick={() => setConfigEdit(config)}
@@ -228,18 +228,18 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
           {seccion === "bloqueos" && (
             <>
               <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: primary, display: "flex", alignItems: "center", gap: 8 }}>
-                Bloqueo por rango de fechas
+                Bloqueig per rang de dates
               </h3>
-              <p style={{ margin: "0 0 20px", color: "#9ca3af", fontSize: 13 }}>Bloquea franjas horarias en varios días de una vez.</p>
+              <p style={{ margin: "0 0 20px", color: "#9ca3af", fontSize: 13 }}>Bloqueja franges horàries en diversos dies d'una sola vegada.</p>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
                 <div style={{ flex: 1, minWidth: 120 }}>
-                  <Field textColor={textMain} label="Fecha inicio" desc="">
+                  <Field textColor={textMain} label="Data d'inici" desc="">
                     <input type="date" value={rango.inicio} min={hoy()} onChange={(e) => setRango((r) => ({ ...r, inicio: e.target.value }))} style={inputBase} />
                   </Field>
                 </div>
                 <div style={{ flex: 1, minWidth: 120 }}>
-                  <Field textColor={textMain} label="Fecha fin" desc="">
+                  <Field textColor={textMain} label="Data de fi" desc="">
                     <input type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
                   </Field>
                 </div>
@@ -247,12 +247,12 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
 
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Dias de la semana</label>
+                  <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Dies de la setmana</label>
                   <button
                     onClick={() => setRango((r) => ({ ...r, diasSemana: r.diasSemana.length === TODOS_LOS_DIAS.length ? [] : TODOS_LOS_DIAS }))}
                     style={{ background: 'none', border: 'none', color: '#1a73e8', fontSize: 12, cursor: "pointer", fontWeight: 600, padding: 0 }}
                   >
-                    {rango.diasSemana.length === TODOS_LOS_DIAS.length ? "Quitar todos" : "Seleccionar todos"}
+                    {rango.diasSemana.length === TODOS_LOS_DIAS.length ? "Treure'ls tots" : "Seleccionar-los tots"}
                   </button>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(72px, 1fr))", gap: 6 }}>
@@ -274,20 +274,20 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
                 {rango.diasSemana.length > 0 && (
                   <div style={{ marginTop: 8, fontSize: 12, color: "#9ca3af" }}>
                     {rango.diasSemana.length === TODOS_LOS_DIAS.length
-                      ? "Se bloquearan todos los dias del rango."
-                      : `Solo se bloquearan los ${DIAS_SEMANA.filter((d) => rango.diasSemana.includes(d.key)).map((d) => d.label.toLowerCase()).join(", ")} marcados.`}
+                      ? "Es bloquejaran tots els dies del rang."
+                      : `Només es bloquejaran els ${DIAS_SEMANA.filter((d) => rango.diasSemana.includes(d.key)).map((d) => d.label.toLowerCase()).join(", ")} marcats.`}
                   </div>
                 )}
               </div>
 
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Franjas horarias</label>
+                  <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Franges horàries</label>
                   <button
                     onClick={() => setRango((r) => ({ ...r, horas: r.horas.length === HORARIOS.length ? [] : [...HORARIOS] }))}
                     style={{ background: 'none', border: 'none', color: '#1a73e8', fontSize: 12, cursor: "pointer", fontWeight: 600, padding: 0 }}
                   >
-                    {rango.horas.length === HORARIOS.length ? "Quitar todas" : "Seleccionar todas"}
+                    {rango.horas.length === HORARIOS.length ? "Treure-les totes" : "Seleccionar-les totes"}
                   </button>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -305,7 +305,7 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
                   })}
                 </div>
                 {rango.horas.length > 0 && (
-                  <div style={{ marginTop: 8, fontSize: 12, color: "#9ca3af" }}>{rango.horas.length} franja{rango.horas.length !== 1 ? "s" : ""} seleccionada{rango.horas.length !== 1 ? "s" : ""}</div>
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#9ca3af" }}>{rango.horas.length} franja{rango.horas.length !== 1 ? "es" : ""} seleccionada{rango.horas.length !== 1 ? "es" : ""}</div>
                 )}
               </div>
 
@@ -316,17 +316,17 @@ export default function Settings({ config, configEdit, setConfigEdit, guardarCon
               )}
 
               <button onClick={aplicarRango} style={{ width: '100%', background: primary, color: '#fff', border: 'none', borderRadius: 10, padding: "11px", cursor: "pointer", fontWeight: 700, fontSize: 14, marginBottom: 10 }}>
-                Bloquear rango
+                Bloquejar rang
               </button>
 
               {bloqueados?.length > 0 && (
                 <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontWeight: 700, color: "#c0392b", fontSize: 13 }}>{bloqueados.length} franja{bloqueados.length !== 1 ? "s" : ""} bloqueada{bloqueados.length !== 1 ? "s" : ""}</div>
-                    <div style={{ fontSize: 12, color: "#f87171", marginTop: 2 }}>Estas franjas no están disponibles para reservar</div>
+                    <div style={{ fontSize: 12, color: "#f87171", marginTop: 2 }}>Aquestes franges no estan disponibles per reservar</div>
                   </div>
                   <button onClick={desbloquearTodo} style={{ background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontWeight: 700, fontSize: 12 }}>
-                    Desbloquear todo
+                    Desbloquejar-ho tot
                   </button>
                 </div>
               )}

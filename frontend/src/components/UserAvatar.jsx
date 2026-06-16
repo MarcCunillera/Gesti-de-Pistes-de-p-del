@@ -77,7 +77,7 @@ export default function UserAvatar({
     <button
       type="button"
       onClick={onClick}
-      aria-label={ariaLabel || ("Ver perfil de " + ((user && user.nombre) || "usuario"))}
+      aria-label={ariaLabel || ("Veure el perfil de " + ((user && user.nombre) || "l'usuari"))}
       title={label}
       style={{
         width: sz,

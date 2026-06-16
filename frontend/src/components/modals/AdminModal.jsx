@@ -98,10 +98,10 @@ export default function AdminModal({
   const isBlocked = adminModal.bloq;
   const hasReserva = !!res;
 
-  let label = "NUEVA RESERVA";
+  let label = "NOVA RESERVA";
 
   if (isBlocked) {
-    label = "HORARIO BLOQUEADO";
+    label = "HORARI BLOQUEJAT";
   } else if (hasReserva) {
     label = "RESERVA ACTIVA";
   }
@@ -195,13 +195,13 @@ export default function AdminModal({
 
             {isBlocked && (
               <Pill color="#7c3aed" bg="#f5f3ff" border="#ddd6fe">
-                Bloqueado
+                Bloquejat
               </Pill>
             )}
 
             {res?.abierto && (
               <Pill color="#1d4ed8" bg="#eff6ff" border="#93c5fd">
-                Partido abierto
+                Partit obert
               </Pill>
             )}
           </div>
@@ -237,12 +237,12 @@ export default function AdminModal({
                 color: t?.text || "#111827",
               }}
             >
-              {propietario?.nombre || "Usuario"}
+              {propietario?.nombre || "Usuari"}
             </div>
 
             <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
               {res.abierto
-                ? `${res.jugadores?.length || 0}/4 jugadores`
+                ? `${res.jugadores?.length || 0}/4 jugadors`
                 : "Reserva privada"}
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function AdminModal({
                 marginBottom: 10,
               }}
             >
-              Tipo de reserva
+              Tipus de reserva
             </div>
 
             <OptionCard
@@ -281,7 +281,7 @@ export default function AdminModal({
                 </svg>
               }
               title="Reserva privada"
-              description="Solo tú y las personas que invites"
+              description="Només tu i les persones que convidis"
             />
 
             <OptionCard
@@ -303,8 +303,8 @@ export default function AdminModal({
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               }
-              title="Partido abierto"
-              description="Hasta 4 jugadores — otros pueden unirse"
+              title="Partit obert"
+              description="Fins a 4 jugadors — altres s'hi poden unir"
             />
 
             <OptionCard
@@ -324,8 +324,8 @@ export default function AdminModal({
                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
                 </svg>
               }
-              title="Bloquear horario"
-              description="Nadie podrá reservar esta franja"
+              title="Bloquejar horari"
+              description="Ningú no podrà reservar aquesta franja"
             />
           </>
         )}
@@ -348,8 +348,8 @@ export default function AdminModal({
                 <path d="M7 11V7a5 5 0 0 1 9.9-1" />
               </svg>
             }
-            title="Desbloquear horario"
-            description="Vuelve a estar disponible para reservas"
+            title="Desbloquejar horari"
+            description="Torna a estar disponible per a reserves"
           />
         )}
 
@@ -374,8 +374,8 @@ export default function AdminModal({
                 <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
               </svg>
             }
-            title="Cancelar reserva"
-            description={`Cancelar la reserva de ${propietario?.nombre || "usuario"}`}
+            title="Cancel·lar reserva"
+            description={`Cancel·lar la reserva de ${propietario?.nombre || "usuari"}`}
           />
         )}
 
@@ -395,7 +395,7 @@ export default function AdminModal({
             cursor: "pointer",
           }}
         >
-          Cancelar
+          Cancel·lar
         </button>
       </div>
     </div>

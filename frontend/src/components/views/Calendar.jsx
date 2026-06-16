@@ -12,16 +12,16 @@ function useWindowWidth() {
   return width;
 }
 
-const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-const MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const DIAS = ["Dg", "Dl", "Dt", "Dc", "Dj", "Dv", "Ds"];
+const MESES = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"];
 
 const ESTADOS = {
-  libre:     { bg: "#f0fdf4", border: "#86efac", color: "#16a34a", dot: "#22c55e",    label: "Libre" },
-  ocupado:   { bg: "#fef2f2", border: "#fca5a5", color: "#dc2626", dot: "#ef4444",    label: "Ocupado" },
-  propio:    { bg: "#fffbeb", border: "#fcd34d", color: "#d97706", dot: "#f59e0b",    label: "Tu reserva" },
-  unido:     { bg: "#eff6ff", border: "#93c5fd", color: "#2563eb", dot: "#60a5fa",    label: "Participas" },
-  abierto:   { bg: "#f0f9ff", border: "#7dd3fc", color: "#0284c7", dot: "#38bdf8",    label: "Partido abierto" },
-  bloqueado: { bg: "#f9fafb", border: "#e5e7eb", color: "#9ca3af", dot: "#d1d5db",    label: "Bloqueado" },
+  libre:     { bg: "#f0fdf4", border: "#86efac", color: "#16a34a", dot: "#22c55e",    label: "Lliure" },
+  ocupado:   { bg: "#fef2f2", border: "#fca5a5", color: "#dc2626", dot: "#ef4444",    label: "Ocupat" },
+  propio:    { bg: "#fffbeb", border: "#fcd34d", color: "#d97706", dot: "#f59e0b",    label: "La teva reserva" },
+  unido:     { bg: "#eff6ff", border: "#93c5fd", color: "#2563eb", dot: "#60a5fa",    label: "Hi participes" },
+  abierto:   { bg: "#f0f9ff", border: "#7dd3fc", color: "#0284c7", dot: "#38bdf8",    label: "Partit obert" },
+  bloqueado: { bg: "#f9fafb", border: "#e5e7eb", color: "#9ca3af", dot: "#d1d5db",    label: "Bloquejat" },
   pasado:    { bg: "transparent", border: "transparent", color: "#d1d5db", dot: null, label: "" },
 };
 
@@ -167,10 +167,10 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
       <div>
         <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: primary, letterSpacing: -0.5 }}>
-          Disponibilidad
+          Disponibilitat
         </h2>
         <p style={{ margin: "3px 0 0", fontSize: 13, color: textMuted }}>
-          Selecciona una franja horaria para reservar
+          Selecciona una franja horària per reservar
         </p>
       </div>
       {session.rol === "admin" && (
@@ -180,9 +180,9 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
             onClick={() => setBaseDate(hoy())}
             style={{ padding: "8px 18px", background: primary, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
           >
-            Hoy
+            Avui
           </button>
-          <BtnNav onClick={irAdelante}>Siguiente ›</BtnNav>
+          <BtnNav onClick={irAdelante}>Següent ›</BtnNav>
         </div>
       )}
     </div>
@@ -216,7 +216,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
   const PartitsOberts = partitsOrdenats.length === 0 ? null : (
     <div style={{ marginTop: 32 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: textMain }}>Partidos abiertos</h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: textMain }}>Partits oberts</h3>
         <span style={{ fontSize: 11, fontWeight: 700, background: "#e0f2fe", color: "#0284c7", border: "1px solid #7dd3fc", borderRadius: 20, padding: "2px 9px" }}>{partitsOrdenats.length}</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -234,14 +234,14 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginBottom: 3 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: textMain }}>{formatFecha(r.fecha)}</span>
                       <span style={{ fontWeight: 500, fontSize: 14, color: textMuted }}>{r.hora}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 6, padding: "2px 8px" }}>Abierto</span>
-                      {esAmic && <span style={{ fontSize: 11, fontWeight: 600, background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 6, padding: "2px 8px" }}>Amigo</span>}
+                      <span style={{ fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: 6, padding: "2px 8px" }}>Obert</span>
+                      {esAmic && <span style={{ fontSize: 11, fontWeight: 600, background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 6, padding: "2px 8px" }}>Amic</span>}
                     </div>
                     <div style={{ fontSize: 12, color: textMuted }}>
-                      Organiza <strong style={{ color: textMain, fontWeight: 600 }}>{org?.nombre || "?"}</strong>
+                      Organitza <strong style={{ color: textMain, fontWeight: 600 }}>{org?.nombre || "?"}</strong>
                       <span style={{ margin: "0 5px" }}>·</span>
                       <span style={{ fontWeight: 600, color: lliures > 0 ? "#0284c7" : textMuted }}>{r.jugadores?.length}/4</span>
-                      {lliures > 0 && <span style={{ color: "#0284c7" }}> · {lliures} {lliures === 1 ? "plaza libre" : "plazas libres"}</span>}
+                      {lliures > 0 && <span style={{ color: "#0284c7" }}> · {lliures} {lliures === 1 ? "plaça lliure" : "places lliures"}</span>}
                     </div>
                   </div>
                   <button
@@ -250,7 +250,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
                     onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                   >
-                    Solicitar Unirse
+                    Sol·licitar unir-m'hi
                   </button>
                 </div>
                 {/* Avatars jugadors */}
@@ -270,7 +270,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     return (
                       <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: 0.35 }}>
                         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
-                        <span style={{ fontSize: 10, color: "#64748b" }}>Libre</span>
+                        <span style={{ fontSize: 10, color: "#64748b" }}>Lliure</span>
                       </div>
                     );
                   })}
@@ -311,10 +311,10 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: esHoy ? "#14532d" : textMain }}>
                         {diaNom}
-                        {esHoy && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: "#dcfce7", color: "#16a34a", border: "1px solid #86efac", borderRadius: 10, padding: "1px 7px" }}>Hoy</span>}
+                        {esHoy && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: "#dcfce7", color: "#16a34a", border: "1px solid #86efac", borderRadius: 10, padding: "1px 7px" }}>Avui</span>}
                         {misF.has(fecha) && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, background: "#fffbeb", color: "#d97706", border: "1px solid #fcd34d", borderRadius: 10, padding: "1px 7px" }}>Reserva</span>}
                       </div>
-                      <div style={{ fontSize: 12, color: textMuted, marginTop: 1 }}>{activas.length} franjas disponibles</div>
+                      <div style={{ fontSize: 12, color: textMuted, marginTop: 1 }}>{activas.length} franges disponibles</div>
                     </div>
                   </div>
                   <span style={{ fontSize: 20, color: textMuted, display: "inline-block", transform: obert ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>⌄</span>

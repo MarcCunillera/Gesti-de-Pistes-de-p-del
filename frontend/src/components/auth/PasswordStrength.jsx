@@ -1,7 +1,7 @@
 export function getRequisitos(pwd) {
   return [
-    { ok: pwd.length >= 6,           label: "Mínimo 6 caracteres" },
-    { ok: /[A-Z]/.test(pwd),         label: "Una mayúscula" },
+    { ok: pwd.length >= 6,           label: "Mínim 6 caràcters" },
+    { ok: /[A-Z]/.test(pwd),         label: "Una majúscula" },
     { ok: /[0-9]/.test(pwd),         label: "Un número" },
   ];
 }

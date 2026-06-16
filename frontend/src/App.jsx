@@ -75,9 +75,17 @@ export default function App() {
 
   const normalizeReserva = useCallback((r) => ({
     ...r,
+    fecha: typeof r.fecha === "string" ? r.fecha.slice(0, 10) : r.fecha,
+    hora: typeof r.hora === "string" ? r.hora.slice(0, 5) : r.hora,
     userId: r.user_id !== undefined ? r.user_id : r.userId,
     jugadores: (r.jugadors || r.jugadores || []).map((j) => (typeof j === "object" ? j.id : j)),
     jugadorsData: r.jugadors || [],
+  }), []);
+
+  const normalizeBloqueado = useCallback((b) => ({
+    ...b,
+    fecha: typeof b.fecha === "string" ? b.fecha.slice(0, 10) : b.fecha,
+    hora: typeof b.hora === "string" ? b.hora.slice(0, 5) : b.hora,
   }), []);
 
   const cargarDades = useCallback(function () {
@@ -90,7 +98,7 @@ export default function App() {
       var rs = results[0], us = results[1], bl = results[2], cfg = results[3];
       setReservas(rs.map(normalizeReserva));
       setUsers(us);
-      setBloqueados(bl);
+      setBloqueados(bl.map(normalizeBloqueado));
       var cfgObj = {
         horaInicio: cfg.horaInicio || "09:00",
         horaFin: cfg.horaFin || "22:00",
@@ -119,7 +127,7 @@ export default function App() {
     }).then(function (am) {
       setAmics(am);
     }).catch(function (e) { console.error("Error carregant dades:", e); });
-  }, [normalizeReserva]);
+  }, [normalizeBloqueado, normalizeReserva]);
 
   useEffect(function () {
     var token = getToken();
@@ -196,7 +204,7 @@ export default function App() {
       });
       setReservas(rs.map(normalizeReserva));
       setUsers(us);
-      setBloqueados(bl);
+      setBloqueados(bl.map(normalizeBloqueado));
       setConfig({
         horaInicio: cfg.horaInicio || "09:00",
         horaFin: cfg.horaFin || "22:00",
@@ -214,7 +222,7 @@ export default function App() {
       setFriendsRefreshKey(function (k) { return k + 1; });
     }).catch(function () { /* silenciós — no interrompre l'usuari */ })
       .finally(function () { syncInFlightRef.current = false; });
-  }, [normalizeReserva]);
+  }, [normalizeBloqueado, normalizeReserva]);
 
   useEffect(function () {
     if (!session?.id) return;
@@ -273,12 +281,12 @@ export default function App() {
     setAuthSuccess("");
 
     if (!regForm.nombre || !regForm.email || !regForm.password) {
-      setAuthError("Rellena todos los campos."); return;
+      setAuthError("Omple tots els camps."); return;
     }
     api.register(regForm.nombre, regForm.email, regForm.password)
       .then(function (data) {
         if (data.pendingVerification) {
-          setAuthSuccess(data.message || "Email de verificacion enviado. Revisa tu correo antes de iniciar sesion.");
+          setAuthSuccess(data.message || "Correu de verificació enviat. Revisa el teu correu abans d'iniciar sessió.");
           setRegForm(function (f) { return Object.assign({}, f, { password: "" }); });
           setLoginForm(function (f) { return Object.assign({}, f, { email: regForm.email, password: "" }); });
           setAuthTab("registered");
@@ -342,7 +350,7 @@ export default function App() {
         setReservas(function (rs) { return rs.concat([normalizeReserva(r)]); });
         setReservaModal(null); setAdminModal(null);
         if (abierto) {
-          showToast("Partido abierto creado");
+          showToast("Partit obert creat");
           setNewMatchModalId(normalizeReserva(r).id);
         } else {
           setConfirmReserva({ fecha, hora, abierto });
@@ -356,16 +364,16 @@ export default function App() {
       .then(function () {
         setReservas(function (rs) { return rs.map(function (r) { return r.id === id ? Object.assign({}, r, { estado: "cancelada" }) : r; }); });
         setAdminModal(null); setPartidoModal(null);
-        showToast("Reserva cancelada", "warn");
+        showToast("Reserva cancel·lada", "warn");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
   const pedirCancelar = function (id, nom) {
     setConfirmModal({
-      titulo: "Cancelar reserva",
-      mensaje: "¿Seguro que quieres cancelar la reserva del " + nom + "? Esta acción no se puede deshacer.",
-      accion: "Sí, cancelar",
+      titulo: "Cancel·lar reserva",
+      mensaje: "Segur que vols cancel·lar la reserva del " + nom + "? Aquesta acció no es pot desfer.",
+      accion: "Sí, cancel·lar",
       onConfirm: function () { cancelarReserva(id); },
     });
   };
@@ -373,7 +381,7 @@ export default function App() {
   const unirsePartido = function (rid) {
     api.unirse(rid)
       .then(function (result) {
-        showToast("Solicitud enviada — el organizador debe confirmar", "info");
+        showToast("Sol·licitud enviada: l'organitzador l'ha de confirmar", "info");
         return api.getSolicitudsPartidaMeues();
       })
       .then(function (meues) { setSolicitudsPartidaMeues(meues); })
@@ -383,9 +391,9 @@ export default function App() {
   const pedirUnirse = function (rid, fecha, hora) {
     setConfirmModal({
       variant: "join",
-      titulo: "Unirse al partido",
-      mensaje: "¿Confirmas que quieres unirte al partido del " + fecha + " a las " + hora + "?",
-      accion: "Sí, unirme",
+      titulo: "Unir-se al partit",
+      mensaje: "Confirmes que vols unir-te al partit del " + fecha + " a les " + hora + "?",
+      accion: "Sí, unir-m'hi",
       onConfirm: function () { unirsePartido(rid); },
     });
   };
@@ -393,7 +401,7 @@ export default function App() {
   const respondSolicitudPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
       .then(function () {
-        showToast(estat === "acceptada" ? "Jugador aceptado en la partida ✓" : "Solicitud rechazada", estat === "acceptada" ? "ok" : "info");
+        showToast(estat === "acceptada" ? "Jugador acceptat al partit ✓" : "Sol·licitud rebutjada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
       .catch(function (e) { showToast(e.message, "error"); });
@@ -402,14 +410,14 @@ export default function App() {
   const expulsarJugador = function (reservaId, userId, nomJugador) {
     setConfirmModal({
       titulo: "Expulsar jugador",
-      mensaje: "¿Seguro que quieres quitar a " + nomJugador + " del partido?",
-      accion: "Sí, quitar",
+      mensaje: "Segur que vols treure " + nomJugador + " del partit?",
+      accion: "Sí, treure",
       onConfirm: function () {
         api.expulsarJugador(reservaId, userId)
           .then(function (r) {
             var rn = normalizeReserva(r);
             setReservas(function (rs) { return rs.map(function (x) { return x.id === reservaId ? rn : x; }); });
-            showToast(nomJugador + " ha sido eliminado de la partida", "info");
+            showToast(nomJugador + " ha estat expulsat del partit", "info");
             return api.getSolicitudsPartidaPendent();
           })
           .then(function (sp) { setSolicitudsPartidaPendent(sp); })
@@ -422,7 +430,7 @@ export default function App() {
     api.invitarJugador(reservaId, userId)
       .then(function () {
         var u = users.find(function (x) { return x.id === userId; });
-        showToast("Invitación enviada a " + (u ? u.nombre : "el amigo") + " — debe aceptar", "info");
+        showToast("Invitació enviada a " + (u ? u.nombre : "l'amic") + ": l'ha d'acceptar", "info");
         return api.getSolicitudsPartidaInvitades();
       })
       .then(function (inv) { setSolicitudsPartidaInvitades(inv); })
@@ -432,7 +440,7 @@ export default function App() {
   const respondreInvitacioPartida = function (solId, estat) {
     api.respondSolicitudPartida(solId, estat)
       .then(function () {
-        showToast(estat === "acceptada" ? "Te has unido a la partida ✓" : "Invitación rechazada", estat === "acceptada" ? "ok" : "info");
+        showToast(estat === "acceptada" ? "T'has unit al partit ✓" : "Invitació rebutjada", estat === "acceptada" ? "ok" : "info");
         return cargarDades();
       })
       .catch(function (e) { showToast(e.message, "error"); });
@@ -446,9 +454,9 @@ export default function App() {
       .then(function () {
         setReservas(function (rs) { return rs.map(function (x) { return x.id === rid ? Object.assign({}, x, { abierto: nuevoAbierto }) : x; }); });
         if (!nuevoAbierto) {
-          showToast("Reserva cerrada", "info");
+          showToast("Reserva tancada", "info");
         } else {
-          showToast("Partido abierto — otros jugadores pueden unirse", "info");
+          showToast("Partit obert: altres jugadors s'hi poden unir", "info");
         }
       })
       .catch(function (e) { showToast(e.message, "error"); });
@@ -460,7 +468,7 @@ export default function App() {
         var rn = normalizeReserva(r);
         setReservas(function (rs) { return rs.map(function (x) { return x.id === rid ? rn : x; }); });
         setPartidoModal(null);
-        showToast("Saliste del partido", "info");
+        showToast("Has sortit del partit", "info");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
@@ -469,9 +477,9 @@ export default function App() {
     setConfirmModal({
       variant: "warning",
       danger: false,
-      titulo: "Salir del partido",
-      mensaje: "¿Seguro que quieres salir del partido del " + fecha + " a las " + hora + "?",
-      accion: "Sí, salir",
+      titulo: "Sortir del partit",
+      mensaje: "Segur que vols sortir del partit del " + fecha + " a les " + hora + "?",
+      accion: "Sí, sortir",
       onConfirm: function () { salirPartido(rid); },
     });
   };
@@ -482,14 +490,14 @@ export default function App() {
       api.delBloqueado(bl.id)
         .then(function () {
           setBloqueados(function (bs) { return bs.filter(function (b) { return b.id !== bl.id; }); });
-          showToast("Horario desbloqueado");
+          showToast("Horari desbloquejat");
         })
         .catch(function (e) { showToast(e.message, "error"); });
     } else {
       api.addBloqueado(fecha, hora)
         .then(function (nou) {
-          setBloqueados(function (bs) { return bs.concat([nou]); });
-          showToast("Horario bloqueado");
+          setBloqueados(function (bs) { return bs.concat([normalizeBloqueado(nou)]); });
+          showToast("Horari bloquejat");
         })
         .catch(function (e) { showToast(e.message, "error"); });
     }
@@ -499,20 +507,20 @@ export default function App() {
   const bloquearRango = function (fechaInicio, fechaFin, horas, diasSemana) {
     api.addBloqueadoBatch(fechaInicio, fechaFin, horas, diasSemana)
       .then(function (result) {
-        var nous = result?.created || [];
+        var nous = (result?.created || []).map(normalizeBloqueado);
         if (nous.length > 0) {
           setBloqueados(function (bs) { return bs.concat(nous); });
         }
-        showToast(nous.length + " franjas bloqueadas");
+        showToast(nous.length + " franges bloquejades");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
   const guardarConfig = function () {
     var h = generarHorarios(configEdit.horaInicio, configEdit.horaFin, configEdit.duracion);
-    if (!h.length) { showToast("Configuración inválida", "error"); return; }
+    if (!h.length) { showToast("Configuració no vàlida", "error"); return; }
     api.saveConfig(configEdit)
-      .then(function () { setConfig(configEdit); showToast("Ajustes guardados"); })
+      .then(function () { setConfig(configEdit); showToast("Ajustos desats"); })
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
@@ -530,13 +538,13 @@ export default function App() {
           setLoginForm(function (f) { return Object.assign({}, f, { email: updated.email, password: "" }); });
           setAuthTab("login");
           setAuthError("");
-          setAuthSuccess("Email actualitzat. Revisa el correu de verificacio abans de tornar a iniciar sessio.");
+          setAuthSuccess("Correu actualitzat. Revisa el correu de verificació abans de tornar a iniciar sessió.");
           return;
         }
 
         setSession(function (s) { return Object.assign({}, s, { nombre: updated.nombre, email: updated.email, avatar_color: updated.avatar_color, lado: updated.lado, mano: updated.mano, telefono: updated.telefono }); });
         setPerfilEdit(null);
-        showToast("Perfil actualizado");
+        showToast("Perfil actualitzat");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
@@ -546,7 +554,7 @@ export default function App() {
       .then(function (updated) {
         setSession(function (s) { return Object.assign({}, s, updated); });
         setShowOnboarding(false);
-        showToast("Perfil preparado. Ya puedes empezar.");
+        showToast("Perfil preparat. Ja pots començar.");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
@@ -555,7 +563,7 @@ export default function App() {
     api.uploadAvatar(file)
       .then(function (data) {
         setSession(function (s) { return Object.assign({}, s, { avatar: data.avatar }); });
-        showToast("Foto actualizada");
+        showToast("Foto actualitzada");
       })
       .catch(function (e) { showToast(e.message, "error"); });
   };
@@ -570,20 +578,20 @@ export default function App() {
   };
 
   const cambiarPassword = function () {
-    if (pwdForm.nueva.length < 6) { setPwdError("Mínimo 6 caracteres."); return; }
-    if (pwdForm.nueva !== pwdForm.repetir) { setPwdError("Las contraseñas no coinciden."); return; }
+    if (pwdForm.nueva.length < 6) { setPwdError("Mínim 6 caràcters."); return; }
+    if (pwdForm.nueva !== pwdForm.repetir) { setPwdError("Les contrasenyes no coincideixen."); return; }
     api.updateMe({ currentPassword: pwdForm.actual, newPassword: pwdForm.nueva })
       .then(function () {
         setPwdForm({ actual: "", nueva: "", repetir: "" });
         setPwdError("");
-        showToast("Contraseña actualizada");
+        showToast("Contrasenya actualitzada");
       })
       .catch(function (e) { setPwdError(e.message); });
   };
 
   const desbloquearTodo = function () {
     Promise.all(bloqueados.map(function (b) { return api.delBloqueado(b.id); }))
-      .then(function () { setBloqueados([]); showToast("Todas las franjas desbloqueadas"); })
+      .then(function () { setBloqueados([]); showToast("Totes les franges desbloquejades"); })
       .catch(function (e) { showToast(e.message, "error"); });
   };
 
@@ -599,7 +607,7 @@ export default function App() {
     if (!user || !user.id) return Promise.resolve();
     return api.enviarSolicitud(user.id)
       .then(function () {
-        showToast("Solicitud enviada a " + (user.nombre || "el usuario"), "info");
+        showToast("Sol·licitud enviada a " + (user.nombre || "l'usuari"), "info");
         setFriendsRefreshKey(function (k) { return k + 1; });
         return cargarDades();
       })
@@ -609,7 +617,7 @@ export default function App() {
   const respondreSolicitudAmicPerfil = function (solId, estat, user) {
     return api.respondSolicitud(solId, estat)
       .then(function () {
-        showToast(estat === "acceptada" ? "Amigo añadido" : "Solicitud rechazada", estat === "acceptada" ? "ok" : "info");
+        showToast(estat === "acceptada" ? "Amic afegit" : "Sol·licitud rebutjada", estat === "acceptada" ? "ok" : "info");
         setFriendsRefreshKey(function (k) { return k + 1; });
         return cargarDades();
       })
@@ -619,13 +627,13 @@ export default function App() {
   const eliminarAmicPerfil = function (user) {
     if (!user || !user.id) return;
     setConfirmModal({
-      titulo: "Eliminar amigo",
-      mensaje: "¿Seguro que quieres eliminar a " + (user.nombre || "este usuario") + " de tus amigos?",
+      titulo: "Eliminar amic",
+      mensaje: "Segur que vols eliminar " + (user.nombre || "aquest usuari") + " dels teus amics?",
       accion: "Sí, eliminar",
       onConfirm: function () {
         api.eliminarAmic(user.id)
           .then(function () {
-            showToast("Amigo eliminado", "info");
+            showToast("Amic eliminat", "info");
             setFriendsRefreshKey(function (k) { return k + 1; });
             return cargarDades();
           })
@@ -661,18 +669,18 @@ export default function App() {
     const esHacerAdmin = nuevoRol === "admin";
 
     setConfirmModal({
-      titulo: esHacerAdmin ? "Hacer administrador" : "Quitar administrador",
+      titulo: esHacerAdmin ? "Fer administrador" : "Treure administrador",
       mensaje: esHacerAdmin
-        ? "¿Seguro que quieres hacer administrador a " + user.nombre + "?"
-        : "¿Seguro que quieres quitar el rol de administrador a " + user.nombre + "?",
-      accion: esHacerAdmin ? "Sí, hacer admin" : "Sí, quitar admin",
+        ? "Segur que vols fer administrador a " + user.nombre + "?"
+        : "Segur que vols treure el rol d'administrador a " + user.nombre + "?",
+      accion: esHacerAdmin ? "Sí, fer admin" : "Sí, treure admin",
       onConfirm: function () {
         api.updateUserRole(user.id, nuevoRol)
           .then(function () {
             showToast(
               esHacerAdmin
-                ? "Usuario convertido en administrador"
-                : "Administrador quitado"
+                ? "Usuari convertit en administrador"
+                : "Administrador retirat"
             );
             return cargarDades();
           })
@@ -764,16 +772,16 @@ export default function App() {
   }
 
   var navItems = [
-    { id: "calendario", label: "Calendario" },
-    { id: "misreservas", label: "Mis Reservas", badge: (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) > 0 ? (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) : null },
-    { id: "amics", label: "Amigos", badge: solicitudsAmicCount || null },
+    { id: "calendario", label: "Calendari" },
+    { id: "misreservas", label: "Les meves reserves", badge: (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) > 0 ? (solicitudsPartidaPendent.length + solicitudsPartidaMeues.length) : null },
+    { id: "amics", label: "Amics", badge: solicitudsAmicCount || null },
     { id: "perfil", label: "Perfil" },
   ];
   if (session.rol === "admin") {
     navItems = navItems.concat([
-      { id: "admin_reservas", label: "Reservas" },
-      { id: "admin_usuarios", label: "Usuarios" },
-      { id: "ajustes", label: "Ajustes" },
+      { id: "admin_reservas", label: "Reserves" },
+      { id: "admin_usuarios", label: "Usuaris" },
+      { id: "ajustes", label: "Ajustos" },
     ]);
   }
 

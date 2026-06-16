@@ -6,14 +6,14 @@ const PALETTE = [
 ];
 
 const MANOS = [
-  { value: "diestro", label: "Diestro" },
-  { value: "zurdo", label: "Zurdo" },
+  { value: "diestro", label: "Dretà" },
+  { value: "zurdo", label: "Esquerrà" },
 ];
 
 const LADOS = [
-  { value: "derecha", label: "Derecha" },
+  { value: "derecha", label: "Dreta" },
   { value: "reves", label: "Revés" },
-  { value: "ambos", label: "Me adapto" },
+  { value: "ambos", label: "M'adapto" },
 ];
 
 function initials(name) {
@@ -186,8 +186,8 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
   };
 
   const steps = useMemo(() => [
-    { label: "Bienvenida", icon: <IconSpark size={15} /> },
-    { label: "Uso rápido", icon: <IconCalendar size={15} /> },
+    { label: "Benvinguda", icon: <IconSpark size={15} /> },
+    { label: "Ús ràpid", icon: <IconCalendar size={15} /> },
     { label: "Perfil", icon: <IconUser size={15} /> },
   ], []);
 
@@ -282,13 +282,13 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                 marginBottom: 10,
               }}>
                 <IconSpark size={14} />
-                Primer acceso
+                Primer accés
               </div>
               <h2 style={{ margin: 0, color: C.text, fontSize: 23, fontWeight: 950, letterSpacing: 0 }}>
-                Bienvenido a Padel Torrelameu
+                Benvingut a Pàdel Torrelameu
               </h2>
               <p style={{ margin: "6px 0 0", color: C.secondary, fontSize: 13, lineHeight: 1.45 }}>
-                Te dejamos la cuenta lista y el perfil preparado para reservar con comodidad.
+                Et deixem el compte a punt i el perfil preparat per reservar amb comoditat.
               </p>
             </div>
             <div style={{
@@ -365,7 +365,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                 Hola, {session?.nombre || "jugador"}
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
-                Desde aquí podrás reservar pista, crear partidos abiertos, unirte a partidas de otros jugadores y gestionar tus amigos.
+                Des d'aquí podràs reservar pista, crear partits oberts, unir-te a partides d'altres jugadors i gestionar els teus amics.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: 10 }}>
                 <FeatureCard
@@ -373,24 +373,24 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   color={C.primary}
                   softColor={softPrimary}
                   icon={<IconCalendar />}
-                  title="Calendario"
-                  desc="Elige día, pista y franja horaria disponible en pocos pasos."
+                  title="Calendari"
+                  desc="Tria dia, pista i franja horària disponible en pocs passos."
                 />
                 <FeatureCard
                   C={C}
                   color="#1e3a5f"
                   softColor={softBlue}
                   icon={<IconUsers />}
-                  title="Partidos abiertos"
-                  desc="Crea una partida y deja plazas abiertas para completar el grupo."
+                  title="Partits oberts"
+                  desc="Crea una partida i deixa places obertes per completar el grup."
                 />
                 <FeatureCard
                   C={C}
                   color="#9a3412"
                   softColor={softAmber}
                   icon={<IconSpark />}
-                  title="Amigos"
-                  desc="Guarda contactos para invitarlos de forma rápida cuando reserves."
+                  title="Amics"
+                  desc="Guarda contactes per convidar-los ràpidament quan reservis."
                 />
               </div>
             </div>
@@ -399,10 +399,10 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
           {step === 1 && (
             <div>
               <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 17, fontWeight: 950 }}>
-                Cómo funciona
+                Com funciona
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
-                El flujo está pensado para reservar rápido y organizar partidos sin tener que hacerlo todo por mensajes.
+                El flux està pensat per reservar ràpid i organitzar partits sense haver de fer-ho tot per missatges.
               </p>
               <div style={{ display: "grid", gap: 10 }}>
                 <StepRow
@@ -411,23 +411,23 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   softColor={softPrimary}
                   icon={<IconCalendar />}
                   title="Reserva privada"
-                  desc="Escoge una franja libre y confirma tu reserva en el calendario."
+                  desc="Escull una franja lliure i confirma la teva reserva al calendari."
                 />
                 <StepRow
                   C={C}
                   color="#1e3a5f"
                   softColor={softBlue}
                   icon={<IconUsers />}
-                  title="Partido abierto"
-                  desc="Si faltan jugadores, abre la partida para que otros puedan pedir unirse."
+                  title="Partit obert"
+                  desc="Si falten jugadors, obre la partida perquè altres puguin demanar unir-s'hi."
                 />
                 <StepRow
                   C={C}
                   color="#9a3412"
                   softColor={softAmber}
                   icon={<IconCheck />}
-                  title="Solicitudes"
-                  desc="El organizador decide quién entra y mantiene la partida ordenada."
+                  title="Sol·licituds"
+                  desc="L'organitzador decideix qui entra i manté la partida ordenada."
                 />
               </div>
             </div>
@@ -436,10 +436,10 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
           {step === 2 && (
             <div>
               <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 17, fontWeight: 950 }}>
-                Personaliza tu perfil
+                Personalitza el teu perfil
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
-                Es opcional, pero ayuda a montar partidos más equilibrados y fáciles de coordinar.
+                És opcional, però ajuda a muntar partits més equilibrats i fàcils de coordinar.
               </p>
 
               <div style={{ display: "grid", gap: 14 }}>
@@ -453,7 +453,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                 }}>
                   <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
                     <IconPhone size={16} />
-                    Teléfono
+                    Telèfon
                   </span>
                   <input
                     type="tel"
@@ -482,7 +482,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
                       <IconHand size={16} />
-                      Mano preferida
+                      Mà preferida
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {MANOS.map((m) => {
@@ -500,7 +500,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
                       <IconCourt size={16} />
-                      Posición en pista
+                      Posició a la pista
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {LADOS.map((l) => {
@@ -520,7 +520,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
                       <div style={{ fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
-                        Color del avatar
+                        Color de l'avatar
                       </div>
                       <div style={{ width: 28, height: 28, borderRadius: "50%", background: form.avatar_color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 950, fontSize: 11 }}>
                         {initials(session?.nombre)}
@@ -563,22 +563,22 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
           background: C.surface,
         }}>
           <button type="button" onClick={() => finish(true)} disabled={saving} style={{ ...ghostBtn, opacity: saving ? 0.6 : 1 }}>
-            Omitir por ahora
+            Ometre per ara
           </button>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {step > 0 && (
               <button type="button" onClick={() => setStep((s) => s - 1)} disabled={saving} style={ghostBtn}>
-                Atrás
+                Enrere
               </button>
             )}
             {step < steps.length - 1 ? (
               <button type="button" onClick={() => setStep((s) => s + 1)} style={primaryBtn}>
-                Siguiente
+                Següent
                 <IconArrowRight size={16} />
               </button>
             ) : (
               <button type="button" onClick={() => finish(false)} disabled={saving} style={{ ...primaryBtn, opacity: saving ? 0.6 : 1 }}>
-                {saving ? "Guardando..." : "Empezar"}
+                {saving ? "Desant..." : "Començar"}
                 {!saving && <IconCheck size={15} />}
               </button>
             )}

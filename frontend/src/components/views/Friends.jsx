@@ -83,7 +83,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
     setEnviandoId(userId);
     api.enviarSolicitud(userId)
       .then(function(data) {
-        showToast("Solicitud enviada a " + (u ? u.nombre : ""));
+        showToast("Sol·licitud enviada a " + (u ? u.nombre : ""));
         if (u) setEnviades(function(prev) { return prev.concat([{ id: data.id, a_id: u.id, a_nombre: u.nombre, avatar: u.avatar, avatar_color: u.avatar_color }]); });
         // Limpiar búsqueda para feedback visual claro
         setBuscar("");
@@ -99,21 +99,21 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
         setSolicituds(function(ss) { return ss.filter(function(s) { return s.id !== id; }); });
         if (onSolicitudsChange) onSolicitudsChange(solicituds.filter(function(s) { return s.id !== id; }).length);
         if (estat === "acceptada") {
-          showToast("Amigo añadido");
+          showToast("Amic afegit");
           return api.getAmics().then(function(a) { setAmics(a); });
         } else {
-          showToast("Solicitud rechazada");
+          showToast("Sol·licitud rebutjada");
         }
       })
       .catch(function(e) { showToast(e.message, "error"); });
   }
 
   function eliminarAmic(amicId) {
-    if (!window.confirm("¿Eliminar este amigo?")) return;
+    if (!window.confirm("Vols eliminar aquest amic?")) return;
     api.eliminarAmic(amicId)
       .then(function() {
         setAmics(function(as) { return as.filter(function(a) { return a.id !== amicId; }); });
-        showToast("Amigo eliminado");
+        showToast("Amic eliminat");
       })
       .catch(function(e) { showToast(e.message, "error"); });
   }
@@ -123,19 +123,19 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
   }
 
   var TABS = [
-    { key: "amics", label: "Mis amigos" },
-    { key: "buscar", label: "Añadir amigo" },
-    { key: "pendents", label: "Solicitudes" },
+    { key: "amics", label: "Els meus amics" },
+    { key: "buscar", label: "Afegir amic" },
+    { key: "pendents", label: "Sol·licituds" },
   ];
 
   return (
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
       {/* Cabecera */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Amigos</h2>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Amics</h2>
         <p style={{ margin: "3px 0 0", fontSize: 13, color: C.muted }}>
-          {amics.length} amigo{amics.length !== 1 ? "s" : ""}
-          {solicituds.length > 0 && <span style={{ marginLeft: 10, fontWeight: 600, color: "#374151" }}>{solicituds.length} solicitud{solicituds.length !== 1 ? "es" : ""} pendiente{solicituds.length !== 1 ? "s" : ""}</span>}
+          {amics.length} amic{amics.length !== 1 ? "s" : ""}
+          {solicituds.length > 0 && <span style={{ marginLeft: 10, fontWeight: 600, color: "#374151" }}>{solicituds.length} sol·licitud{solicituds.length !== 1 ? "s" : ""} pendent{solicituds.length !== 1 ? "s" : ""}</span>}
         </p>
       </div>
 
@@ -159,12 +159,12 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
       {tab === "amics" && (
         <div>
           {loading ? (
-            <div style={{ color: C.muted, fontSize: 13 }}>Cargando...</div>
+            <div style={{ color: C.muted, fontSize: 13 }}>Carregant...</div>
           ) : amics.length === 0 ? (
             <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: "1px solid #e5e7eb" }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>👥</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 4 }}>Sin amigos todavía</div>
-              <div style={{ fontSize: 12, color: C.muted }}>Usa "Añadir amigo" para buscar</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151", marginBottom: 4 }}>Encara no tens amics</div>
+              <div style={{ fontSize: 12, color: C.muted }}>Fes servir "Afegir amic" per cercar</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -202,12 +202,12 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             return (
               <div style={{ marginTop: 28 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
-                  Quizás los conozcas
+                  Potser els coneixes
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {sugerencias.map(function(u) {
                     return (
-                      <div key={u.id} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
+                      <div key={u.id} onClick={function() { obrirPerfil(u); }} style={{ background: C.surface, borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,.04)", cursor: "pointer" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <Avatar user={u} size={38} onClick={function() { obrirPerfil(u); }} />
                           <div>
@@ -215,11 +215,11 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                           </div>
                         </div>
                         <Btn
-                          onClick={function() { enviarSolicitud(u.id); }}
+                          onClick={function(e) { e.stopPropagation(); enviarSolicitud(u.id); }}
                           variant="confirm"
                           style={{ opacity: enviandoId === u.id ? 0.5 : 1, pointerEvents: enviandoId ? "none" : "auto" }}
                         >
-                          {enviandoId === u.id ? "Enviando…" : "+ Añadir"}
+                          {enviandoId === u.id ? "Enviant…" : "+ Afegir"}
                         </Btn>
                       </div>
                     );
@@ -231,25 +231,25 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
         </div>
       )}
 
-      {/* ── Tab: Añadir amigo ── */}
+      {/* ── Tab: Afegir amic ── */}
       {tab === "buscar" && (
         <div>
           <input
-            placeholder="Buscar por nombre..."
+            placeholder="Cercar per nom..."
             value={buscar}
             onChange={function(e) { setBuscar(e.target.value); }}
             style={{ width: "100%", padding: "10px 14px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 13, boxSizing: "border-box", marginBottom: 14, outline: "none", color: "#111827" }}
             autoFocus
           />
           {buscar.length > 0 && buscar.length < 2 && (
-            <div style={{ color: C.muted, fontSize: 12, textAlign: "center" }}>Escribe al menos 2 caracteres</div>
+            <div style={{ color: C.muted, fontSize: 12, textAlign: "center" }}>Escriu almenys 2 caràcters</div>
           )}
           {buscar.length >= 2 && buscar !== buscarDebounced && (
-            <div style={{ color: C.muted, fontSize: 12, textAlign: "center" }}>Buscando…</div>
+            <div style={{ color: C.muted, fontSize: 12, textAlign: "center" }}>Cercant…</div>
           )}
           {buscarDebounced.length >= 2 && buscar === buscarDebounced && resultats.length === 0 && (
             <div style={{ background: C.surface, borderRadius: 12, padding: "24px 20px", textAlign: "center", color: C.muted, border: "1px solid #e5e7eb", fontSize: 13 }}>
-              No se encontraron usuarios para "{buscar}"
+              No s'han trobat usuaris per a "{buscar}"
             </div>
           )}
           {resultats.length > 0 && (
@@ -268,7 +268,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       variant="confirm"
                       style={{ opacity: enviandoId === u.id ? 0.5 : 1, pointerEvents: enviandoId ? "none" : "auto" }}
                     >
-                      {enviandoId === u.id ? "Enviando…" : "+ Añadir"}
+                      {enviandoId === u.id ? "Enviant…" : "+ Afegir"}
                     </Btn>
                   </div>
                 );
@@ -279,7 +279,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
           {enviades.length > 0 && (
             <div style={{ marginTop: 24 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
-                Solicitudes enviadas ({enviades.length})
+                Sol·licituds enviades ({enviades.length})
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {enviades.map(function(s) {
@@ -293,7 +293,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                           {s.a_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: "1px solid #e5e7eb" }}>Pendiente</span>
+                      <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: "1px solid #e5e7eb" }}>Pendent</span>
                     </div>
                   );
                 })}
@@ -303,15 +303,15 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
         </div>
       )}
 
-      {/* ── Tab: Solicitudes pendientes ── */}
+      {/* ── Tab: Sol·licituds pendents ── */}
       {tab === "pendents" && (
         <div>
           {loading ? (
-            <div style={{ color: C.muted, fontSize: 13 }}>Cargando...</div>
+            <div style={{ color: C.muted, fontSize: 13 }}>Carregant...</div>
           ) : solicituds.length === 0 ? (
             <div style={{ background: C.surface, borderRadius: 12, padding: "40px 24px", textAlign: "center", border: "1px solid #e5e7eb" }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 20 }}>🎉</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>Sin solicitudes pendientes</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>No tens sol·licituds pendents</div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -327,8 +327,8 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <Btn onClick={function() { responder(s.id, "acceptada"); }} variant="primary">Aceptar</Btn>
-                      <Btn onClick={function() { responder(s.id, "rebutjada"); }}>Rechazar</Btn>
+                      <Btn onClick={function() { responder(s.id, "acceptada"); }} variant="primary">Acceptar</Btn>
+                      <Btn onClick={function() { responder(s.id, "rebutjada"); }}>Rebutjar</Btn>
                     </div>
                   </div>
                 );

@@ -6,7 +6,7 @@ const path = require("path");
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
-  console.error("ERROR: DATABASE_URL no definida. PostgreSQL es obligatorio.");
+  console.error("ERROR: DATABASE_URL no definida. PostgreSQL és obligatori.");
   process.exit(1);
 }
 

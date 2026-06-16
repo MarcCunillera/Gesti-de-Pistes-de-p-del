@@ -49,7 +49,7 @@ export function colorAvatar(id) {
   return cols[id % cols.length];
 }
 
-// Genera una fecha en formato YYYYMMDDTHHmmss para calendarios
+// Genera una data en format YYYYMMDDTHHmmss per a calendaris
 function toCalDate(fecha, hora, offsetMins = 0) {
   const [y, m, d] = fecha.split("-").map(Number);
   const [h, min] = hora.split(":").map(Number);

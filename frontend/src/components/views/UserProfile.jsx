@@ -3,14 +3,14 @@ import { formatFecha } from "../../utils/helpers";
 import UserAvatar from "../UserAvatar";
 
 const LADOS = [
-  { value: "derecha", label: "Derecha" },
-  { value: "reves", label: "Reves" },
-  { value: "ambos", label: "Ambos" },
+  { value: "derecha", label: "Dreta" },
+  { value: "reves", label: "Revés" },
+  { value: "ambos", label: "Ambdós" },
 ];
 
 const MANOS = [
-  { value: "diestro", label: "Diestro" },
-  { value: "zurdo", label: "Zurdo" },
+  { value: "diestro", label: "Dretà" },
+  { value: "zurdo", label: "Esquerrà" },
 ];
 
 function PreferenceCard({ icon, title, subtitle, C }) {
@@ -132,9 +132,9 @@ export default function UserProfile({
   if (!user) {
     return (
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <Button onClick={onBack}>Volver</Button>
+        <Button onClick={onBack}>Tornar</Button>
         <div style={{ marginTop: 16, background: C.surface, border: "1px solid " + C.border, borderRadius: 12, padding: 24, color: C.secondary }}>
-          Usuario no encontrado.
+          Usuari no trobat.
         </div>
       </div>
     );
@@ -169,17 +169,17 @@ export default function UserProfile({
   const manoInfo = MANOS.find(function (m) { return m.value === user.mano; });
   const ladoInfo = LADOS.find(function (l) { return l.value === user.lado; });
   const relation = esTu
-    ? { label: "Tu perfil", color: C.secondary, bg: C.surfaceAlt, border: C.border, bar: C.primary }
+    ? { label: "El teu perfil", color: C.secondary, bg: C.surfaceAlt, border: C.border, bar: C.primary }
     : esAmic
-      ? { label: "Amigo", color: "#15803d", bg: "#f0fdf4", border: "#86efac", bar: "#22c55e" }
+      ? { label: "Amic", color: "#15803d", bg: "#f0fdf4", border: "#86efac", bar: "#22c55e" }
       : solicitudRebuda
-        ? { label: "Solicitud recibida", color: "#92400e", bg: "#fffbeb", border: "#fde68a", bar: "#f59e0b" }
+        ? { label: "Sol·licitud rebuda", color: "#92400e", bg: "#fffbeb", border: "#fde68a", bar: "#f59e0b" }
         : solicitudEnviada
-          ? { label: "Solicitud enviada", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe", bar: "#60a5fa" }
-          : { label: "No amigo", color: "#6b7280", bg: C.surfaceAlt, border: C.border, bar: "#9ca3af" };
+          ? { label: "Sol·licitud enviada", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe", bar: "#60a5fa" }
+          : { label: "No és amic", color: "#6b7280", bg: C.surfaceAlt, border: C.border, bar: "#9ca3af" };
 
   function relationButtons() {
-    if (esTu) return <Button variant="default" disabled>Tu perfil</Button>;
+    if (esTu) return <Button variant="default" disabled>El teu perfil</Button>;
     if (esAmic) {
       return (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -193,18 +193,18 @@ export default function UserProfile({
       return (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Button variant="primary" disabled={actionLoading} onClick={function () { runAction(function () { return onRespondSolicitud && onRespondSolicitud(solicitudRebuda.id, "acceptada", user); }); }}>
-            {actionLoading ? "Guardando..." : "Aceptar"}
+            {actionLoading ? "Desant..." : "Acceptar"}
           </Button>
           <Button disabled={actionLoading} onClick={function () { runAction(function () { return onRespondSolicitud && onRespondSolicitud(solicitudRebuda.id, "rebutjada", user); }); }}>
-            Rechazar
+            Rebutjar
           </Button>
         </div>
       );
     }
-    if (solicitudEnviada) return <Button variant="amber" disabled>Solicitud enviada</Button>;
+    if (solicitudEnviada) return <Button variant="amber" disabled>Sol·licitud enviada</Button>;
     return (
       <Button variant="primary" disabled={actionLoading} onClick={function () { runAction(function () { return onEnviarSolicitud && onEnviarSolicitud(user); }); }}>
-        {actionLoading ? "Enviando..." : "Añadir amigo"}
+        {actionLoading ? "Enviant..." : "Afegir amic"}
       </Button>
     );
   }
@@ -214,13 +214,13 @@ export default function UserProfile({
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: -0.3 }}>
-            Perfil de usuario
+            Perfil d'usuari
           </h2>
           <p style={{ margin: "3px 0 0", color: C.muted, fontSize: 13 }}>
-            Informacion publica y actividad de partidos abiertos
+            Informació pública i activitat de partits oberts
           </p>
         </div>
-        <Button onClick={onBack}>Volver</Button>
+        <Button onClick={onBack}>Tornar</Button>
       </div>
 
       <section style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,.06)", marginBottom: 18 }}>
@@ -268,7 +268,7 @@ export default function UserProfile({
           <div style={{ display: "flex", gap: 0, flexWrap: "wrap" }}>
             <StatItem value={reservasUsuario} label="Reserves" color="#1a2e1a" border C={C} />
             <StatItem value={partitsUsuario} label="Partits" color="#2563eb" border C={C} />
-            <StatItem value={amigosCount} label="Amigos" color="#059669" C={C} />
+            <StatItem value={amigosCount} label="Amics" color="#059669" C={C} />
           </div>
         </div>
       </section>
@@ -277,14 +277,14 @@ export default function UserProfile({
         <section style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,.04)", marginBottom: 18, overflow: "hidden" }}>
           <div style={{ padding: "18px 28px" }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
-              Preferencias del jugador
+              Preferències del jugador
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               {manoInfo && (
                 <PreferenceCard
                   icon="👋"
                   title={manoInfo.label}
-                  subtitle="Mano preferida"
+                  subtitle="Mà preferida"
                   C={C}
                 />
               )}
@@ -292,7 +292,7 @@ export default function UserProfile({
                 <PreferenceCard
                   icon="📍"
                   title={ladoInfo.label}
-                  subtitle="Posicion en pista"
+                  subtitle="Posició a la pista"
                   C={C}
                 />
               )}
@@ -304,7 +304,7 @@ export default function UserProfile({
       <section style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: C.text }}>
-            Partidos publicos
+            Partits públics
           </h3>
           <span style={{ fontSize: 11, fontWeight: 800, background: C.surfaceAlt, color: C.secondary, border: "1px solid " + C.border, borderRadius: 20, padding: "2px 8px" }}>
             {partidosPublicos.length}
@@ -313,7 +313,7 @@ export default function UserProfile({
 
         {partidosPublicos.length === 0 ? (
           <div style={{ border: "1px dashed " + C.border, borderRadius: 10, padding: "24px 14px", textAlign: "center", color: C.muted, fontSize: 13 }}>
-            No tiene partidos abiertos proximos.
+            No té partits oberts pròxims.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -327,11 +327,11 @@ export default function UserProfile({
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 900, color: C.text }}>{formatFecha(r.fecha)} - {r.hora}</div>
                       <div style={{ marginTop: 2, fontSize: 12, color: C.secondary }}>
-                        {r.userId === user.id ? "Organizador" : "Participa"} - {(r.jugadores || []).length}/4
+                        {r.userId === user.id ? "Organitzador" : "Hi participa"} - {(r.jugadores || []).length}/4
                       </div>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 800, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "3px 9px" }}>
-                      Abierto
+                      Obert
                     </span>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

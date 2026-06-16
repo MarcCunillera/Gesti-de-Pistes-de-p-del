@@ -84,20 +84,20 @@ export default function MyReservations({ session, misReservas, misPartidos, user
       {/* Cabecera */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 26, flexWrap: "wrap", gap: 10 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Mis reservas</h2>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Les meves reserves</h2>
           <p style={{ margin: "3px 0 0", fontSize: 13, color: C.muted }}>
             {totalActivas === 0
-              ? "Sin reservas activas"
-              : `${totalActivas} reserva${totalActivas !== 1 ? "s" : ""} activa${totalActivas !== 1 ? "s" : ""}`}
+              ? "Sense reserves actives"
+              : `${totalActivas} reserva${totalActivas !== 1 ? "es" : ""} activa${totalActivas !== 1 ? "es" : ""}`}
           </p>
         </div>
-        <Btn variant="primary" onClick={() => setVista("calendario")}>Nueva reserva</Btn>
+        <Btn variant="primary" onClick={() => setVista("calendario")}>Nova reserva</Btn>
       </div>
 
       {/* Invitaciones pendientes */}
       {solicitudsPartidaMeues && solicitudsPartidaMeues.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <SectionTitle count={solicitudsPartidaMeues.length}>Pendiente de ti</SectionTitle>
+          <SectionTitle count={solicitudsPartidaMeues.length}>Pendent de tu</SectionTitle>
           {solicitudsPartidaMeues.map(function(s) {
             var esInvitacio = s.estat === "invitat";
             return (
@@ -106,18 +106,18 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                 <div style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: 13, color: "#111827", marginBottom: 3 }}>
-                      {esInvitacio ? "Invitación recibida" : "Solicitud enviada"}
+                      {esInvitacio ? "Invitació rebuda" : "Sol·licitud enviada"}
                     </div>
                     <div style={{ fontSize: 12, color: "#6b7280" }}>
                       {esInvitacio
-                        ? <span><strong>{s.organitzador_nombre}</strong> · {formatFecha(s.fecha)} a las {s.hora}</span>
-                        : <span>Esperando a <strong>{s.organitzador_nombre}</strong> · {formatFecha(s.fecha)} {s.hora}</span>}
+                        ? <span><strong>{s.organitzador_nombre}</strong> · {formatFecha(s.fecha)} a les {s.hora}</span>
+                        : <span>Esperant <strong>{s.organitzador_nombre}</strong> · {formatFecha(s.fecha)} {s.hora}</span>}
                     </div>
                   </div>
                   {esInvitacio && (
                     <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                      <Btn variant="confirm" onClick={() => respondreInvitacioPartida(s.id, "acceptada")}>Aceptar</Btn>
-                      <Btn variant="danger" onClick={() => respondreInvitacioPartida(s.id, "rebutjada")}>Rechazar</Btn>
+                      <Btn variant="confirm" onClick={() => respondreInvitacioPartida(s.id, "acceptada")}>Acceptar</Btn>
+                      <Btn variant="danger" onClick={() => respondreInvitacioPartida(s.id, "rebutjada")}>Rebutjar</Btn>
                     </div>
                   )}
                 </div>
@@ -127,20 +127,20 @@ export default function MyReservations({ session, misReservas, misPartidos, user
         </div>
       )}
 
-      {/* Estado vacío */}
+      {/* Estat buit */}
       {totalActivas === 0 ? (
         <div style={{ background: "#fff", borderRadius: 14, padding: "52px 24px", textAlign: "center", border: "1px solid #e5e7eb" }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 22 }}>🎾</div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#111827", marginBottom: 6 }}>Sin reservas activas</div>
-          <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 20px" }}>Reserva una pista para empezar a jugar</p>
-          <Btn variant="primary" onClick={() => setVista("calendario")}>Ver disponibilidad</Btn>
+          <div style={{ fontWeight: 700, fontSize: 15, color: "#111827", marginBottom: 6 }}>Sense reserves actives</div>
+          <p style={{ color: "#9ca3af", fontSize: 13, margin: "0 0 20px" }}>Reserva una pista per començar a jugar</p>
+          <Btn variant="primary" onClick={() => setVista("calendario")}>Veure disponibilitat</Btn>
         </div>
       ) : (
         <>
-          {/* Mis reservas */}
+          {/* Les meves reserves */}
           {misReservas.length > 0 && (
             <section style={{ marginBottom: 28 }}>
-              <SectionTitle count={misReservas.length}>Mis reservas</SectionTitle>
+              <SectionTitle count={misReservas.length}>Les meves reserves</SectionTitle>
               {[...misReservas].sort((a, b) => (a.fecha + a.hora > b.fecha + b.hora ? 1 : -1)).map(function(r) {
                 var pendentsDeR = (solicitudsPartidaPendent || []).filter(function(s) { return s.reserva_id === r.id; });
                 var lliures = Math.max(0, 4 - (r.jugadores?.length || 0) - pendentsDeR.length);
@@ -150,36 +150,36 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                     <div style={{ padding: "18px 20px" }}>
 
                       {!r.abierto ? (
-                        /* ── TARJETA PRIVADA ── */
+                        /* ── TARGETA PRIVADA ── */
                         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                               <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
                               <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
-                              <Tag variant="green">Privado</Tag>
+                              <Tag variant="green">Privada</Tag>
                             </div>
-                            <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14 }}>Solo tú · {config.duracion} min</div>
+                            <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 14 }}>Només tu · {config.duracion} min</div>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                              <Btn onClick={() => toggleAbierto(r.id)}>Abrir partido</Btn>
-                              <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger">Cancelar</Btn>
+                              <Btn onClick={() => toggleAbierto(r.id)}>Obrir partit</Btn>
+                              <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger">Cancel·lar</Btn>
                             </div>
                           </div>
                         </div>
                       ) : (
-                        /* ── TARJETA ABIERTA ── */
+                        /* ── TARGETA OBERTA ── */
                         <div>
                           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
                             <div>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                                 <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
                                 <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
-                                <Tag variant="blue">Abierto</Tag>
+                                <Tag variant="blue">Obert</Tag>
                               </div>
-                              <div style={{ fontSize: 12, color: "#9ca3af" }}>{r.jugadores?.length}/4 jugadores · {config.duracion} min</div>
+                              <div style={{ fontSize: 12, color: "#9ca3af" }}>{r.jugadores?.length}/4 jugadors · {config.duracion} min</div>
                             </div>
                           </div>
 
-                          {/* Jugadores horizontal */}
+                          {/* Jugadors en horitzontal */}
                           <div style={{ background: "#f9fafb", border: "1px solid #f3f4f6", borderRadius: 10, padding: "14px 14px 10px", marginBottom: 14 }}>
                           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
                             {r.jugadores?.map(function(id) {
@@ -206,7 +206,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                               );
                             })}
 
-                            {/* Solicitudes pendientes inline */}
+                            {/* Sol·licituds pendents en línia */}
                             {pendentsDeR.map(function(s) {
                               var pendingUser = usersMap.get(s.de_id) || { id: s.de_id, nombre: s.de_nombre, avatar: s.avatar, avatar_color: s.avatar_color };
                               return (
@@ -216,29 +216,29 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                     {s.de_nombre?.split(" ")[0] || "?"}
                                   </span>
                                   <div style={{ display: "flex", gap: 3 }}>
-                                    <button onClick={() => respondSolicitudPartida(s.id, "acceptada")} title="Aceptar" style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 5, padding: "1px 6px", cursor: "pointer", fontSize: 10, fontWeight: 700 }}>✓</button>
-                                    <button onClick={() => respondSolicitudPartida(s.id, "rebutjada")} title="Rechazar" style={{ background: "none", color: "#9ca3af", border: "1px solid #e5e7eb", borderRadius: 5, padding: "1px 6px", cursor: "pointer", fontSize: 10, fontWeight: 600 }}>✕</button>
+                                    <button onClick={() => respondSolicitudPartida(s.id, "acceptada")} title="Acceptar" style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", borderRadius: 5, padding: "1px 6px", cursor: "pointer", fontSize: 10, fontWeight: 700 }}>✓</button>
+                                    <button onClick={() => respondSolicitudPartida(s.id, "rebutjada")} title="Rebutjar" style={{ background: "none", color: "#9ca3af", border: "1px solid #e5e7eb", borderRadius: 5, padding: "1px 6px", cursor: "pointer", fontSize: 10, fontWeight: 600 }}>✕</button>
                                   </div>
                                 </div>
                               );
                             })}
 
-                            {/* Plazas libres */}
+                            {/* Places lliures */}
                             {Array.from({ length: lliures }).map(function(_, i) {
                               return (
                                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
                                   <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
-                                  <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
+                                  <span style={{ fontSize: 11, color: "#64748b" }}>Lliure</span>
                                 </div>
                               );
                             })}
                           </div>
 
-                          {/* Invitar */}
+                          {/* Convidar */}
                           {(r.jugadores?.length || 0) < 4 && (
                             <div style={{ marginTop: 10 }}>
                               <Btn onClick={() => setInviteOpen(inviteOpen === r.id ? null : r.id)} variant="ghost">
-                                {inviteOpen === r.id ? "Cerrar" : "Invitar jugador"}
+                                {inviteOpen === r.id ? "Tancar" : "Convidar jugador"}
                               </Btn>
                               {inviteOpen === r.id && (function() {
                                 var invitadesReserva = (solicitudsPartidaInvitades || []).filter(function(s) { return s.reserva_id === r.id; });
@@ -249,14 +249,14 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                 return (
                                   <div style={{ marginTop: 8, background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "10px 12px" }}>
                                     {amicsDisponibles.length === 0 && amicsInvitats.length === 0 ? (
-                                      <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Todos tus amigos ya están en el partido.</p>
+                                      <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Tots els teus amics ja són al partit.</p>
                                     ) : (
                                       amicsDisponibles.map(function(a) {
                                         return (
                                           <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6 }}>
                                             <UserAvatar user={a} size={28} onClick={function() { obrirPerfil(a); }} />
                                             <span style={{ fontSize: 12, flex: 1, color: "#111827" }}>{a.nombre || "?"}</span>
-                                            <Btn onClick={() => invitarJugador(r.id, a.id)} variant="confirm">Invitar</Btn>
+                                            <Btn onClick={() => invitarJugador(r.id, a.id)} variant="confirm">Convidar</Btn>
                                           </div>
                                         );
                                       })
@@ -266,7 +266,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                         <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6, opacity: 0.65 }}>
                                           <UserAvatar user={a} size={28} onClick={function() { obrirPerfil(a); }} />
                                           <span style={{ fontSize: 12, flex: 1, color: "#111827" }}>{a.nombre || "?"}</span>
-                                          <Tag variant="amber">Pendiente</Tag>
+                                          <Tag variant="amber">Pendent</Tag>
                                         </div>
                                       );
                                     })}
@@ -276,11 +276,11 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                             </div>
                           )}
                         </div>
-                          {/* Acciones partido abierto */}
+                          {/* Accions del partit obert */}
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 4 }}>
-                            <Btn onClick={() => toggleAbierto(r.id)}>Hacer privado</Btn>
+                            <Btn onClick={() => toggleAbierto(r.id)}>Fer privat</Btn>
                             <Btn onClick={() => cancelarReserva(r.id, formatFecha(r.fecha))} variant="danger" style={{ marginLeft: "auto" }}>
-                              Cancelar
+                              Cancel·lar
                             </Btn>
                           </div>
                         </div>
@@ -295,7 +295,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
           {/* Partidos en los que participo */}
           {misPartidos.length > 0 && (
             <section style={{ marginBottom: 28 }}>
-              <SectionTitle count={misPartidos.length}>Partidos en los que participo</SectionTitle>
+              <SectionTitle count={misPartidos.length}>Partits en què participo</SectionTitle>
               {[...misPartidos].sort((a, b) => (a.fecha + a.hora > b.fecha + b.hora ? 1 : -1)).map(function(r) {
                 var org = usersMap.get(r.userId);
                 return (
@@ -307,10 +307,10 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                             <span style={{ fontWeight: 700, fontSize: 15, color: "#111827" }}>{formatFecha(r.fecha)}</span>
                             <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{r.hora}</span>
-                            <Tag variant="blue">Participas</Tag>
+                            <Tag variant="blue">Hi participes</Tag>
                           </div>
                           <div style={{ fontSize: 12, color: "#9ca3af" }}>
-                            Organiza: <strong style={{ color: "#374151", fontWeight: 600 }}>{org?.nombre}</strong> · {r.jugadores?.length}/4 · {config.duracion} min
+                            Organitza: <strong style={{ color: "#374151", fontWeight: 600 }}>{org?.nombre}</strong> · {r.jugadores?.length}/4 · {config.duracion} min
                           </div>
                         </div>
                       </div>
@@ -333,7 +333,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                   onClick={function() { obrirPerfil(esTu ? session : jugador); }}
                                 />
                                 <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : "#374151", fontWeight: esTu || esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {esTu ? "tú" : u?.nombre?.split(" ")[0] || "?"}
+                                  {esTu ? "tu" : u?.nombre?.split(" ")[0] || "?"}
                                 </span>
                                 {esOrg && <span style={{ fontSize: 9, color: "#6b7280", fontWeight: 600, letterSpacing: 0.2 }}>Org.</span>}
                               </div>
@@ -343,7 +343,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                             return (
                               <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, opacity: 0.35 }}>
                                 <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e2e8f0", border: "1.5px dashed #94a3b8", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 16 }}>+</div>
-                                <span style={{ fontSize: 11, color: "#64748b" }}>Libre</span>
+                                <span style={{ fontSize: 11, color: "#64748b" }}>Lliure</span>
                               </div>
                             );
                           })}
@@ -351,7 +351,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                       </div>
 
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 4 }}>
-                        <Btn onClick={() => salirPartido(r.id)} variant="danger" style={{ marginLeft: "auto" }}>Salir del partido</Btn>
+                        <Btn onClick={() => salirPartido(r.id)} variant="danger" style={{ marginLeft: "auto" }}>Sortir del partit</Btn>
                       </div>
                     </div>
                   </div>

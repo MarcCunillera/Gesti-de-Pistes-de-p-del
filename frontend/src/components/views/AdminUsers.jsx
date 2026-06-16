@@ -50,11 +50,11 @@ export default function AdminUsers({
             fontWeight: 800,
           }}
         >
-          Gestión de Usuarios
+          Gestió d'usuaris
         </h2>
 
         <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>
-          {users.length} usuario{users.length !== 1 ? "s" : ""} registrado
+          {users.length} usuari{users.length !== 1 ? "s" : ""} registrat
           {users.length !== 1 ? "s" : ""}
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function AdminUsers({
         }}
       >
         <input
-          placeholder="Buscar por nombre o email..."
+          placeholder="Buscar per nom o correu..."
           value={buscar}
           onChange={(e) => handleBuscar(e.target.value)}
           style={{
@@ -82,7 +82,7 @@ export default function AdminUsers({
         />
 
         <span style={{ fontSize: 12, color: textMuted, whiteSpace: "nowrap" }}>
-          {filtrados.length} usuario{filtrados.length !== 1 ? "s" : ""}
+          {filtrados.length} usuari{filtrados.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -97,7 +97,7 @@ export default function AdminUsers({
             fontSize: 13,
           }}
         >
-          No se encontraron usuarios para "{buscar}"
+          No s'han trobat usuaris per a "{buscar}"
         </div>
       ) : (
         visibles.map((u) => (
@@ -183,7 +183,7 @@ export default function AdminUsers({
                         fontWeight: 800,
                       }}
                     >
-                      EMAIL PENDIENTE
+                      CORREU PENDENT
                     </span>
                   )}
                 </div>
@@ -198,7 +198,7 @@ export default function AdminUsers({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {u.email} · Reservas:{" "}
+                  {u.email} · Reserves:{" "}
                   {
                     reservas.filter(
                       (r) => r.userId === u.id && r.estado === "confirmada"
@@ -224,7 +224,7 @@ export default function AdminUsers({
                   fontWeight: 700,
                 }}
               >
-                {u.activo ? "Activo" : "Inactivo"}
+                {u.activo ? "Actiu" : "Inactiu"}
               </span>
 
               {u.protected_admin && (
@@ -283,7 +283,7 @@ export default function AdminUsers({
                     fontWeight: 600,
                   }}
                 >
-                  {u.rol === "admin" ? "Quitar admin" : "Hacer admin"}
+                  {u.rol === "admin" ? "Treure admin" : "Fer admin"}
                 </button>
               )}
             </div>

@@ -32,7 +32,7 @@ async function req(method, path, body) {
 }
 
 export const api = {
-  // Auth
+  // Autenticació
   login: (email, password) =>
     req("POST", "/auth/login", { email, password }),
 
@@ -54,7 +54,7 @@ export const api = {
   resendVerification: (email) =>
     req("POST", "/auth/resend-verification", { email }),
 
-  // Users
+  // Usuaris
   getUsers: () => req("GET", "/users"),
   getMe: () => req("GET", "/users/me"),
   updateMe: (data) => req("PATCH", "/users/me", data),
@@ -75,7 +75,7 @@ export const api = {
   },
   deleteAvatar: () => req("DELETE", "/users/me/avatar"),
 
-  // Reservas
+  // Reserves
   getReservas: () => req("GET", "/reservas/all"),
   crearReserva: (fecha, hora, abierto) => req("POST", "/reservas", { fecha, hora, abierto }),
   cancelarReserva: (id) => req("DELETE", `/reservas/${id}`),
@@ -90,13 +90,13 @@ export const api = {
   toggleAbierto: (id, abierto) => req("PATCH", `/reservas/${id}/abierto`, { abierto }),
   updateUserRole: (id, rol) => req("PATCH", `/users/${id}`, { rol }),
 
-  // Bloqueados
+  // Bloquejats
   getBloqueados: () => req("GET", "/reservas/bloqueados"),
   addBloqueado: (fecha, hora) => req("POST", "/reservas/bloqueados", { fecha, hora }),
   addBloqueadoBatch: (fechaInicio, fechaFin, horas, diasSemana) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas, diasSemana }),
   delBloqueado: (id) => req("DELETE", `/reservas/bloqueados/${id}`),
 
-  // Config
+  // Configuració
   getConfig: () => req("GET", "/reservas/config"),
   saveConfig: (data) => req("PUT", "/reservas/config", data),
 

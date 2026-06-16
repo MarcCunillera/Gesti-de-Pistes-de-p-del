@@ -41,12 +41,12 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
         setError("");
 
         if (password.length < 6) {
-            setError("La contraseña debe tener mínimo 6 caracteres");
+            setError("La contrasenya ha de tenir com a mínim 6 caràcters");
             return;
         }
 
         if (password !== repetir) {
-            setError("Las contraseñas no coinciden");
+            setError("Les contrasenyes no coincideixen");
             return;
         }
 
@@ -70,12 +70,12 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
                     </div>
 
                     <div>
-                        <h1>Pista de Pádel</h1>
+                        <h1>Pista de Pàdel</h1>
                         <p>Torrelameu</p>
                     </div>
 
                     <div className="auth-brand-text">
-                        Crea una nueva contraseña para volver a acceder.
+                        Crea una contrasenya nova per tornar a accedir.
                     </div>
                 </div>
 
@@ -85,17 +85,17 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
                     </div>
 
                     <div className="auth-heading">
-                        <h2>{ok ? "Contraseña actualizada" : "Nueva contraseña"}</h2>
+                        <h2>{ok ? "Contrasenya actualitzada" : "Nova contrasenya"}</h2>
                         <p>
                             {ok
-                                ? "Ya puedes iniciar sesión con tu nueva contraseña."
-                                : "Introduce una nueva contraseña segura."}
+                                ? "Ja pots iniciar sessió amb la teva nova contrasenya."
+                                : "Introdueix una contrasenya nova i segura."}
                         </p>
                     </div>
 
                     {ok ? (
                         <button className="auth-primary" type="button" onClick={onDone}>
-                            Volver al inicio de sesión
+                            Tornar a l'inici de sessió
                         </button>
                     ) : (
                         <div className="auth-form-section">
@@ -106,7 +106,7 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
 
                                 <input
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Nueva contraseña"
+                                    placeholder="Nova contrasenya"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     autoComplete="new-password"
@@ -130,7 +130,7 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
 
                                 <input
                                     type={showRepeatPassword ? "text" : "password"}
-                                    placeholder="Repetir contraseña"
+                                    placeholder="Repeteix la contrasenya"
                                     value={repetir}
                                     onChange={(e) => setRepetir(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && enviar()}
@@ -149,7 +149,7 @@ export default function ResetPasswordScreen({ token, api, onDone }) {
                             {error && <div className="auth-error">{error}</div>}
 
                             <button className="auth-primary" type="button" onClick={enviar}>
-                                Cambiar contraseña
+                                Canviar contrasenya
                             </button>
                         </div>
                     )}

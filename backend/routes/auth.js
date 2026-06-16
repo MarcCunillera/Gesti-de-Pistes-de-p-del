@@ -17,7 +17,7 @@ const authLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Demasiados intentos. Vuelve a intentarlo en 15 minutos" },
+  message: { error: "Massa intents. Torna-ho a provar d'aquí a 15 minuts" },
 });
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,22 +38,22 @@ router.post("/login", authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Email y contrasena requeridos" });
+    return res.status(400).json({ error: "Cal indicar correu i contrasenya" });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
   const user = await db.get("SELECT * FROM users WHERE email = ?", [normalizedEmail]);
 
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({ error: "Credenciales incorrectas" });
+    return res.status(401).json({ error: "Credencials incorrectes" });
   }
 
   if (!user.activo) {
-    return res.status(403).json({ error: "Cuenta desactivada" });
+    return res.status(403).json({ error: "Compte desactivat" });
   }
 
   if (Number(user.email_verified) !== 1) {
-    return res.status(403).json({ error: "Debes verificar tu correo antes de iniciar sesion" });
+    return res.status(403).json({ error: "Has de verificar el teu correu abans d'iniciar sessió" });
   }
 
   res.json({ token: createToken(user), user: publicUser(user) });
@@ -63,15 +63,15 @@ router.post("/register", authLimiter, async (req, res) => {
   const { nombre, email, password } = req.body;
 
   if (!nombre || !email || !password) {
-    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+    return res.status(400).json({ error: "Tots els camps són obligatoris" });
   }
 
   const normalizedName = nombre.trim();
   const normalizedEmail = email.trim().toLowerCase();
 
-  if (!normalizedName) return res.status(400).json({ error: "El nombre es obligatorio" });
-  if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Formato de email invalido" });
-  if (password.length < 6) return res.status(400).json({ error: "La contrasena debe tener minimo 6 caracteres" });
+  if (!normalizedName) return res.status(400).json({ error: "El nom és obligatori" });
+  if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Format de correu invàlid" });
+  if (password.length < 6) return res.status(400).json({ error: "La contrasenya ha de tenir com a mínim 6 caràcters" });
   try {
     ensureEmailCanBeSent();
   } catch (err) {
@@ -79,7 +79,7 @@ router.post("/register", authLimiter, async (req, res) => {
   }
 
   const exists = await db.get("SELECT id FROM users WHERE email = ?", [normalizedEmail]);
-  if (exists) return res.status(409).json({ error: "Email ya registrado" });
+  if (exists) return res.status(409).json({ error: "Aquest correu ja està registrat" });
 
   const hash = bcrypt.hashSync(password, 10);
   const result = await db.run(
@@ -96,39 +96,39 @@ router.post("/register", authLimiter, async (req, res) => {
     await createEmailVerification(user);
   } catch (err) {
     await db.run("DELETE FROM users WHERE id = ?", [user.id]);
-    console.error("Error enviando correo de verificacion:", err.message);
-    return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+    console.error("Error enviant el correu de verificació:", err.message);
+    return res.status(503).json({ error: "No s'ha pogut enviar el correu de verificació. Revisa la configuració SMTP." });
   }
 
   res.status(201).json({
     ok: true,
     pendingVerification: true,
-    message: "Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesion.",
+    message: "Compte creat. Revisa el teu correu per verificar-lo abans d'iniciar sessió.",
   });
 });
 
 router.post("/google", authLimiter, async (req, res) => {
   try {
-    if (!GOOGLE_CLIENT_ID) return res.status(500).json({ error: "GOOGLE_CLIENT_ID no esta configurado" });
+    if (!GOOGLE_CLIENT_ID) return res.status(500).json({ error: "GOOGLE_CLIENT_ID no està configurat" });
 
     const { credential } = req.body;
-    if (!credential) return res.status(400).json({ error: "Credencial de Google requerida" });
+    if (!credential) return res.status(400).json({ error: "Cal indicar la credencial de Google" });
 
     const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
 
-    if (!payload) return res.status(401).json({ error: "Token de Google invalido" });
+    if (!payload) return res.status(401).json({ error: "Token de Google invàlid" });
 
     const email = payload.email ? payload.email.trim().toLowerCase() : "";
     const nombre = payload.name || email;
     const avatar = payload.picture || null;
 
-    if (!email || !payload.email_verified) return res.status(401).json({ error: "Cuenta de Google no verificada" });
+    if (!email || !payload.email_verified) return res.status(401).json({ error: "Compte de Google no verificat" });
 
     let user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
     let isNewUser = false;
 
-    if (user && !user.activo) return res.status(403).json({ error: "Cuenta desactivada" });
+    if (user && !user.activo) return res.status(403).json({ error: "Compte desactivat" });
 
     if (!user) {
       const randomPassword = bcrypt.hashSync(`google_${Date.now()}_${Math.random()}`, 10);
@@ -142,14 +142,14 @@ router.post("/google", authLimiter, async (req, res) => {
 
     res.json({ token: createToken(user), user: publicUser(user), isNewUser });
   } catch (err) {
-    console.error("Error login Google:", err);
-    res.status(401).json({ error: "Login con Google invalido" });
+    console.error("Error d'inici de sessió amb Google:", err);
+    res.status(401).json({ error: "Inici de sessió amb Google invàlid" });
   }
 });
 
 router.post("/resend-verification", authLimiter, async (req, res) => {
   const email = (req.body.email || "").trim().toLowerCase();
-  const okMessage = "Si el email existe y no esta verificado, recibiras un correo de verificacion.";
+  const okMessage = "Si el correu existeix i no està verificat, rebràs un correu de verificació.";
 
   if (!email || !emailRegex.test(email)) return res.json({ ok: true, message: okMessage });
 
@@ -159,8 +159,8 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
   try {
     await createEmailVerification(user);
   } catch (err) {
-    console.error("Error reenviando correo de verificacion:", err.message);
-    return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+    console.error("Error reenviant el correu de verificació:", err.message);
+    return res.status(503).json({ error: "No s'ha pogut enviar el correu de verificació. Revisa la configuració SMTP." });
   }
 
   res.json({ ok: true, message: okMessage });
@@ -168,7 +168,7 @@ router.post("/resend-verification", authLimiter, async (req, res) => {
 
 router.post("/verify-email", authLimiter, async (req, res) => {
   const token = (req.body.token || "").trim();
-  if (!token) return res.status(400).json({ error: "Token de verificacion requerido" });
+  if (!token) return res.status(400).json({ error: "Cal indicar el token de verificació" });
 
   const verification = await db.get(
     `SELECT ev.id, ev.user_id, ev.expires_at, ev.used, u.activo
@@ -179,11 +179,11 @@ router.post("/verify-email", authLimiter, async (req, res) => {
   );
 
   if (!verification || verification.used || !verification.activo) {
-    return res.status(400).json({ error: "Enlace invalido o caducado" });
+    return res.status(400).json({ error: "Enllaç invàlid o caducat" });
   }
 
   if (new Date(verification.expires_at).getTime() < Date.now()) {
-    return res.status(400).json({ error: "Enlace caducado" });
+    return res.status(400).json({ error: "Enllaç caducat" });
   }
 
   await db.tx(async (trx) => {
@@ -191,13 +191,13 @@ router.post("/verify-email", authLimiter, async (req, res) => {
     await trx.run("UPDATE email_verifications SET used = 1 WHERE id = ?", [verification.id]);
   });
 
-  res.json({ ok: true, message: "Correo verificado correctamente. Ya puedes iniciar sesion." });
+  res.json({ ok: true, message: "Correu verificat correctament. Ja pots iniciar sessió." });
 });
 
 router.post("/forgot-password", authLimiter, async (req, res) => {
   try {
     const email = (req.body.email || "").trim().toLowerCase();
-    const okMessage = "Si el email existe, recibiras un correo para recuperar la contrasena.";
+    const okMessage = "Si el correu existeix, rebràs un correu per recuperar la contrasenya.";
 
     if (!email || !emailRegex.test(email)) return res.json({ ok: true, message: okMessage });
 
@@ -218,13 +218,13 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
     try {
       await sendPasswordReset(user, resetUrl);
     } catch (err) {
-      console.error("Error enviando correo de recuperacion:", err.message);
+      console.error("Error enviant el correu de recuperació:", err.message);
     }
 
     res.json({ ok: true, message: okMessage });
   } catch (err) {
     console.error("Error forgot-password:", err);
-    res.status(500).json({ error: "Error interno recuperando contrasena" });
+    res.status(500).json({ error: "Error intern recuperant la contrasenya" });
   }
 });
 
@@ -232,8 +232,8 @@ router.post("/reset-password", authLimiter, async (req, res) => {
   const token = (req.body.token || "").trim();
   const password = req.body.password || "";
 
-  if (!token || !password) return res.status(400).json({ error: "Token y nueva contrasena requeridos" });
-  if (password.length < 6) return res.status(400).json({ error: "La contrasena debe tener minimo 6 caracteres" });
+  if (!token || !password) return res.status(400).json({ error: "Cal indicar el token i la contrasenya nova" });
+  if (password.length < 6) return res.status(400).json({ error: "La contrasenya ha de tenir com a mínim 6 caràcters" });
 
   const reset = await db.get(
     `SELECT pr.id, pr.user_id, pr.expires_at, pr.used, u.activo
@@ -243,8 +243,8 @@ router.post("/reset-password", authLimiter, async (req, res) => {
     [token]
   );
 
-  if (!reset || reset.used || !reset.activo) return res.status(400).json({ error: "Enlace invalido o caducado" });
-  if (new Date(reset.expires_at).getTime() < Date.now()) return res.status(400).json({ error: "Enlace caducado" });
+  if (!reset || reset.used || !reset.activo) return res.status(400).json({ error: "Enllaç invàlid o caducat" });
+  if (new Date(reset.expires_at).getTime() < Date.now()) return res.status(400).json({ error: "Enllaç caducat" });
 
   const hash = bcrypt.hashSync(password, 10);
 
@@ -253,7 +253,7 @@ router.post("/reset-password", authLimiter, async (req, res) => {
     await trx.run("UPDATE password_resets SET used = 1 WHERE id = ?", [reset.id]);
   });
 
-  res.json({ ok: true, message: "Contrasena actualizada correctamente" });
+  res.json({ ok: true, message: "Contrasenya actualitzada correctament" });
 });
 
 module.exports = router;

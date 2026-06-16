@@ -4,7 +4,7 @@ const { isMailEnabled, sendEmailVerification } = require("./mail");
 
 function ensureEmailCanBeSent() {
   if (!isMailEnabled()) {
-    const err = new Error("SMTP no esta configurado. No se puede enviar el correo de verificacion.");
+    const err = new Error("SMTP no està configurat. No es pot enviar el correu de verificació.");
     err.code = "MAIL_NOT_CONFIGURED";
     throw err;
   }

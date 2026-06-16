@@ -34,7 +34,7 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
-    cb(new Error(`CORS: origen no permitido - ${origin}`));
+    cb(new Error(`CORS: origen no permès - ${origin}`));
   },
   credentials: true,
 }));
@@ -52,7 +52,7 @@ app.get("/api/health", (_, res) => res.json({ ok: true, ts: new Date().toISOStri
 app.use((err, req, res, next) => {
   console.error("Error API:", err);
   if (res.headersSent) return next(err);
-  res.status(500).json({ error: "Error interno del servidor" });
+  res.status(500).json({ error: "Error intern del servidor" });
 });
 
 const publicDir = path.join(__dirname, "public");
@@ -64,10 +64,10 @@ if (fs.existsSync(publicDir)) {
 db.init()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Backend Padel escuchando en http://localhost:${PORT}`);
+      console.log(`Backend Pàdel escoltant a http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("Error inicializando PostgreSQL:", err);
+    console.error("Error inicialitzant PostgreSQL:", err);
     process.exit(1);
   });

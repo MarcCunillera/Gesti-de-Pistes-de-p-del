@@ -42,14 +42,14 @@ router.get("/solicituds/enviades", authMiddleware, async (req, res) => {
 
 router.post("/solicituds", authMiddleware, async (req, res) => {
   const aUserId = Number(req.body.a_user_id);
-  if (!Number.isInteger(aUserId)) return res.status(400).json({ error: "a_user_id requerido" });
-  if (aUserId === req.user.id) return res.status(400).json({ error: "No puedes agregarte a ti mismo" });
+  if (!Number.isInteger(aUserId)) return res.status(400).json({ error: "Cal indicar a_user_id" });
+  if (aUserId === req.user.id) return res.status(400).json({ error: "No et pots afegir a tu mateix" });
 
   const target = await db.get("SELECT id FROM users WHERE id = ? AND activo = 1", [aUserId]);
-  if (!target) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (!target) return res.status(404).json({ error: "Usuari no trobat" });
 
   const jaAmic = await db.get("SELECT id FROM amics WHERE user_id = ? AND amic_id = ?", [req.user.id, aUserId]);
-  if (jaAmic) return res.status(409).json({ error: "Ya sois amigos" });
+  if (jaAmic) return res.status(409).json({ error: "Ja sou amics" });
 
   try {
     const r = await db.run(
@@ -58,21 +58,21 @@ router.post("/solicituds", authMiddleware, async (req, res) => {
     );
     res.status(201).json({ id: r.insertedId, estat: "pendent" });
   } catch {
-    res.status(409).json({ error: "Solicitud ya existente" });
+    res.status(409).json({ error: "La sol·licitud ja existeix" });
   }
 });
 
 router.patch("/solicituds/:id", authMiddleware, async (req, res) => {
   const { estat } = req.body;
-  if (!["acceptada", "rebutjada"].includes(estat)) return res.status(400).json({ error: "Estado invalido" });
+  if (!["acceptada", "rebutjada"].includes(estat)) return res.status(400).json({ error: "Estat invàlid" });
 
   const sol = await db.get("SELECT * FROM solicituds_amic WHERE id = ?", [req.params.id]);
-  if (!sol) return res.status(404).json({ error: "Solicitud no encontrada" });
-  if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sin permiso" });
-  if (sol.estat !== "pendent") return res.status(400).json({ error: "La solicitud ya no esta pendiente" });
+  if (!sol) return res.status(404).json({ error: "Sol·licitud no trobada" });
+  if (sol.a_user_id !== req.user.id) return res.status(403).json({ error: "Sense permís" });
+  if (sol.estat !== "pendent") return res.status(400).json({ error: "La sol·licitud ja no està pendent" });
 
   const requester = await db.get("SELECT id FROM users WHERE id = ? AND activo = 1", [sol.de_user_id]);
-  if (!requester) return res.status(409).json({ error: "El usuario ya no esta activo" });
+  if (!requester) return res.status(409).json({ error: "L'usuari ja no està actiu" });
 
   await db.tx(async (trx) => {
     await trx.run("UPDATE solicituds_amic SET estat = ? WHERE id = ?", [estat, sol.id]);

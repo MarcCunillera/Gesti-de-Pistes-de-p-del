@@ -112,7 +112,7 @@ export default function ConfirmModal({ confirmModal, setConfirmModal, t }) {
         </div>
 
         <h3 style={{ margin: "0 0 8px", color: t?.text || "#111827", fontSize: 21, fontWeight: 850, letterSpacing: "-0.02em" }}>
-          {confirmModal.titulo || "Estas seguro?"}
+          {confirmModal.titulo || "N'estàs segur?"}
         </h3>
 
         <p style={{ color: t?.textSecondary || "#64748b", fontSize: 14, margin: "0 auto 26px", lineHeight: 1.65, maxWidth: 300 }}>
@@ -136,7 +136,7 @@ export default function ConfirmModal({ confirmModal, setConfirmModal, t }) {
             onMouseEnter={(e) => { e.currentTarget.style.background = "#e5e7eb"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "#f3f4f6"; }}
           >
-            Cancelar
+            Cancel·lar
           </button>
 
           <button

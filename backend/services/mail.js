@@ -35,7 +35,7 @@ const LOGO_URL = `https://raw.githubusercontent.com/MarcCunillera/Gesti-de-Piste
 
 async function sendMailSafe({ to, subject, html }) {
   if (!transporter || !to) {
-    const err = new Error("SMTP no esta configurado");
+    const err = new Error("SMTP no està configurat");
     err.code = "MAIL_NOT_CONFIGURED";
     throw err;
   }

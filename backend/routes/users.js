@@ -22,12 +22,12 @@ function isEmptyOrValid(value, validValues) {
 
 function validateProfileFields({ avatar_color, lado, mano, telefono }) {
   if (avatar_color !== undefined && avatar_color !== null && avatar_color !== "" && !colorRegex.test(String(avatar_color))) {
-    return "Color de avatar invalido";
+    return "Color d'avatar invàlid";
   }
-  if (!isEmptyOrValid(lado, ladosValidos)) return "Lado invalido";
-  if (!isEmptyOrValid(mano, manosValidas)) return "Mano invalida";
+  if (!isEmptyOrValid(lado, ladosValidos)) return "Costat invàlid";
+  if (!isEmptyOrValid(mano, manosValidas)) return "Mà invàlida";
   if (telefono !== undefined && telefono !== null && telefono !== "" && !telefonoRegex.test(String(telefono))) {
-    return "Telefono invalido";
+    return "Telèfon invàlid";
   }
   return null;
 }
@@ -50,8 +50,8 @@ const upload = multer({
   limits: { fileSize: 2 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) return cb(new Error("Tipo de fichero no permitido"));
-    if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext)) return cb(new Error("Extension de fichero no permitida"));
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) return cb(new Error("Tipus de fitxer no permès"));
+    if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext)) return cb(new Error("Extensió de fitxer no permesa"));
     cb(null, true);
   },
 });
@@ -88,7 +88,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     "SELECT id, nombre, email, rol, activo, avatar, avatar_color, lado, mano, telefono, onboarding_done, email_verified, created_at FROM users WHERE id = ?",
     [req.user.id]
   );
-  if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (!u) return res.status(404).json({ error: "Usuari no trobat" });
   res.json(u);
 });
 
@@ -100,23 +100,23 @@ router.patch("/me", authMiddleware, async (req, res) => {
   if (validationError) return res.status(400).json({ error: validationError });
 
   if (newPassword) {
-    if (!currentPassword) return res.status(400).json({ error: "Se requiere la contrasena actual" });
-    if (!bcrypt.compareSync(currentPassword, user.password)) return res.status(401).json({ error: "Contrasena actual incorrecta" });
-    if (newPassword.length < 6) return res.status(400).json({ error: "Minimo 6 caracteres" });
+    if (!currentPassword) return res.status(400).json({ error: "Cal indicar la contrasenya actual" });
+    if (!bcrypt.compareSync(currentPassword, user.password)) return res.status(401).json({ error: "La contrasenya actual és incorrecta" });
+    if (newPassword.length < 6) return res.status(400).json({ error: "Mínim 6 caràcters" });
   }
 
   const normalizedEmail = email ? email.trim().toLowerCase() : "";
   const emailChanged = normalizedEmail && normalizedEmail !== user.email;
 
   if (emailChanged) {
-    if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Formato de email invalido" });
+    if (!emailRegex.test(normalizedEmail)) return res.status(400).json({ error: "Format de correu invàlid" });
     try {
       ensureEmailCanBeSent();
     } catch (err) {
       return res.status(503).json({ error: err.message });
     }
     const exists = await db.get("SELECT id FROM users WHERE email = ? AND id != ?", [normalizedEmail, user.id]);
-    if (exists) return res.status(400).json({ error: "Este email ya esta en uso" });
+    if (exists) return res.status(400).json({ error: "Aquest correu ja està en ús" });
   }
 
   await db.tx(async (trx) => {
@@ -139,8 +139,8 @@ router.patch("/me", authMiddleware, async (req, res) => {
       await createEmailVerification(updated);
     } catch (err) {
       await db.run("UPDATE users SET email = ?, email_verified = ? WHERE id = ?", [user.email, user.email_verified, user.id]);
-      console.error("Error enviando correo de verificacion:", err.message);
-      return res.status(503).json({ error: "No se ha podido enviar el correo de verificacion. Revisa la configuracion SMTP." });
+      console.error("Error enviant el correu de verificació:", err.message);
+      return res.status(503).json({ error: "No s'ha pogut enviar el correu de verificació. Revisa la configuració SMTP." });
     }
   }
 
@@ -181,7 +181,7 @@ router.patch("/me/onboarding", authMiddleware, async (req, res) => {
 router.post("/me/avatar", authMiddleware, (req, res) => {
   upload.single("avatar")(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
-    if (!req.file) return res.status(400).json({ error: "No se recibio ningun archivo" });
+    if (!req.file) return res.status(400).json({ error: "No s'ha rebut cap fitxer" });
 
     const user = await db.get("SELECT avatar FROM users WHERE id = ?", [req.user.id]);
     const url = `/uploads/${req.file.filename}`;
@@ -210,14 +210,14 @@ router.patch("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const { activo, rol } = req.body;
 
   const user = await db.get("SELECT id, email, rol FROM users WHERE id = ?", [userId]);
-  if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+  if (!user) return res.status(404).json({ error: "Usuari no trobat" });
 
   const initialAdminEmail = (process.env.INITIAL_ADMIN_EMAIL || "").trim().toLowerCase();
   const isProtectedAdmin = initialAdminEmail && user.email && user.email.toLowerCase() === initialAdminEmail && user.rol === "admin";
 
-  if (userId === req.user.id && rol && rol !== "admin") return res.status(400).json({ error: "No puedes quitarte tu propio rol de admin" });
-  if (isProtectedAdmin && rol !== undefined && rol !== "admin") return res.status(400).json({ error: "No se puede quitar el rol al administrador principal" });
-  if (rol && !["admin", "usuario"].includes(rol)) return res.status(400).json({ error: "Rol invalido" });
+  if (userId === req.user.id && rol && rol !== "admin") return res.status(400).json({ error: "No et pots treure el teu propi rol d'admin" });
+  if (isProtectedAdmin && rol !== undefined && rol !== "admin") return res.status(400).json({ error: "No es pot treure el rol a l'administrador principal" });
+  if (rol && !["admin", "usuario"].includes(rol)) return res.status(400).json({ error: "Rol invàlid" });
 
   if (activo !== undefined) await db.run("UPDATE users SET activo = ? WHERE id = ?", [activo ? 1 : 0, userId]);
   if (rol !== undefined) await db.run("UPDATE users SET rol = ? WHERE id = ?", [rol, userId]);
@@ -239,11 +239,11 @@ router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const userId = parseInt(req.params.id, 10);
   const u = await db.get("SELECT id, nombre, activo FROM users WHERE id = ?", [userId]);
 
-  if (!u) return res.status(404).json({ error: "Usuario no encontrado" });
-  if (userId === req.user.id) return res.status(400).json({ error: "No puedes desactivar tu propia cuenta" });
+  if (!u) return res.status(404).json({ error: "Usuari no trobat" });
+  if (userId === req.user.id) return res.status(400).json({ error: "No pots desactivar el teu propi compte" });
 
   await db.run("UPDATE users SET activo = 0 WHERE id = ?", [userId]);
-  res.json({ ok: true, message: "Usuario desactivado" });
+  res.json({ ok: true, message: "Usuari desactivat" });
 });
 
 module.exports = router;

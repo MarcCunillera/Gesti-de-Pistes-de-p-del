@@ -13,14 +13,14 @@ const PALETTE = [
 ];
 
 const LADOS = [
-  { value: "derecha", label: "Derecha"},
+  { value: "derecha", label: "Dreta"},
   { value: "reves", label: "Revés"},
-  { value: "ambos", label: "Ambos"},
+  { value: "ambos", label: "Ambdós"},
 ];
 
 const MANOS = [
-  { value: "diestro", label: "Diestro" },
-  { value: "zurdo",   label: "Zurdo"   },
+  { value: "diestro", label: "Dretà" },
+  { value: "zurdo",   label: "Esquerrà"   },
 ];
 
 function IconHand() {
@@ -224,16 +224,16 @@ export default function Profile({
               {session.telefono && (
                 <div
                   onClick={copiarTelefono}
-                  title="Copiar teléfono"
+                  title="Copiar telèfon"
                   style={{ fontSize: 13, color: copiedTel ? "#059669" : C.muted, marginTop: 4, cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: 4, transition: "color 0.2s", width: "fit-content" }}
                 >
-                  {copiedTel ? "Copiado" : session.telefono}
+                  {copiedTel ? "Copiat" : session.telefono}
                 </div>
               )}
             </div>
 
             {perfilEdit === null && (
-              <Btn onClick={startEdit} style={{ alignSelf: "flex-start", flexShrink: 0 }}>Editar perfil</Btn>
+              <Btn onClick={startEdit} style={{ alignSelf: "flex-start", flexShrink: 0 }}>Edita el perfil</Btn>
             )}
           </div>
 
@@ -252,16 +252,16 @@ export default function Profile({
               <div style={{ fontSize: 26, fontWeight: 800, color: "#2563eb", lineHeight: 1 }}>{misPartidos.length}</div>
               <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Partits</div>
             </div>
-            {/* Amigos */}
+            {/* Amics */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px" }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: "#059669", lineHeight: 1, marginBottom: 2 }}>{numAmics}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Amigos</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Amics</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Preferencias del jugador ─────────────────────── */}
+      {/* ── Preferències del jugador ─────────────────────── */}
       {(manoInfo || ladoInfo) && (
         <div style={{
           background: C.surface, borderRadius: 16,
@@ -269,7 +269,7 @@ export default function Profile({
           marginBottom: 16, overflow: "hidden",
         }}>
           <div style={{ padding: "18px 28px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>Preferencias del jugador</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>Preferències del jugador</div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               {manoInfo && (
                 <div style={{
@@ -279,7 +279,7 @@ export default function Profile({
                   <span style={{ fontSize: 28 }}>👋</span>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{manoInfo.label}</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Mano preferida</div>
+                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Mà preferida</div>
                   </div>
                 </div>
               )}
@@ -291,7 +291,7 @@ export default function Profile({
                   <span style={{ fontSize: 28 }}>📍</span>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{ladoInfo.label}</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Posición en pista</div>
+                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Posició a la pista</div>
                   </div>
                 </div>
               )}
@@ -307,7 +307,7 @@ export default function Profile({
             background: C.surface, borderRadius: 12, padding: 24,
             border: "1px solid " + C.border, boxShadow: "0 1px 3px rgba(0,0,0,.04)", flex: "1 1 300px",
           }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 20 }}>Editar perfil</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 20 }}>Edita el perfil</div>
 
             <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>Nom</label>
@@ -324,7 +324,7 @@ export default function Profile({
             </div>
 
             <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Teléfono</label>
+              <label style={labelStyle}>Telèfon</label>
               <input type="tel" value={perfilEdit.telefono}
                 onChange={e => setPerfilEdit(p => ({ ...p, telefono: e.target.value }))}
                 placeholder="+34 600 000 000"
@@ -332,7 +332,7 @@ export default function Profile({
             </div>
             <div style={{ marginBottom: 14 }}>
               <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 5 }}>
-                <IconHand /> Mano preferida
+                <IconHand /> Mà preferida
               </label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {MANOS.map(m => (
@@ -350,10 +350,10 @@ export default function Profile({
               </div>
             </div>
 
-            {/* Posición en pista */}
+            {/* Posició a la pista */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 5 }}>
-                <IconMapPin /> Posición en pista
+                <IconMapPin /> Posició a la pista
               </label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {LADOS.map(l => (

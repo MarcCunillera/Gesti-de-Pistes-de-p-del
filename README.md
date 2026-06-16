@@ -1,33 +1,33 @@
-# Reserva Pádel Torrelameu
+# Reserva Pàdel Torrelameu
 
-Aplicación web full-stack para gestionar reservas de una pista municipal de pádel. Permite registro, verificación de correo, inicio de sesión con JWT o Google, calendario de disponibilidad, reservas privadas, partidos abiertos, solicitudes de amistad, invitaciones a partidos y administración de usuarios, reservas, bloqueos y configuración.
+Aplicació web full-stack per gestionar les reserves d'una pista municipal de pàdel. Permet registre, verificació de correu, inici de sessió amb JWT o Google, calendari de disponibilitat, reserves privades, partits oberts, sol·licituds d'amistat, invitacions a partits i administració d'usuaris, reserves, bloquejos i configuració.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
-## Características
+## Característiques
 
-- Autenticación con JWT, bcrypt y verificación de correo.
-- Login opcional con Google OAuth.
-- Calendario responsive de disponibilidad.
-- Reservas privadas y partidos abiertos de hasta 4 jugadores.
-- Solicitudes de amistad e invitaciones a partidos.
-- Panel de administración para usuarios, reservas, bloqueos y configuración.
-- Perfil de usuario con avatar, preferencias y cambio de contraseña.
-- Tema claro/oscuro y soporte PWA básico.
+- Autenticació amb JWT, bcrypt i verificació de correu.
+- Inici de sessió opcional amb Google OAuth.
+- Calendari responsive de disponibilitat.
+- Reserves privades i partits oberts de fins a 4 jugadors.
+- Sol·licituds d'amistat i invitacions a partits.
+- Panell d'administració per a usuaris, reserves, bloquejos i configuració.
+- Perfil d'usuari amb avatar, preferències i canvi de contrasenya.
+- Tema clar/fosc i suport PWA bàsic.
 
 ## Stack
 
-| Capa | Tecnología |
+| Capa | Tecnologia |
 | --- | --- |
-| Frontend | React 18, Vite, CSS global + estilos inline |
+| Frontend | React 18, Vite, CSS global + estils inline |
 | Backend | Node.js, Express 4 |
-| Base de datos | PostgreSQL 16 |
+| Base de dades | PostgreSQL 16 |
 | Auth | JWT, bcryptjs, Google OAuth |
 | Email | Nodemailer |
-| Contenedores | Docker, Docker Compose, nginx |
+| Contenidors | Docker, Docker Compose, nginx |
 
 ## Estructura
 
@@ -49,24 +49,24 @@ frontend/
 docker-compose.yml
 ```
 
-## Puesta en marcha con Docker
+## Posada en marxa amb Docker
 
 ```bash
 docker compose up --build -d
 ```
 
 - Frontend: http://localhost:3003
-- Backend directo: http://localhost:4000
-- API vía frontend/nginx: http://localhost:3003/api
+- Backend directe: http://localhost:4000
+- API via frontend/nginx: http://localhost:3003/api
 - PostgreSQL: localhost:5432
 
-Para parar:
+Per aturar-ho:
 
 ```bash
 docker compose down
 ```
 
-## Puesta en marcha local
+## Posada en marxa local
 
 Backend:
 
@@ -84,62 +84,62 @@ npm install
 npm run dev
 ```
 
-En desarrollo, Vite sirve el frontend en `http://localhost:3003` y proxyea `/api` y `/uploads` a `http://localhost:4000`.
+En desenvolupament, Vite serveix el frontend a `http://localhost:3003` i proxya `/api` i `/uploads` cap a `http://localhost:4000`.
 
-## Variables de entorno
+## Variables d'entorn
 
-| Variable | Descripción | Ejemplo |
+| Variable | Descripció | Exemple |
 | --- | --- | --- |
-| `PORT` | Puerto del backend | `4000` |
-| `DATABASE_URL` | Conexión PostgreSQL | `postgres://padel:padel_password@postgres:5432/padel` |
-| `POSTGRES_DB` | Base de datos Docker | `padel` |
-| `POSTGRES_USER` | Usuario PostgreSQL Docker | `padel` |
-| `POSTGRES_PASSWORD` | Contraseña PostgreSQL Docker | `padel_password` |
-| `JWT_SECRET` | Secreto para firmar JWT | requerido |
-| `FRONTEND_URL` | Orígenes CORS permitidos | `http://localhost:3003` |
-| `APP_URL` | URL pública usada en emails | `http://localhost:3003` |
-| `INITIAL_ADMIN_EMAIL` | Email del admin inicial | opcional |
-| `INITIAL_ADMIN_PASSWORD` | Password del admin inicial | opcional |
-| `INITIAL_ADMIN_NAME` | Nombre del admin inicial | opcional |
-| `GOOGLE_CLIENT_ID` | Client ID de Google para backend | opcional |
-| `VITE_GOOGLE_CLIENT_ID` | Client ID de Google para frontend | opcional |
-| `VITE_API_BASE_URL` | Base API compilada en frontend | `/api` en Docker |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | SMTP para verificación y recuperación | requerido para registro local |
+| `PORT` | Port del backend | `4000` |
+| `DATABASE_URL` | Connexió PostgreSQL | `postgres://padel:padel_password@postgres:5432/padel` |
+| `POSTGRES_DB` | Base de dades Docker | `padel` |
+| `POSTGRES_USER` | Usuari PostgreSQL Docker | `padel` |
+| `POSTGRES_PASSWORD` | Contrasenya PostgreSQL Docker | `padel_password` |
+| `JWT_SECRET` | Secret per signar JWT | obligatori |
+| `FRONTEND_URL` | Orígens CORS permesos | `http://localhost:3003` |
+| `APP_URL` | URL pública usada als correus | `http://localhost:3003` |
+| `INITIAL_ADMIN_EMAIL` | Correu de l'admin inicial | opcional |
+| `INITIAL_ADMIN_PASSWORD` | Contrasenya de l'admin inicial | opcional |
+| `INITIAL_ADMIN_NAME` | Nom de l'admin inicial | opcional |
+| `GOOGLE_CLIENT_ID` | Client ID de Google per al backend | opcional |
+| `VITE_GOOGLE_CLIENT_ID` | Client ID de Google per al frontend | opcional |
+| `VITE_API_BASE_URL` | Base API compilada al frontend | `/api` a Docker |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | SMTP per a verificació i recuperació | obligatori per a registre local |
 
-## Migraciones
+## Migracions
 
-El backend mantiene un bootstrap de tablas en `backend/db.js` y aplica migraciones versionadas desde `backend/migrations/` mediante la tabla `schema_migrations`.
+El backend manté un bootstrap de taules a `backend/db.js` i aplica migracions versionades des de `backend/migrations/` mitjançant la taula `schema_migrations`.
 
-Para aplicar migraciones sin arrancar el servidor:
+Per aplicar migracions sense arrencar el servidor:
 
 ```bash
 cd backend
 npm run migrate
 ```
 
-Al arrancar el backend también se ejecuta `db.init()`, por lo que las migraciones pendientes se aplican automáticamente.
+Quan arrenca el backend també s'executa `db.init()`, de manera que les migracions pendents s'apliquen automàticament.
 
-## Endpoints principales
+## Endpoints principals
 
-| Método | Ruta | Descripción |
+| Mètode | Ruta | Descripció |
 | --- | --- | --- |
-| `POST` | `/api/auth/register` | Registro con verificación de email |
-| `POST` | `/api/auth/login` | Login |
-| `POST` | `/api/auth/google` | Login con Google |
-| `GET` | `/api/users/me` | Perfil propio |
-| `PATCH` | `/api/users/me` | Actualizar perfil propio |
-| `GET` | `/api/users` | Usuarios visibles |
-| `GET` | `/api/reservas/all` | Reservas confirmadas; admin ve historial completo |
+| `POST` | `/api/auth/register` | Registre amb verificació de correu |
+| `POST` | `/api/auth/login` | Inici de sessió |
+| `POST` | `/api/auth/google` | Inici de sessió amb Google |
+| `GET` | `/api/users/me` | Perfil propi |
+| `PATCH` | `/api/users/me` | Actualitzar perfil propi |
+| `GET` | `/api/users` | Usuaris visibles |
+| `GET` | `/api/reservas/all` | Reserves confirmades; l'admin veu l'historial complet |
 | `POST` | `/api/reservas` | Crear reserva |
-| `DELETE` | `/api/reservas/:id` | Cancelar reserva |
-| `GET` | `/api/amics` | Amigos |
-| `POST` | `/api/amics/solicituds` | Enviar solicitud de amistad |
+| `DELETE` | `/api/reservas/:id` | Cancel·lar reserva |
+| `GET` | `/api/amics` | Amics |
+| `POST` | `/api/amics/solicituds` | Enviar sol·licitud d'amistat |
 | `GET` | `/api/health` | Healthcheck |
 
-## Notas de seguridad
+## Notes de seguretat
 
-- `JWT_SECRET` es obligatorio; el backend no arranca sin él.
-- El frontend usa `/api` en Docker para evitar URLs internas en el bundle.
-- El service worker no cachea respuestas de API para no mostrar disponibilidad obsoleta.
-- Los usuarios no administradores no reciben teléfonos ni campos internos de otros usuarios.
+- `JWT_SECRET` és obligatori; el backend no arrenca sense ell.
+- El frontend usa `/api` a Docker per evitar URLs internes al bundle.
+- El service worker no desa en memòria cau les respostes de l'API per no mostrar disponibilitat obsoleta.
+- Els usuaris no administradors no reben telèfons ni camps interns d'altres usuaris.
 

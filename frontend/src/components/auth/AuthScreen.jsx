@@ -107,7 +107,7 @@ function TabBar({ activeTab, onTabChange }) {
         className={activeTab === "registro" ? "active" : ""}
         onClick={() => onTabChange("registro")}
       >
-        Registrarse
+        Registrar-se
       </button>
     </div>
   );
@@ -167,7 +167,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle, setAuthTab }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correo electrónico"
+        placeholder="Correu electrònic"
         value={form.email}
         onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
         autoComplete="email"
@@ -176,7 +176,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle, setAuthTab }) {
       <InputField
         icon={<IconLock />}
         type="password"
-        placeholder="Contraseña"
+        placeholder="Contrasenya"
         value={form.password}
         onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
         onKeyDown={(e) => e.key === "Enter" && onSubmit()}
@@ -192,7 +192,7 @@ function LoginForm({ form, setForm, onSubmit, loginGoogle, setAuthTab }) {
         className="auth-link-button"
         onClick={() => setAuthTab("forgot")}
       >
-        ¿Has olvidado tu contraseña?
+        Has oblidat la contrasenya?
       </button>
 
       <GoogleLoginBlock loginGoogle={loginGoogle} />
@@ -208,7 +208,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconUser />}
         type="text"
-        placeholder="Nombre completo"
+        placeholder="Nom complet"
         value={form.nombre}
         onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
         autoComplete="name"
@@ -217,7 +217,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correo electrónico"
+        placeholder="Correu electrònic"
         value={form.email}
         onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
         autoComplete="email"
@@ -226,7 +226,7 @@ function RegisterForm({ form, setForm, onSubmit, loginGoogle }) {
       <InputField
         icon={<IconLock />}
         type="password"
-        placeholder="Contraseña"
+        placeholder="Contrasenya"
         value={form.password}
         onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
         onFocus={() => setShowPwdReqs(true)}
@@ -252,9 +252,9 @@ function EmailSentScreen({ email, message, setAuthTab }) {
       </div>
 
       <div className="auth-sent-copy">
-        <p>{message || "Compte creat. Revisa el teu correu per activar-lo abans d'iniciar sessio."}</p>
+        <p>{message || "Compte creat. Revisa el teu correu per activar-lo abans d'iniciar sessió."}</p>
         {email && <div className="auth-sent-email">{email}</div>}
-        <span>L'enllac caduca en 24 hores.</span>
+        <span>L'enllaç caduca en 24 hores.</span>
       </div>
 
       <div className="auth-sent-actions">
@@ -263,7 +263,7 @@ function EmailSentScreen({ email, message, setAuthTab }) {
           className="auth-primary"
           onClick={() => setAuthTab("login")}
         >
-          Anar al login
+          Anar a l'inici de sessió
         </button>
 
         <button
@@ -289,7 +289,7 @@ function ResendVerificationForm({ api, setAuthTab }) {
 
     api.resendVerification(email)
       .then((data) => {
-        setMsg(data.message || "Si el email existe, recibiras un correo de verificacion.");
+        setMsg(data.message || "Si el correu existeix, rebràs un correu de verificació.");
       })
       .catch((e) => {
         setError(e.message);
@@ -301,7 +301,7 @@ function ResendVerificationForm({ api, setAuthTab }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correo electronico"
+        placeholder="Correu electrònic"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && enviar()}
@@ -312,7 +312,7 @@ function ResendVerificationForm({ api, setAuthTab }) {
       {error && <div className="auth-error">{error}</div>}
 
       <button className="auth-primary" type="button" onClick={enviar}>
-        Reenviar correo de verificacion
+        Reenviar correu de verificació
       </button>
 
       <button
@@ -320,7 +320,7 @@ function ResendVerificationForm({ api, setAuthTab }) {
         className="auth-link-button"
         onClick={() => setAuthTab("login")}
       >
-        Volver al inicio de sesion
+        Tornar a l'inici de sessió
       </button>
     </>
   );
@@ -337,7 +337,7 @@ function ForgotPasswordForm({ api, setAuthTab }) {
 
     api.forgotPassword(email)
       .then((data) => {
-        setMsg(data.message || "Si el email existe, recibirás un correo.");
+        setMsg(data.message || "Si el correu existeix, rebràs un correu.");
       })
       .catch((e) => {
         setError(e.message);
@@ -349,7 +349,7 @@ function ForgotPasswordForm({ api, setAuthTab }) {
       <InputField
         icon={<IconEmail />}
         type="email"
-        placeholder="Correo electrónico"
+        placeholder="Correu electrònic"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && enviar()}
@@ -360,7 +360,7 @@ function ForgotPasswordForm({ api, setAuthTab }) {
       {error && <div className="auth-error">{error}</div>}
 
       <button className="auth-primary" type="button" onClick={enviar}>
-        Enviar correo de recuperación
+        Enviar correu de recuperació
       </button>
 
       <button
@@ -368,7 +368,7 @@ function ForgotPasswordForm({ api, setAuthTab }) {
         className="auth-link-button"
         onClick={() => setAuthTab("login")}
       >
-        Volver al inicio de sesión
+        Tornar a l'inici de sessió
       </button>
     </>
   );
@@ -404,12 +404,12 @@ export default function AuthScreen({
           </div>
 
           <div>
-            <h1>Pista de Pádel</h1>
+            <h1>Pista de Pàdel</h1>
             <p>Torrelameu</p>
           </div>
 
           <div className="auth-brand-text">
-            Gestiona las reservas de la pista municipal de forma rápida y sencilla.
+            Gestiona les reserves de la pista municipal de manera ràpida i senzilla.
           </div>
         </div>
 
@@ -421,26 +421,26 @@ export default function AuthScreen({
           <div className="auth-heading">
             <h2>
               {isForgot
-                ? "Recuperar contraseña"
+                ? "Recuperar contrasenya"
                 : isVerifyPending
-                  ? "Verificar correo"
+                  ? "Verificar correu"
                   : isRegistered
-                    ? "Revisa tu correo"
+                    ? "Revisa el teu correu"
                     : isLogin
-                      ? "Bienvenido/a"
-                      : "Crea tu cuenta"}
+                      ? "Benvingut/da"
+                      : "Crea el teu compte"}
             </h2>
 
             <p>
               {isForgot
-                ? "Introduce tu correo electrónico para recibir un enlace de recuperación."
+                ? "Introdueix el teu correu electrònic per rebre un enllaç de recuperació."
                 : isVerifyPending
-                  ? "Introduce tu correo electronico para recibir otro enlace de verificacion."
+                  ? "Introdueix el teu correu electrònic per rebre un altre enllaç de verificació."
                   : isRegistered
-                    ? "Te hemos enviado un enlace para activar tu cuenta."
+                    ? "T'hem enviat un enllaç per activar el teu compte."
                     : isLogin
-                      ? "Accede para consultar y gestionar tus reservas."
-                      : "Registrate para empezar a reservar la pista."}
+                      ? "Accedeix per consultar i gestionar les teves reserves."
+                      : "Registra't per començar a reservar la pista."}
             </p>
           </div>
 
