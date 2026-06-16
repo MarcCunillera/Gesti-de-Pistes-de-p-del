@@ -1,172 +1,145 @@
-# 🎾 Reserva Pàdel
+# Reserva Pádel Torrelameu
 
-Aplicación web **full-stack** para la gestión y reserva de pistas de pàdel. Los usuarios pueden registrarse, consultar el calendario de disponibilidad, hacer reservas y gestionar amigos. Los administradores disponen de un panel dedicado para controlar usuarios y reservas.
+Aplicación web full-stack para gestionar reservas de una pista municipal de pádel. Permite registro, verificación de correo, inicio de sesión con JWT o Google, calendario de disponibilidad, reservas privadas, partidos abiertos, solicitudes de amistad, invitaciones a partidos y administración de usuarios, reservas, bloqueos y configuración.
 
-![React](https://img.shields.io/badge/React-17-61DAFB?logo=react&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 
----
-
-## Tabla de contenidos
-
-- [Características](#características)
-- [Stack tecnológico](#stack-tecnológico)
-- [Arquitectura del proyecto](#arquitectura-del-proyecto)
-- [Requisitos previos](#requisitos-previos)
-- [Instalación y puesta en marcha](#instalación-y-puesta-en-marcha)
-  - [Con Docker (recomendado)](#con-docker-recomendado)
-  - [En local sin Docker](#en-local-sin-docker)
-- [Variables de entorno](#variables-de-entorno)
-- [API Endpoints](#api-endpoints)
-- [Contribuir](#contribuir)
-- [Licencia](#licencia)
-
----
-
 ## Características
 
-- **Autenticación** — Registro e inicio de sesión con JWT. Contraseñas cifradas con bcrypt.
-- **Calendario de reservas** — Vista mensual/semanal para consultar la disponibilidad de las pistas.
-- **Gestión de reservas** — Crear, visualizar y cancelar reservas propias.
-- **Sistema de amigos** — Añadir amigos y organizarlos en partidos.
-- **Panel de administración** — Gestión completa de usuarios y reservas por parte de los administradores.
-- **Perfil de usuario** — Foto de perfil, cambio de contraseña y ajustes personales.
-- **Tema claro / oscuro** — Soporte nativo de tema con contexto de React.
-- **Diseño responsive** — Interfaz adaptada a móvil, tableta y escritorio.
+- Autenticación con JWT, bcrypt y verificación de correo.
+- Login opcional con Google OAuth.
+- Calendario responsive de disponibilidad.
+- Reservas privadas y partidos abiertos de hasta 4 jugadores.
+- Solicitudes de amistad e invitaciones a partidos.
+- Panel de administración para usuarios, reservas, bloqueos y configuración.
+- Perfil de usuario con avatar, preferencias y cambio de contraseña.
+- Tema claro/oscuro y soporte PWA básico.
 
----
+## Stack
 
-## Stack tecnológico
+| Capa | Tecnología |
+| --- | --- |
+| Frontend | React 18, Vite, CSS global + estilos inline |
+| Backend | Node.js, Express 4 |
+| Base de datos | PostgreSQL 16 |
+| Auth | JWT, bcryptjs, Google OAuth |
+| Email | Nodemailer |
+| Contenedores | Docker, Docker Compose, nginx |
 
-| Capa              | Tecnología                        |
-|-------------------|-----------------------------------|
-| Frontend          | React 17, Vite, CSS Modules       |
-| Backend           | Node.js, Express 4                |
-| Base de datos     | PostgreSQL 16                               |
-| Auth              | JSON Web Tokens (JWT), bcryptjs   |
-| Subida de archivos| Multer                            |
-| Contenedores      | Docker, Docker Compose            |
+## Estructura
 
----
-
-## Arquitectura del proyecto
-
-```
-Reserva-padel/
-├── backend/                  # API REST con Express
-│   ├── db.js                 # Inicializacion de PostgreSQL
-│   ├── server.js             # Punto de entrada del servidor
-│   ├── middleware/
-│   │   └── auth.js           # Middleware de autenticación JWT
-│   └── routes/
-│       ├── auth.js           # /api/auth
-│       ├── users.js          # /api/users
-│       ├── reservas.js       # /api/reservas
-│       └── amics.js          # /api/amics
-├── src/                      # Aplicación React (Vite)
-│   ├── components/           # Componentes reutilizables
-│   ├── views/                # Páginas principales
-│   ├── theme/                # Contexto de tema claro/oscuro
-│   └── utils/                # Helpers y cliente de la API
-├── docker-compose.yml
-└── vite.config.js
+```text
+backend/
+  db.js
+  migrations/
+  middleware/
+  routes/
+  services/
+frontend/
+  public/
+  src/
+    components/
+    data/
+    styles/
+    theme/
+    utils/
+docker-compose.yml
 ```
 
----
-
-## Requisitos previos
-
-- [Node.js](https://nodejs.org/) >= 18
-- [npm](https://www.npmjs.com/) >= 9
-- [Docker](https://www.docker.com/) y Docker Compose *(opcional pero recomendado)*
-
----
-
-## Instalación y puesta en marcha
-
-### Con Docker (recomendado)
+## Puesta en marcha con Docker
 
 ```bash
-# 1. Clona el repositorio
-git clone https://github.com/tu-usuario/reserva-padel.git
-cd reserva-padel
-
-# 2. Levanta los servicios
 docker compose up --build -d
 ```
 
-- **Frontend** → [http://localhost:3003](http://localhost:3003)
-- **Backend** → [http://localhost:4000](http://localhost:4000)`r`n- **PostgreSQL** -> `localhost:5432`
+- Frontend: http://localhost:3003
+- Backend directo: http://localhost:4000
+- API vía frontend/nginx: http://localhost:3003/api
+- PostgreSQL: localhost:5432
 
-Para detener los contenedores:
+Para parar:
 
 ```bash
 docker compose down
 ```
 
----
+## Puesta en marcha local
 
-### En local sin Docker
-
-**Backend**
+Backend:
 
 ```bash
 cd backend
 npm install
-npm run dev        # Inicia con nodemon en el puerto 4000
+npm run dev
 ```
 
-**Frontend** *(en otra terminal)*
+Frontend:
 
 ```bash
-# Desde la raíz del proyecto
+cd frontend
 npm install
-npm run dev        # Inicia Vite en el puerto 5173
+npm run dev
 ```
 
----
+En desarrollo, Vite sirve el frontend en `http://localhost:3003` y proxyea `/api` y `/uploads` a `http://localhost:4000`.
 
 ## Variables de entorno
 
-Crea un archivo `.env` en la raiz del proyecto con las siguientes variables:
+| Variable | Descripción | Ejemplo |
+| --- | --- | --- |
+| `PORT` | Puerto del backend | `4000` |
+| `DATABASE_URL` | Conexión PostgreSQL | `postgres://padel:padel_password@postgres:5432/padel` |
+| `POSTGRES_DB` | Base de datos Docker | `padel` |
+| `POSTGRES_USER` | Usuario PostgreSQL Docker | `padel` |
+| `POSTGRES_PASSWORD` | Contraseña PostgreSQL Docker | `padel_password` |
+| `JWT_SECRET` | Secreto para firmar JWT | requerido |
+| `FRONTEND_URL` | Orígenes CORS permitidos | `http://localhost:3003` |
+| `APP_URL` | URL pública usada en emails | `http://localhost:3003` |
+| `INITIAL_ADMIN_EMAIL` | Email del admin inicial | opcional |
+| `INITIAL_ADMIN_PASSWORD` | Password del admin inicial | opcional |
+| `INITIAL_ADMIN_NAME` | Nombre del admin inicial | opcional |
+| `GOOGLE_CLIENT_ID` | Client ID de Google para backend | opcional |
+| `VITE_GOOGLE_CLIENT_ID` | Client ID de Google para frontend | opcional |
+| `VITE_API_BASE_URL` | Base API compilada en frontend | `/api` en Docker |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURE`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | SMTP para verificación y recuperación | requerido para registro local |
 
-| Variable     | Descripción                               | Valor por defecto |
-|--------------|-------------------------------------------|-------------------|
-| `PORT`       | Puerto en el que escucha el servidor      | `4000`            |
-| `DATABASE_URL` | Conexion PostgreSQL del backend | `postgres://padel:padel_password@postgres:5432/padel` |`r`n| `POSTGRES_DB` | Nombre de la base PostgreSQL | `padel` |`r`n| `POSTGRES_USER` | Usuario PostgreSQL | `padel` |`r`n| `POSTGRES_PASSWORD` | Contrasena PostgreSQL | `padel_password` |
-| `JWT_SECRET` | Clave secreta para firmar los tokens      | *(requerido)*     |
+## Migraciones
 
----
+El backend mantiene un bootstrap de tablas en `backend/db.js` y aplica migraciones versionadas desde `backend/migrations/` mediante la tabla `schema_migrations`.
 
-## API Endpoints
+Para aplicar migraciones sin arrancar el servidor:
 
-| Método | Ruta                  | Descripción                       | Auth |
-|--------|-----------------------|-----------------------------------|------|
-| POST   | `/api/auth/register`  | Registro de usuario               | ✗    |
-| POST   | `/api/auth/login`     | Inicio de sesión                  | ✗    |
-| GET    | `/api/users`          | Listado de usuarios               | ✓    |
-| GET    | `/api/reservas`       | Reservas del usuario autenticado  | ✓    |
-| POST   | `/api/reservas`       | Crear una reserva                 | ✓    |
-| DELETE | `/api/reservas/:id`   | Cancelar una reserva              | ✓    |
-| GET    | `/api/amics`          | Lista de amigos                   | ✓    |
-| POST   | `/api/amics`          | Añadir un amigo                   | ✓    |
-| GET    | `/api/health`         | Estado del servidor               | ✗    |
+```bash
+cd backend
+npm run migrate
+```
 
----
+Al arrancar el backend también se ejecuta `db.init()`, por lo que las migraciones pendientes se aplican automáticamente.
 
-## Contribuir
+## Endpoints principales
 
-1. Haz un fork del proyecto.
-2. Crea una rama con tu feature: `git checkout -b feature/nueva-funcionalidad`
-3. Commitea tus cambios: `git commit -m 'feat: añadir nueva funcionalidad'`
-4. Sube la rama: `git push origin feature/nueva-funcionalidad`
-5. Abre un Pull Request.
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Registro con verificación de email |
+| `POST` | `/api/auth/login` | Login |
+| `POST` | `/api/auth/google` | Login con Google |
+| `GET` | `/api/users/me` | Perfil propio |
+| `PATCH` | `/api/users/me` | Actualizar perfil propio |
+| `GET` | `/api/users` | Usuarios visibles |
+| `GET` | `/api/reservas/all` | Reservas confirmadas; admin ve historial completo |
+| `POST` | `/api/reservas` | Crear reserva |
+| `DELETE` | `/api/reservas/:id` | Cancelar reserva |
+| `GET` | `/api/amics` | Amigos |
+| `POST` | `/api/amics/solicituds` | Enviar solicitud de amistad |
+| `GET` | `/api/health` | Healthcheck |
 
----
+## Notas de seguridad
 
-## Licencia
-
-Distribuido bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más información.
+- `JWT_SECRET` es obligatorio; el backend no arranca sin él.
+- El frontend usa `/api` en Docker para evitar URLs internas en el bundle.
+- El service worker no cachea respuestas de API para no mostrar disponibilidad obsoleta.
+- Los usuarios no administradores no reciben teléfonos ni campos internos de otros usuarios.
 

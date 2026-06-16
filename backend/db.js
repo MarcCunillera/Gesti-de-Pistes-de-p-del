@@ -1,5 +1,7 @@
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -60,6 +62,43 @@ async function tx(work) {
   }
 }
 
+async function runMigrations() {
+  const migrationsDir = path.join(__dirname, "migrations");
+  if (!fs.existsSync(migrationsDir)) return;
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      id TEXT PRIMARY KEY,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+
+  const files = fs.readdirSync(migrationsDir)
+    .filter((file) => /^\d+_.+\.sql$/.test(file))
+    .sort();
+
+  for (const file of files) {
+    const exists = await pool.query("SELECT 1 FROM schema_migrations WHERE id = $1", [file]);
+    if (exists.rowCount > 0) continue;
+
+    const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+      await client.query(sql);
+      await client.query("INSERT INTO schema_migrations (id) VALUES ($1)", [file]);
+      await client.query("COMMIT");
+      console.log(`Migracio aplicada: ${file}`);
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+}
+
 async function init() {
   await query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -82,8 +121,8 @@ async function init() {
     CREATE TABLE IF NOT EXISTS reservas (
       id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL REFERENCES users(id),
-      fecha TEXT NOT NULL,
-      hora TEXT NOT NULL,
+      fecha DATE NOT NULL,
+      hora TIME NOT NULL,
       estado TEXT NOT NULL DEFAULT 'confirmada',
       abierto INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ DEFAULT now()
@@ -97,8 +136,8 @@ async function init() {
 
     CREATE TABLE IF NOT EXISTS bloqueados (
       id SERIAL PRIMARY KEY,
-      fecha TEXT NOT NULL,
-      hora TEXT NOT NULL,
+      fecha DATE NOT NULL,
+      hora TIME NOT NULL,
       UNIQUE(fecha, hora)
     );
 
@@ -152,21 +191,7 @@ async function init() {
     );
   `);
 
-  await query("DROP INDEX IF EXISTS idx_reservas_fecha_hora_estado");
-  await query(
-    "CREATE UNIQUE INDEX IF NOT EXISTS idx_reservas_fecha_hora_confirmada ON reservas(fecha, hora) WHERE estado = 'confirmada'"
-  );
-
-  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done INTEGER NOT NULL DEFAULT 1");
-  await query("ALTER TABLE users ALTER COLUMN onboarding_done SET DEFAULT 0");
-  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified INTEGER NOT NULL DEFAULT 1");
-  await query("ALTER TABLE users ALTER COLUMN email_verified SET DEFAULT 0");
-
-  await query("INSERT INTO config (key, value) VALUES ('horaInicio', '08:00') ON CONFLICT (key) DO NOTHING");
-  await query("INSERT INTO config (key, value) VALUES ('horaFin', '23:00') ON CONFLICT (key) DO NOTHING");
-  await query("INSERT INTO config (key, value) VALUES ('duracion', '90') ON CONFLICT (key) DO NOTHING");
-  await query("INSERT INTO config (key, value) VALUES ('diasVista', '7') ON CONFLICT (key) DO NOTHING");
-  await query("INSERT INTO config (key, value) VALUES ('maxReservas', '3') ON CONFLICT (key) DO NOTHING");
+  await runMigrations();
 
   const countUsers = await get("SELECT COUNT(*)::int as n FROM users");
 
