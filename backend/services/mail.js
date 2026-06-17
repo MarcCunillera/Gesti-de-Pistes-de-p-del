@@ -57,6 +57,49 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function dateKey(value) {
+  if (!value) return "";
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const year = value.getUTCFullYear();
+    const month = String(value.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(value.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  const text = String(value);
+  const match = text.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : text;
+}
+
+function formatReservaFecha(value) {
+  const key = dateKey(value);
+  const match = key.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return key;
+
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12));
+  return new Intl.DateTimeFormat("ca-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatReservaHora(value) {
+  if (!value) return "";
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const hour = String(value.getUTCHours()).padStart(2, "0");
+    const minute = String(value.getUTCMinutes()).padStart(2, "0");
+    return `${hour}:${minute}`;
+  }
+
+  const text = String(value);
+  const match = text.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : text;
+}
+
 function layout(title, subtitle, body, buttonText = "Obrir aplicació", buttonUrl = appUrl) {
   return `
 <!doctype html>
@@ -114,6 +157,9 @@ function layout(title, subtitle, body, buttonText = "Obrir aplicació", buttonUr
 }
 
 function reservaCard(reserva) {
+  const fecha = formatReservaFecha(reserva.fecha);
+  const hora = formatReservaHora(reserva.hora);
+
   return `
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;">
       <tr>
@@ -126,13 +172,13 @@ function reservaCard(reserva) {
             <tr>
               <td style="padding:8px 0;color:#64748b;font-size:14px;">Data</td>
               <td align="right" style="padding:8px 0;color:#0f172a;font-size:15px;font-weight:800;">
-                ${escapeHtml(reserva.fecha)}
+                ${escapeHtml(fecha)}
               </td>
             </tr>
             <tr>
               <td style="padding:8px 0;color:#64748b;font-size:14px;">Hora</td>
               <td align="right" style="padding:8px 0;color:#0f172a;font-size:15px;font-weight:800;">
-                ${escapeHtml(reserva.hora)}
+                ${escapeHtml(hora)}
               </td>
             </tr>
           </table>
