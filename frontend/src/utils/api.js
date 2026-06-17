@@ -33,6 +33,8 @@ async function req(method, path, body) {
 
 const AVATAR_MAX_BYTES = 900 * 1024;
 const AVATAR_MAX_SIDE = 1024;
+const AVATAR_FORMAT_ERROR = "No s'ha pogut preparar la imatge. Prova amb una foto JPG, PNG o WebP.";
+const AVATAR_HEIC_ERROR = "Aquest format d'iPhone no es pot pujar directament. Tria una foto JPG/PNG o fes una captura de pantalla i puja-la.";
 
 function canvasToBlob(canvas, quality) {
   return new Promise((resolve, reject) => {
@@ -45,26 +47,43 @@ function canvasToBlob(canvas, quality) {
 
 function loadImage(file) {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    const reader = new FileReader();
     const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(AVATAR_FORMAT_ERROR));
+    reader.onload = () => {
+      img.src = reader.result;
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("No s'ha pogut llegir la imatge. Si es una foto HEIC, prova de fer-la en format JPG."));
+    reader.onerror = () => reject(new Error(AVATAR_FORMAT_ERROR));
+
+    try {
+      reader.readAsDataURL(file);
+    } catch (_) {
+      reject(new Error(AVATAR_FORMAT_ERROR));
     };
-    img.src = url;
   });
 }
 
 async function prepareAvatarFile(file) {
-  if (!file || !file.type || !file.type.startsWith("image/")) {
+  if (!file) {
     throw new Error("Selecciona una imatge valida");
   }
 
-  const img = await loadImage(file);
+  const fileName = (file.name || "").toLowerCase();
+  const fileType = (file.type || "").toLowerCase();
+  if (fileType.includes("heic") || fileType.includes("heif") || /\.(heic|heif)$/.test(fileName)) {
+    throw new Error(AVATAR_HEIC_ERROR);
+  }
+  if (fileType && !fileType.startsWith("image/")) {
+    throw new Error("Selecciona una imatge valida");
+  }
+
+  let img;
+  try {
+    img = await loadImage(file);
+  } catch (_) {
+    throw new Error(AVATAR_FORMAT_ERROR);
+  }
   const scale = Math.min(1, AVATAR_MAX_SIDE / Math.max(img.width, img.height));
   const width = Math.max(1, Math.round(img.width * scale));
   const height = Math.max(1, Math.round(img.height * scale));
@@ -78,10 +97,15 @@ async function prepareAvatarFile(file) {
   ctx.drawImage(img, 0, 0, width, height);
 
   let quality = 0.86;
-  let blob = await canvasToBlob(canvas, quality);
-  while (blob.size > AVATAR_MAX_BYTES && quality > 0.58) {
-    quality -= 0.08;
+  let blob;
+  try {
     blob = await canvasToBlob(canvas, quality);
+    while (blob.size > AVATAR_MAX_BYTES && quality > 0.58) {
+      quality -= 0.08;
+      blob = await canvasToBlob(canvas, quality);
+    }
+  } catch (_) {
+    throw new Error(AVATAR_FORMAT_ERROR);
   }
 
   return new File([blob], "avatar.jpg", { type: "image/jpeg" });

@@ -233,7 +233,7 @@ export default function Profile({
                   </svg>
                 </div>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={handleFileChange} />
               {session.avatar && (
                 <button onClick={eliminarAvatarFoto}
                   style={{ fontSize: 10, color: dark ? "#fca5a5" : "#dc2626", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>
