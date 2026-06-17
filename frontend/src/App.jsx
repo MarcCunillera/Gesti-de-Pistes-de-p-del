@@ -730,8 +730,7 @@ export default function App() {
         token={resetToken}
         api={api}
         onDone={() => {
-          window.history.replaceState({}, "", "/");
-          setAuthTab("login");
+          window.location.assign("/");
         }}
         dark={dark}
       />
@@ -744,8 +743,7 @@ export default function App() {
         token={resetToken}
         api={api}
         onDone={() => {
-          window.history.replaceState({}, "", "/");
-          setAuthTab("login");
+          window.location.assign("/");
         }}
       />
     );
