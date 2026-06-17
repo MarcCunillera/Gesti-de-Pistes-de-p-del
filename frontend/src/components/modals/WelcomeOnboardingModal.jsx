@@ -13,7 +13,7 @@ const MANOS = [
 const LADOS = [
   { value: "derecha", label: "Dreta" },
   { value: "reves", label: "Revés" },
-  { value: "ambos", label: "M'adapto" },
+  { value: "ambos", label: "Qualsevol" },
 ];
 
 function initials(name) {

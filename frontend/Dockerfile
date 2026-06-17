@@ -22,6 +22,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 RUN printf 'server {\n\
     listen 80;\n\
+    client_max_body_size 6m;\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
     add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;\n\

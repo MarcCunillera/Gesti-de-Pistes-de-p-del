@@ -40,18 +40,25 @@ function deleteAvatarFile(avatarPath) {
   }
 }
 
+function avatarExtension(file) {
+  const extensions = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+  };
+  return extensions[file.mimetype] || ".jpg";
+}
+
 const storage = multer.diskStorage({
   destination: uploadsDir,
-  filename: (req, file, cb) => cb(null, `avatar_${req.user.id}_${Date.now()}${path.extname(file.originalname)}`),
+  filename: (req, file, cb) => cb(null, `avatar_${req.user.id}_${Date.now()}${avatarExtension(file)}`),
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) return cb(new Error("Tipus de fitxer no permès"));
-    if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext)) return cb(new Error("Extensió de fitxer no permesa"));
     cb(null, true);
   },
 });

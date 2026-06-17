@@ -15,7 +15,7 @@ const PALETTE = [
 const LADOS = [
   { value: "derecha", label: "Dreta"},
   { value: "reves", label: "Revés"},
-  { value: "ambos", label: "Ambdós"},
+  { value: "ambos", label: "Qualsevol"},
 ];
 
 const MANOS = [

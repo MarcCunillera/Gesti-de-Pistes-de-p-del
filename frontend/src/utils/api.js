@@ -31,6 +31,62 @@ async function req(method, path, body) {
   return data;
 }
 
+const AVATAR_MAX_BYTES = 900 * 1024;
+const AVATAR_MAX_SIDE = 1024;
+
+function canvasToBlob(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("No s'ha pogut preparar la imatge"));
+    }, "image/jpeg", quality);
+  });
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("No s'ha pogut llegir la imatge. Si es una foto HEIC, prova de fer-la en format JPG."));
+    };
+    img.src = url;
+  });
+}
+
+async function prepareAvatarFile(file) {
+  if (!file || !file.type || !file.type.startsWith("image/")) {
+    throw new Error("Selecciona una imatge valida");
+  }
+
+  const img = await loadImage(file);
+  const scale = Math.min(1, AVATAR_MAX_SIDE / Math.max(img.width, img.height));
+  const width = Math.max(1, Math.round(img.width * scale));
+  const height = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+
+  let quality = 0.86;
+  let blob = await canvasToBlob(canvas, quality);
+  while (blob.size > AVATAR_MAX_BYTES && quality > 0.58) {
+    quality -= 0.08;
+    blob = await canvasToBlob(canvas, quality);
+  }
+
+  return new File([blob], "avatar.jpg", { type: "image/jpeg" });
+}
+
 export const api = {
   // Autenticació
   login: (email, password) =>
@@ -61,8 +117,9 @@ export const api = {
   completeOnboarding: (data) => req("PATCH", "/users/me/onboarding", data),
   toggleActivo: (id, activo) => req("PATCH", `/users/${id}`, { activo }),
   uploadAvatar: async (file) => {
+    const avatarFile = await prepareAvatarFile(file);
     const form = new FormData();
-    form.append("avatar", file);
+    form.append("avatar", avatarFile);
     const res = await fetch(BASE + "/users/me/avatar", {
       method: "POST",
       headers: { Authorization: "Bearer " + getToken() },
