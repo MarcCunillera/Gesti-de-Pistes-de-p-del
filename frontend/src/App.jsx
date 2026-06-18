@@ -86,7 +86,17 @@ export default function App() {
     ...b,
     fecha: typeof b.fecha === "string" ? b.fecha.slice(0, 10) : b.fecha,
     hora: typeof b.hora === "string" ? b.hora.slice(0, 5) : b.hora,
+    fecha_inicio: typeof b.fecha_inicio === "string" ? b.fecha_inicio.slice(0, 10) : b.fecha_inicio,
+    fecha_fin: typeof b.fecha_fin === "string" ? b.fecha_fin.slice(0, 10) : b.fecha_fin,
   }), []);
+
+  const recargarBloqueados = useCallback(function () {
+    return api.getBloqueados()
+      .then(function (bl) {
+        setBloqueados(bl.map(normalizeBloqueado));
+        return bl;
+      });
+  }, [normalizeBloqueado]);
 
   const cargarDades = useCallback(function () {
     return Promise.all([
@@ -504,16 +514,37 @@ export default function App() {
     setAdminModal(null);
   };
 
-  const bloquearRango = function (fechaInicio, fechaFin, horas, diasSemana) {
-    api.addBloqueadoBatch(fechaInicio, fechaFin, horas, diasSemana)
+  const bloquearRango = function (fechaInicio, fechaFin, horas, diasSemana, label) {
+    return api.addBloqueadoBatch(fechaInicio, fechaFin, horas, diasSemana, label)
       .then(function (result) {
         var nous = (result?.created || []).map(normalizeBloqueado);
-        if (nous.length > 0) {
-          setBloqueados(function (bs) { return bs.concat(nous); });
-        }
+        return recargarBloqueados().then(function () { return nous; });
+      })
+      .then(function (nous) {
         showToast(nous.length + " franges bloquejades");
       })
-      .catch(function (e) { showToast(e.message, "error"); });
+      .catch(function (e) { showToast(e.message, "error"); throw e; });
+  };
+
+  const actualizarBloqueoGrupo = function (groupId, data) {
+    return api.updateBloqueadoGroup(groupId, data)
+      .then(function (result) {
+        var actualitzats = (result?.updated || []).map(normalizeBloqueado);
+        return recargarBloqueados().then(function () { return actualitzats; });
+      })
+      .then(function (actualitzats) {
+        showToast(actualitzats.length + " franges actualitzades");
+      })
+      .catch(function (e) { showToast(e.message, "error"); throw e; });
+  };
+
+  const eliminarBloqueoGrupo = function (groupId) {
+    return api.delBloqueadoGroup(groupId)
+      .then(function () {
+        setBloqueados(function (bs) { return bs.filter(function (b) { return b.group_id !== groupId; }); });
+        showToast("Bloqueig eliminat");
+      })
+      .catch(function (e) { showToast(e.message, "error"); throw e; });
   };
 
   const guardarConfig = function () {
@@ -871,7 +902,8 @@ export default function App() {
           <Settings
             config={config} configEdit={configEdit} setConfigEdit={setConfigEdit}
             guardarConfig={guardarConfig} HORARIOS={HORARIOS}
-            bloquearRango={bloquearRango} bloqueados={bloqueados} desbloquearTodo={desbloquearTodo} t={t}
+            bloquearRango={bloquearRango} bloqueados={bloqueados} desbloquearTodo={desbloquearTodo}
+            actualizarBloqueoGrupo={actualizarBloqueoGrupo} eliminarBloqueoGrupo={eliminarBloqueoGrupo} t={t}
           />
         )}
       </div>

@@ -173,8 +173,10 @@ export const api = {
 
   // Bloquejats
   getBloqueados: () => req("GET", "/reservas/bloqueados"),
-  addBloqueado: (fecha, hora) => req("POST", "/reservas/bloqueados", { fecha, hora }),
-  addBloqueadoBatch: (fechaInicio, fechaFin, horas, diasSemana) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas, diasSemana }),
+  addBloqueado: (fecha, hora, label) => req("POST", "/reservas/bloqueados", { fecha, hora, label }),
+  addBloqueadoBatch: (fechaInicio, fechaFin, horas, diasSemana, label) => req("POST", "/reservas/bloqueados/batch", { fechaInicio, fechaFin, horas, diasSemana, label }),
+  updateBloqueadoGroup: (groupId, data) => req("PUT", `/reservas/bloqueados/group/${groupId}`, data),
+  delBloqueadoGroup: (groupId) => req("DELETE", `/reservas/bloqueados/group/${groupId}`),
   delBloqueado: (id) => req("DELETE", `/reservas/bloqueados/${id}`),
 
   // Configuració

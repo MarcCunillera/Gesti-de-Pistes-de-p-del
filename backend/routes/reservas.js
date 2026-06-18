@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { randomUUID } = require("crypto");
 const db = require("../db");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 const {
@@ -61,6 +62,30 @@ const slotHasStarted = (fecha, hora) => `${fecha}T${hora}` <= getLocalNowKey();
 const isValidDate = (fecha) => /^\d{4}-\d{2}-\d{2}$/.test(fecha);
 const isValidTime = (hora) => /^([01]\d|2[0-3]):[0-5]\d$/.test(hora);
 const isPastSlot = (fecha, hora) => slotHasStarted(fecha, hora);
+
+function cleanLabel(label) {
+  return String(label || "").trim().slice(0, 60);
+}
+
+function normalizeDiasSemana(diasSemana) {
+  const dias = Array.isArray(diasSemana) && diasSemana.length > 0
+    ? diasSemana.map((d) => Number(d))
+    : [];
+  return Array.from(new Set(dias)).sort((a, b) => a - b);
+}
+
+function validateBloqueoBatchInput({ fechaInicio, fechaFin, horas, diasSemana }) {
+  if (!fechaInicio || !fechaFin || !Array.isArray(horas) || horas.length === 0) {
+    return "Cal indicar fechaInicio, fechaFin i hores";
+  }
+
+  const diasSeleccionados = normalizeDiasSemana(diasSemana);
+  if (diasSeleccionados.length === 0) return "Selecciona almenys un dia de la setmana";
+  if (diasSeleccionados.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) return "Dies de la setmana invalids";
+  if (!isValidDate(fechaInicio) || !isValidDate(fechaFin)) return "Format de data invalid";
+  if (new Date(fechaInicio) > new Date(fechaFin)) return "Rang de dates invalid";
+  return null;
+}
 
 async function getJugadors(reservaId, client) {
   return db.all(
@@ -426,12 +451,64 @@ router.post("/bloqueados", adminMiddleware, async (req, res) => {
   if (!(await isAllowedSlot(hora))) return res.status(400).json({ error: "Hora fora de l'horari permès" });
 
   try {
-    const r = await db.run("INSERT INTO bloqueados (fecha, hora) VALUES (?, ?) RETURNING id", [fecha, hora]);
-    res.status(201).json({ id: r.insertedId, fecha, hora });
+    const groupId = randomUUID();
+    const label = cleanLabel(req.body.label);
+    const diaSemana = String(weekdayKey(fecha));
+    const r = await db.run(
+      `INSERT INTO bloqueados (fecha, hora, group_id, label, fecha_inicio, fecha_fin, dias_semana, horas)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`,
+      [fecha, hora, groupId, label, fecha, fecha, diaSemana, hora]
+    );
+    res.status(201).json(r.row);
   } catch (err) {
     if (err.code === "23505") return res.status(409).json({ error: "Ja està bloquejat" });
     throw err;
   }
+});
+
+router.post("/bloqueados/batch", adminMiddleware, async (req, res, next) => {
+  if (req.body && req.body.__legacy) return next();
+
+  const { fechaInicio, fechaFin, horas, diasSemana } = req.body || {};
+  const inputError = validateBloqueoBatchInput({ fechaInicio, fechaFin, horas, diasSemana });
+  if (inputError) return res.status(400).json({ error: inputError });
+
+  const diasSeleccionados = normalizeDiasSemana(diasSemana);
+  const horasOrdenadas = Array.from(new Set(horas)).sort();
+
+  for (const hora of horasOrdenadas) {
+    if (!isValidTime(hora)) return res.status(400).json({ error: "Format d'hora invalid" });
+    if (!(await isAllowedSlot(hora))) return res.status(400).json({ error: "Hora fora de l'horari permes" });
+  }
+
+  const diasSet = new Set(diasSeleccionados);
+  const toInsert = [];
+  for (let f = fechaInicio; f <= fechaFin; f = addDaysKey(f, 1)) {
+    if (diasSet.has(weekdayKey(f))) {
+      for (const h of horasOrdenadas) toInsert.push([f, h]);
+    }
+  }
+
+  const groupId = randomUUID();
+  const label = cleanLabel(req.body.label);
+  const diasTxt = diasSeleccionados.join(",");
+  const horasTxt = horasOrdenadas.join(",");
+  const created = await db.tx(async (trx) => {
+    const inserted = [];
+    for (const [f, h] of toInsert) {
+      const r = await trx.run(
+        `INSERT INTO bloqueados (fecha, hora, group_id, label, fecha_inicio, fecha_fin, dias_semana, horas)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (fecha, hora) DO NOTHING
+         RETURNING *`,
+        [f, h, groupId, label, fechaInicio, fechaFin, diasTxt, horasTxt]
+      );
+      if (r.row) inserted.push(r.row);
+    }
+    return inserted;
+  });
+
+  res.status(201).json({ created });
 });
 
 router.post("/bloqueados/batch", adminMiddleware, async (req, res) => {
@@ -479,6 +556,59 @@ router.post("/bloqueados/batch", adminMiddleware, async (req, res) => {
   });
 
   res.status(201).json({ created });
+});
+
+router.put("/bloqueados/group/:groupId", adminMiddleware, async (req, res) => {
+  const groupId = String(req.params.groupId || "");
+  if (!groupId) return res.status(400).json({ error: "Grup de bloqueig invalid" });
+
+  const exists = await db.get("SELECT 1 FROM bloqueados WHERE group_id = ?", [groupId]);
+  if (!exists) return res.status(404).json({ error: "Bloqueig no trobat" });
+
+  const { fechaInicio, fechaFin, horas, diasSemana } = req.body || {};
+  const inputError = validateBloqueoBatchInput({ fechaInicio, fechaFin, horas, diasSemana });
+  if (inputError) return res.status(400).json({ error: inputError });
+
+  const diasSeleccionados = normalizeDiasSemana(diasSemana);
+  const horasOrdenadas = Array.from(new Set(horas)).sort();
+  for (const hora of horasOrdenadas) {
+    if (!isValidTime(hora)) return res.status(400).json({ error: "Format d'hora invalid" });
+    if (!(await isAllowedSlot(hora))) return res.status(400).json({ error: "Hora fora de l'horari permes" });
+  }
+
+  const diasSet = new Set(diasSeleccionados);
+  const toInsert = [];
+  for (let f = fechaInicio; f <= fechaFin; f = addDaysKey(f, 1)) {
+    if (diasSet.has(weekdayKey(f))) {
+      for (const h of horasOrdenadas) toInsert.push([f, h]);
+    }
+  }
+
+  const label = cleanLabel(req.body.label);
+  const diasTxt = diasSeleccionados.join(",");
+  const horasTxt = horasOrdenadas.join(",");
+  const updated = await db.tx(async (trx) => {
+    await trx.run("DELETE FROM bloqueados WHERE group_id = ?", [groupId]);
+    const inserted = [];
+    for (const [f, h] of toInsert) {
+      const r = await trx.run(
+        `INSERT INTO bloqueados (fecha, hora, group_id, label, fecha_inicio, fecha_fin, dias_semana, horas)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (fecha, hora) DO NOTHING
+         RETURNING *`,
+        [f, h, groupId, label, fechaInicio, fechaFin, diasTxt, horasTxt]
+      );
+      if (r.row) inserted.push(r.row);
+    }
+    return inserted;
+  });
+
+  res.json({ updated });
+});
+
+router.delete("/bloqueados/group/:groupId", adminMiddleware, async (req, res) => {
+  await db.run("DELETE FROM bloqueados WHERE group_id = ?", [req.params.groupId]);
+  res.json({ ok: true });
 });
 
 router.delete("/bloqueados/:id", adminMiddleware, async (req, res) => {
