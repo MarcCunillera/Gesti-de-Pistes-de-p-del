@@ -45,7 +45,7 @@ function NavItem({ v, isActive, onClick, active, inactive, hovered }) {
       style={{
         color: isActive ? active : hover ? hovered : inactive,
         borderBottomColor: isActive ? active : "transparent",
-        fontWeight: isActive ? 800 : 600,
+        fontWeight: isActive ? 700 : 600,
       }}
     >
       <span>{v.label}</span>

@@ -151,7 +151,7 @@ export default function AdminModal({
               fontWeight: 800,
               color: isBlocked ? "#7c3aed" : hasReserva ? "#dc2626" : "#16a34a",
               textTransform: "uppercase",
-              letterSpacing: 0.8,
+              letterSpacing: 0,
               marginBottom: 4,
             }}
           >
@@ -224,7 +224,7 @@ export default function AdminModal({
                 color: "#92400e",
                 marginBottom: 4,
                 textTransform: "uppercase",
-                letterSpacing: 0.5,
+                letterSpacing: 0,
               }}
             >
               Reserva actual
@@ -256,7 +256,7 @@ export default function AdminModal({
                 fontWeight: 700,
                 color: "#9ca3af",
                 textTransform: "uppercase",
-                letterSpacing: 0.6,
+                letterSpacing: 0,
                 marginBottom: 10,
               }}
             >

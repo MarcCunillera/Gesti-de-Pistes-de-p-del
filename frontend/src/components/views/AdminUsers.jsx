@@ -61,9 +61,9 @@ export default function AdminUsers({
           style={{
             color: textMain,
             margin: 0,
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: 700,
-            letterSpacing: -0.3,
+            letterSpacing: 0,
           }}
         >
           Gestió d'usuaris

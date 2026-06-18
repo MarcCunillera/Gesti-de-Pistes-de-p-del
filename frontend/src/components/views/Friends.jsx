@@ -133,7 +133,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
       {/* Cabecera */}
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Amics</h2>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: 0 }}>Amics</h2>
         <p style={{ margin: "3px 0 0", fontSize: 13, color: C.muted }}>
           {amics.length} amic{amics.length !== 1 ? "s" : ""}
           {solicituds.length > 0 && <span style={{ marginLeft: 10, fontWeight: 600, color: C.secondary }}>{solicituds.length} sol·licitud{solicituds.length !== 1 ? "s" : ""} pendent{solicituds.length !== 1 ? "s" : ""}</span>}
@@ -202,7 +202,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
             if (sugerencias.length === 0) return null;
             return (
               <div style={{ marginTop: 28 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0, marginBottom: 10 }}>
                   Potser els coneixes
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -283,7 +283,7 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
 
           {enviades.length > 0 && (
             <div style={{ marginTop: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0, marginBottom: 10 }}>
                 Sol·licituds enviades ({enviades.length})
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

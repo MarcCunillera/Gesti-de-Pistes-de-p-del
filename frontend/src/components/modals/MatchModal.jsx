@@ -28,7 +28,7 @@ export default function MatchModal({ partidoModal, setPartidoModal, users, sessi
         {/* Capçalera */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0.8 }}>Partit obert</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0 }}>Partit obert</div>
             {lleno && <span style={{ fontSize: 11, fontWeight: 700, background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: 20, padding: "1px 8px" }}>Complet</span>}
           </div>
           <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: t?.text || "#111827" }}>{formatFecha(reserva.fecha)}</h3>
@@ -41,7 +41,7 @@ export default function MatchModal({ partidoModal, setPartidoModal, users, sessi
         {/* Jugadors */}
         <div style={{ background: "#f9fafb", border: "1px solid " + (t?.border || "#e5e7eb") + ",", borderRadius: 12, padding: "14px 16px", marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: 0.5 }}>Jugadors</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: 0 }}>Jugadors</span>
             <span style={{ fontSize: 12, fontWeight: 700, background: numJugadors >= 4 ? "#fef2f2" : "#f0fdf4", color: numJugadors >= 4 ? "#dc2626" : "#16a34a", border: `1px solid ${numJugadors >= 4 ? "#fca5a5" : "#86efac"}`, borderRadius: 20, padding: "2px 10px" }}>
               {numJugadors}/4
             </span>

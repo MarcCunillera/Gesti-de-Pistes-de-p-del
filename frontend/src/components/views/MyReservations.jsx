@@ -11,7 +11,7 @@ function Tag({ children, variant = "default", theme, dark }) {
   };
   const s = styles[variant] || styles.default;
   return (
-    <span style={{ fontSize: 11, fontWeight: 600, background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 6, padding: "2px 8px", letterSpacing: 0.1 }}>
+    <span style={{ fontSize: 11, fontWeight: 600, background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 6, padding: "2px 8px", letterSpacing: 0 }}>
       {children}
     </span>
   );
@@ -48,7 +48,7 @@ function Btn({ onClick, variant = "default", children, style, href, target, rel,
 function SectionTitle({ children, count, theme, dark }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-      <span style={{ fontSize: 11, fontWeight: 700, color: dark ? theme.textMuted : "#9ca3af", textTransform: "uppercase", letterSpacing: 0.8 }}>{children}</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: dark ? theme.textMuted : "#9ca3af", textTransform: "uppercase", letterSpacing: 0 }}>{children}</span>
       {count !== undefined && (
         <span style={{ fontSize: 11, fontWeight: 700, background: dark ? theme.surfaceAlt : "#f3f4f6", color: dark ? theme.textSecondary : "#6b7280", borderRadius: 20, padding: "1px 8px", border: `1px solid ${dark ? theme.border : "#e5e7eb"}` }}>{count}</span>
       )}
@@ -85,7 +85,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
       {/* Cabecera */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 26, flexWrap: "wrap", gap: 10 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>Reserves</h2>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: 0 }}>Reserves</h2>
           <p style={{ margin: "3px 0 0", fontSize: 13, color: C.muted }}>
             {totalActivas === 0
               ? "Sense reserves actives"
@@ -199,7 +199,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                   <span style={{ fontSize: 11, color: dark ? C.textSecondary : "#374151", fontWeight: esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {u?.nombre?.split(" ")[0] || "?"}
                                   </span>
-                                  {esOrg && <span style={{ fontSize: 9, color: C.secondary, fontWeight: 600, letterSpacing: 0.2 }}>Org.</span>}
+                                  {esOrg && <span style={{ fontSize: 9, color: C.secondary, fontWeight: 600, letterSpacing: 0 }}>Org.</span>}
                                   {!esOrg && (
                                     <button onClick={() => expulsarJugador(r.id, id, u?.nombre || "Jugador")} title="Expulsar" style={{ position: "absolute", top: -4, right: -4, width: 16, height: 16, borderRadius: "50%", background: C.surface, border: `1px solid ${C.border}`, color: C.muted, fontSize: 9, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, lineHeight: 1 }}>✕</button>
                                   )}
@@ -336,7 +336,7 @@ export default function MyReservations({ session, misReservas, misPartidos, user
                                 <span style={{ fontSize: 11, color: esTu ? "#1d4ed8" : C.text, fontWeight: esTu || esOrg ? 700 : 400, maxWidth: 52, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {esTu ? "tu" : u?.nombre?.split(" ")[0] || "?"}
                                 </span>
-                                {esOrg && <span style={{ fontSize: 9, color: C.secondary, fontWeight: 600, letterSpacing: 0.2 }}>Org.</span>}
+                                {esOrg && <span style={{ fontSize: 9, color: C.secondary, fontWeight: 600, letterSpacing: 0 }}>Org.</span>}
                               </div>
                             );
                           })}

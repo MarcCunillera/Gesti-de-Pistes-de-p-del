@@ -152,7 +152,7 @@ export default function AdminReservations({ reservas, users, cancelarReserva, on
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: textMain }}>{formatFecha(r.fecha)}</span>
                       <span style={{ fontWeight: 500, fontSize: 14, color: textMuted }}>{r.hora}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 6, padding: "2px 8px", letterSpacing: 0.1 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 6, padding: "2px 8px", letterSpacing: 0 }}>
                         {badge.label}
                       </span>
                     </div>

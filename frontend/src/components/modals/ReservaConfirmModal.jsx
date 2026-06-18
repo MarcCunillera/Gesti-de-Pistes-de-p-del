@@ -36,7 +36,7 @@ export default function ReservaConfirmModal({ data, onClose, config, t }) {
 
           {/* Capçalera */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Reserva confirmada</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 0, marginBottom: 4 }}>Reserva confirmada</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
               <span style={{ fontWeight: 700, fontSize: 16, color: t?.text || "#111827" }}>{formatFecha(fecha)}</span>
               <span style={{ fontWeight: 500, fontSize: 14, color: C.secondary }}>{hora} – {horaFi}</span>

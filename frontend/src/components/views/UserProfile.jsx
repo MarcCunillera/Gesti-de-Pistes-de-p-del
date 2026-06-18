@@ -30,10 +30,10 @@ function PreferenceCard({ icon, title, subtitle, C }) {
     >
       <span style={{ fontSize: 28, lineHeight: 1, width: 30, textAlign: "center" }}>{icon}</span>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 17, fontWeight: 900, color: C.text, lineHeight: 1.1 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.text, lineHeight: 1.1 }}>
           {title}
         </div>
-        <div style={{ fontSize: 11, color: C.muted, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 3 }}>
+        <div style={{ fontSize: 11, color: C.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0, marginTop: 3 }}>
           {subtitle}
         </div>
       </div>
@@ -44,10 +44,10 @@ function PreferenceCard({ icon, title, subtitle, C }) {
 function StatItem({ value, label, color, border, C }) {
   return (
     <div style={{ flex: "1 1 110px", textAlign: "center", padding: "8px 12px", borderRight: border ? "1px solid " + C.border : "none" }}>
-      <div style={{ fontSize: 26, fontWeight: 900, color, lineHeight: 1 }}>
+      <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 11, color: C.muted, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 5 }}>
+      <div style={{ fontSize: 11, color: C.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0, marginTop: 5 }}>
         {label}
       </div>
     </div>
@@ -79,7 +79,7 @@ function Button({ onClick, children, variant, disabled, theme, dark }) {
         padding: "8px 14px",
         minHeight: 34,
         fontSize: 12,
-        fontWeight: 800,
+        fontWeight: 700,
         cursor: disabled ? "default" : "pointer",
         opacity: disabled ? 0.72 : 1,
         whiteSpace: "nowrap",
@@ -214,7 +214,7 @@ export default function UserProfile({
     <div style={{ maxWidth: 860, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: -0.3 }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: 0 }}>
             Perfil d'usuari
           </h2>
           <p style={{ margin: "3px 0 0", color: C.muted, fontSize: 13 }}>
@@ -232,10 +232,10 @@ export default function UserProfile({
               <UserAvatar user={user} size={72} outline={`1px solid ${C.border}`} outlineOffset={2} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 5 }}>
-                  <h3 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: C.text, lineHeight: 1.1 }}>
+                  <h3 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, lineHeight: 1.1 }}>
                     {user.nombre || "Usuario"}
                   </h3>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: relation.color, background: relation.bg, border: "1px solid " + relation.border, borderRadius: 20, padding: "3px 9px" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: relation.color, background: relation.bg, border: "1px solid " + relation.border, borderRadius: 20, padding: "3px 9px" }}>
                     {relation.label}
                   </span>
                 </div>
@@ -277,7 +277,7 @@ export default function UserProfile({
       {(manoInfo || ladoInfo) && (
         <section style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,.04)", marginBottom: 18, overflow: "hidden" }}>
           <div style={{ padding: "18px 28px" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0, marginBottom: 16 }}>
               Preferències del jugador
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -304,10 +304,10 @@ export default function UserProfile({
 
       <section style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: C.text }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.text }}>
             Partits públics
           </h3>
-          <span style={{ fontSize: 11, fontWeight: 800, background: C.surfaceAlt, color: C.secondary, border: "1px solid " + C.border, borderRadius: 20, padding: "2px 8px" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, background: C.surfaceAlt, color: C.secondary, border: "1px solid " + C.border, borderRadius: 20, padding: "2px 8px" }}>
             {partidosPublicos.length}
           </span>
         </div>
@@ -326,12 +326,12 @@ export default function UserProfile({
                 <div key={r.id} style={{ border: "1px solid " + C.border, borderRadius: 10, padding: "12px 14px", background: C.surfaceAlt }}>
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: C.text }}>{formatFecha(r.fecha)} - {r.hora}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{formatFecha(r.fecha)} - {r.hora}</div>
                       <div style={{ marginTop: 2, fontSize: 12, color: C.secondary }}>
                         {r.userId === user.id ? "Organitzador" : "Hi participa"} - {(r.jugadores || []).length}/4
                       </div>
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: dark ? "#93c5fd" : "#1d4ed8", background: dark ? "rgba(59,130,246,.14)" : "#eff6ff", border: `1px solid ${dark ? 'rgba(96,165,250,.32)' : '#bfdbfe'}`, borderRadius: 20, padding: "3px 9px" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: dark ? "#93c5fd" : "#1d4ed8", background: dark ? "rgba(59,130,246,.14)" : "#eff6ff", border: `1px solid ${dark ? 'rgba(96,165,250,.32)' : '#bfdbfe'}`, borderRadius: 20, padding: "3px 9px" }}>
                       Obert
                     </span>
                   </div>

@@ -136,7 +136,7 @@ function FeatureCard({ icon, title, desc, color, softColor, C }) {
     }}>
       <WelcomeIcon color={color} softColor={softColor}>{icon}</WelcomeIcon>
       <div>
-        <div style={{ fontWeight: 900, color: C.text, fontSize: 13 }}>{title}</div>
+        <div style={{ fontWeight: 700, color: C.text, fontSize: 13 }}>{title}</div>
         <div style={{ color: C.secondary, fontSize: 12, marginTop: 5, lineHeight: 1.45 }}>{desc}</div>
       </div>
     </div>
@@ -156,7 +156,7 @@ function StepRow({ icon, title, desc, color, softColor, C }) {
     }}>
       <WelcomeIcon color={color} softColor={softColor}>{icon}</WelcomeIcon>
       <div>
-        <div style={{ color: C.text, fontWeight: 900, fontSize: 13 }}>{title}</div>
+        <div style={{ color: C.text, fontWeight: 700, fontSize: 13 }}>{title}</div>
         <div style={{ color: C.secondary, fontSize: 12, marginTop: 3, lineHeight: 1.45 }}>{desc}</div>
       </div>
     </div>
@@ -199,7 +199,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
     border: "none",
     borderRadius: 10,
     padding: "10px 15px",
-    fontWeight: 900,
+    fontWeight: 700,
     fontSize: 13,
     cursor: "pointer",
     minHeight: 40,
@@ -278,13 +278,13 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                 background: softPrimary,
                 color: C.primary,
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 marginBottom: 10,
               }}>
                 <IconSpark size={14} />
                 Primer accés
               </div>
-              <h2 style={{ margin: 0, color: C.text, fontSize: 23, fontWeight: 950, letterSpacing: 0 }}>
+              <h2 style={{ margin: 0, color: C.text, fontSize: 22, fontWeight: 800, letterSpacing: 0 }}>
                 Benvingut a Pàdel Torrelameu
               </h2>
               <p style={{ margin: "6px 0 0", color: C.secondary, fontSize: 13, lineHeight: 1.45 }}>
@@ -300,7 +300,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontWeight: 950,
+              fontWeight: 700,
               fontSize: 18,
               flexShrink: 0,
               boxShadow: "0 10px 24px rgba(0,0,0,.18)",
@@ -348,7 +348,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     fontSize: 12,
-                    fontWeight: 900,
+                    fontWeight: 700,
                   }}>
                     {item.label}
                   </div>
@@ -361,7 +361,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
         <div style={{ padding: "22px 26px 24px" }}>
           {step === 0 && (
             <div>
-              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 17, fontWeight: 950 }}>
+              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 16, fontWeight: 700 }}>
                 Hola, {session?.nombre || "jugador"}
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
@@ -398,7 +398,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
 
           {step === 1 && (
             <div>
-              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 17, fontWeight: 950 }}>
+              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 16, fontWeight: 700 }}>
                 Com funciona
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
@@ -435,7 +435,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
 
           {step === 2 && (
             <div>
-              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 17, fontWeight: 950 }}>
+              <h3 style={{ margin: "0 0 8px", color: C.text, fontSize: 16, fontWeight: 700 }}>
                 Personalitza el teu perfil
               </h3>
               <p style={{ margin: "0 0 16px", color: C.secondary, fontSize: 14, lineHeight: 1.55 }}>
@@ -451,7 +451,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   border: "1px solid " + C.border,
                   background: C.surfaceAlt,
                 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
                     <IconPhone size={16} />
                     Telèfon
                   </span>
@@ -480,7 +480,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   gap: 12,
                 }}>
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
                       <IconHand size={16} />
                       Mà preferida
                     </div>
@@ -498,7 +498,7 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                   </div>
 
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, color: C.secondary, textTransform: "uppercase", letterSpacing: 0, marginBottom: 9 }}>
                       <IconCourt size={16} />
                       Posició a la pista
                     </div>
@@ -519,10 +519,10 @@ export default function WelcomeOnboardingModal({ session, t, onFinish, onSkip })
                 {!session?.avatar && (
                   <div style={{ padding: 13, borderRadius: 12, border: "1px solid " + C.border, background: C.surfaceAlt }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.secondary, textTransform: "uppercase", letterSpacing: 0 }}>
                         Color de l'avatar
                       </div>
-                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: form.avatar_color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 950, fontSize: 11 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: form.avatar_color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 11 }}>
                         {initials(session?.nombre)}
                       </div>
                     </div>

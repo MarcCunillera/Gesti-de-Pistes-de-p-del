@@ -111,7 +111,7 @@ export default function ConfirmModal({ confirmModal, setConfirmModal, t }) {
           {confirmModal.icono || variant.icon}
         </div>
 
-        <h3 style={{ margin: "0 0 8px", color: t?.text || "#111827", fontSize: 21, fontWeight: 850, letterSpacing: "-0.02em" }}>
+        <h3 style={{ margin: "0 0 8px", color: t?.text || "#111827", fontSize: 21, fontWeight: 700, letterSpacing: 0 }}>
           {confirmModal.titulo || "N'estàs segur?"}
         </h3>
 
@@ -129,7 +129,7 @@ export default function ConfirmModal({ confirmModal, setConfirmModal, t }) {
               color: t?.textSecondary || "#475569",
               border: "none",
               borderRadius: 11,
-              fontWeight: 750,
+              fontWeight: 700,
               fontSize: 14,
               cursor: "pointer",
             }}

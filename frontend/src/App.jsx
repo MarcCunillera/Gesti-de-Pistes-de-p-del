@@ -815,7 +815,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: t.bg, fontFamily: "sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: t.bg }}>
       <Header session={session} setVista={setVista} setSession={logout} dark={dark} toggleDark={toggle} t={t} />
       <Nav navItems={navItems} vista={vista} setVista={setVista} t={t} />
 

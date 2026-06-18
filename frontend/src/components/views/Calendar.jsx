@@ -170,7 +170,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
   const Cabecera = (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: primary, letterSpacing: -0.5 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: primary, letterSpacing: 0 }}>
           Disponibilitat
         </h2>
         <p style={{ margin: "3px 0 0", fontSize: 13, color: textMuted }}>
@@ -310,7 +310,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 42, height: 42, borderRadius: 10, background: esHoy ? (dark ? "rgba(34,197,94,.2)" : "#dcfce7") : surface, border: `1.5px solid ${esHoy ? (dark ? 'rgba(74,222,128,.32)' : '#86efac') : border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 16, fontWeight: 800, color: esHoy ? (dark ? "#bbf7d0" : "#14532d") : textMain, lineHeight: 1 }}>{fecha.split("-")[2]}</span>
-                      <span style={{ fontSize: 9, fontWeight: 600, color: esHoy ? (dark ? "#86efac" : "#16a34a") : textMuted, textTransform: "uppercase", letterSpacing: 0.3 }}>{mesNom}</span>
+                      <span style={{ fontSize: 9, fontWeight: 600, color: esHoy ? (dark ? "#86efac" : "#16a34a") : textMuted, textTransform: "uppercase", letterSpacing: 0 }}>{mesNom}</span>
                     </div>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: esHoy ? (dark ? "#bbf7d0" : "#14532d") : textMain }}>
@@ -366,7 +366,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
             <thead>
               <tr>
                 {/* Columna hora */}
-                <th style={{ width: 72, padding: "14px 16px", textAlign: "left", background: surfaceAlt, borderBottom: `2px solid ${border}`, color: textMuted, fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, position: "sticky", left: 0, zIndex: 2 }}>
+                <th style={{ width: 72, padding: "14px 16px", textAlign: "left", background: surfaceAlt, borderBottom: `2px solid ${border}`, color: textMuted, fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: 0, position: "sticky", left: 0, zIndex: 2 }}>
                   Hora
                 </th>
                 {fechas.map(f => {
@@ -375,7 +375,7 @@ export default function Calendar({ session, fechas, HORARIOS, config, esBloquead
                   const tieneMia = misF.has(f);
                   return (
                     <th key={f} style={{ minWidth: 96, padding: "10px 8px 8px", textAlign: "center", background: esHoy ? "#f0fdf4" : surfaceAlt, borderBottom: `2px solid ${esHoy ? "#86efac" : border}` }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: esHoy ? "#16a34a" : textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: esHoy ? "#16a34a" : textMuted, textTransform: "uppercase", letterSpacing: 0 }}>
                         {f.split("-")[2]} {MESES[parseInt(f.split("-")[1]) - 1]}
                       </div>
                       <div style={{ fontSize: 15, fontWeight: 800, color: esHoy ? "#14532d" : textMain, marginTop: 1 }}>

@@ -37,7 +37,7 @@ export default function MatchCreatedModal({ reserva, onClose, users, session, am
 
           {/* Capçalera */}
           <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Partit creat</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase", letterSpacing: 0, marginBottom: 4 }}>Partit creat</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
               <span style={{ fontWeight: 700, fontSize: 16, color: C.text }}>{formatFecha(reserva.fecha)}</span>
               <span style={{ fontWeight: 500, fontSize: 14, color: "#6b7280" }}>{reserva.hora}</span>

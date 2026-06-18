@@ -49,7 +49,7 @@ export default function ReservationModal({ reservaModal, setReservaModal, config
         </button>
 
         <div style={{ marginBottom: 22 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 }}>Nova reserva</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", textTransform: "uppercase", letterSpacing: 0, marginBottom: 4 }}>Nova reserva</div>
           <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: t?.text || "#111827" }}>
             {formatFecha(reservaModal.fecha)}
           </h3>
@@ -60,7 +60,7 @@ export default function ReservationModal({ reservaModal, setReservaModal, config
           </div>
         </div>
 
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0, marginBottom: 10 }}>
           Tipus de reserva
         </div>
 

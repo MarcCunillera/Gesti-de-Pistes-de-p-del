@@ -8,26 +8,16 @@ const SECCIONES = [
 ];
 
 const DIAS_SEMANA = [
-  { key: 1, label: "Dilluns", short: "L" },
-  { key: 2, label: "Dimarts", short: "M" },
-  { key: 3, label: "Dimecres", short: "X" },
-  { key: 4, label: "Dijous", short: "J" },
-  { key: 5, label: "Divendres", short: "V" },
-  { key: 6, label: "Dissabte", short: "S" },
-  { key: 0, label: "Diumenge", short: "D" },
+  { key: 1, label: "Dilluns", short: "Dl" },
+  { key: 2, label: "Dimarts", short: "Dt" },
+  { key: 3, label: "Dimecres", short: "Dc" },
+  { key: 4, label: "Dijous", short: "Dj" },
+  { key: 5, label: "Divendres", short: "Dv" },
+  { key: 6, label: "Dissabte", short: "Ds" },
+  { key: 0, label: "Diumenge", short: "Dg" },
 ];
 
 const TODOS_LOS_DIAS = DIAS_SEMANA.map((d) => d.key);
-
-const Field = ({ label, desc, children, textColor, descColor }) => (
-  <div style={{ marginBottom: 20 }}>
-    <div style={{ marginBottom: 6 }}>
-      <label style={{ fontWeight: 700, color: textColor || "#111827", fontSize: 14, display: "block", marginBottom: 2 }}>{label}</label>
-      {desc ? <span style={{ fontSize: 12, color: descColor || "#9ca3af" }}>{desc}</span> : null}
-    </div>
-    {children}
-  </div>
-);
 
 function splitList(value) {
   if (!value) return [];
@@ -80,6 +70,46 @@ function buildBloqueoGroups(bloqueados) {
     .sort((a, b) => `${a.fechaInicio}-${a.horas[0] || ""}`.localeCompare(`${b.fechaInicio}-${b.horas[0] || ""}`));
 }
 
+function Field({ label, desc, children, C }) {
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <label style={{ display: "block", color: C.text, fontSize: 14, fontWeight: 700, marginBottom: 3 }}>{label}</label>
+      {desc ? <div style={{ color: C.muted, fontSize: 12, marginBottom: 7 }}>{desc}</div> : null}
+      {children}
+    </div>
+  );
+}
+
+function Button({ C, children, onClick, variant = "secondary", disabled, style }) {
+  const styles = {
+    primary: { bg: C.primary, color: C.primaryText, border: C.primary },
+    secondary: { bg: C.surface, color: C.text, border: C.border },
+    subtle: { bg: C.surfaceAlt, color: C.text, border: C.border },
+    danger: { bg: C.dangerBg, color: C.danger, border: C.dangerBorder },
+  };
+  const s = styles[variant] || styles.secondary;
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        background: disabled ? C.disabledBg : s.bg,
+        color: disabled ? C.disabledText : s.color,
+        border: `1px solid ${disabled ? C.border : s.border}`,
+        borderRadius: 8,
+        padding: "9px 13px",
+        minHeight: 38,
+        cursor: disabled ? "default" : "pointer",
+        fontSize: 13,
+        fontWeight: 600,
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function Settings({
   config,
   configEdit,
@@ -93,25 +123,46 @@ export default function Settings({
   eliminarBloqueoGrupo,
   t,
 }) {
-  const surface = t?.surface || "#fff";
-  const border = t?.border || "#e5e7eb";
-  const textMain = t?.text || "#111827";
-  const textMuted = t?.textSecondary || "#6b7280";
-  const primary = t?.primary || "#1a2e1a";
-  const surfaceAlt = t?.surfaceAlt || "#f9fafb";
-  const isDark = !["#fff", "#ffffff"].includes((surface || "").toLowerCase());
-  const linkColor = isDark ? "#93c5fd" : "#1a73e8";
-  const infoPanel = { background: isDark ? surfaceAlt : "#f8faf8", border: isDark ? border : "#e5e7eb", color: isDark ? textMuted : "#555" };
-  const warnPanel = { background: isDark ? "rgba(245,158,11,.14)" : "#fffbeb", border: isDark ? "rgba(251,191,36,.32)" : "#fde68a", color: isDark ? "#fcd34d" : "#92400e" };
-  const dangerPanel = { background: isDark ? "rgba(239,68,68,.12)" : "#fef2f2", border: isDark ? "rgba(248,113,113,.32)" : "#fecaca", color: isDark ? "#fca5a5" : "#c0392b", sub: isDark ? "#fda4af" : "#f87171" };
-  const okPanel = { background: isDark ? "rgba(34,197,94,.14)" : "#f0fdf4", border: isDark ? "rgba(74,222,128,.32)" : "#86efac", color: isDark ? "#86efac" : "#16a34a" };
-  const cardShadow = t?.cardShadow || "0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06)";
-  const inputBase = {
-    width: "100%", boxSizing: "border-box", padding: "10px 14px",
-    border: `1.5px solid ${border}`, borderRadius: 10, fontSize: 14,
-    color: textMain, background: t?.inputBg || "#fafafa", outline: "none",
+  const isDark = !["#fff", "#ffffff"].includes((t?.surface || "#fff").toLowerCase());
+  const C = {
+    surface: t?.surface || "#fff",
+    surfaceAlt: t?.surfaceAlt || "#f9fafb",
+    input: t?.inputBg || "#fff",
+    border: t?.border || "#e5e7eb",
+    borderSoft: t?.borderLight || "#f3f4f6",
+    text: t?.text || "#111827",
+    muted: t?.textSecondary || "#6b7280",
+    faint: t?.textMuted || "#9ca3af",
+    primary: t?.primary || "#1a472a",
+    primaryText: isDark ? "#0f172a" : "#fff",
+    link: isDark ? "#93c5fd" : "#1a73e8",
+    shadow: isDark ? (t?.cardShadow || "0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2)") : "0 1px 3px rgba(0,0,0,.04)",
+    danger: isDark ? "#fca5a5" : "#dc2626",
+    dangerBg: isDark ? "rgba(239,68,68,.12)" : "#fff",
+    dangerSoft: isDark ? "rgba(239,68,68,.12)" : "#fef2f2",
+    dangerBorder: isDark ? "rgba(248,113,113,.32)" : "#fca5a5",
+    ok: isDark ? "#86efac" : "#15803d",
+    okBg: isDark ? "rgba(34,197,94,.14)" : "#f0fdf4",
+    okBorder: isDark ? "rgba(74,222,128,.32)" : "#bbf7d0",
+    warn: isDark ? "#fcd34d" : "#92400e",
+    warnBg: isDark ? "rgba(245,158,11,.14)" : "#fffbeb",
+    warnBorder: isDark ? "rgba(251,191,36,.32)" : "#fde68a",
+    disabledBg: isDark ? "#0f172a" : "#f3f4f6",
+    disabledText: t?.textMuted || "#9ca3af",
   };
-  const selectBase = { ...inputBase, cursor: "pointer" };
+
+  const inputBase = {
+    width: "100%",
+    boxSizing: "border-box",
+    minHeight: 40,
+    padding: "9px 12px",
+    borderRadius: 8,
+    border: `1.5px solid ${C.border}`,
+    background: C.input,
+    color: C.text,
+    outline: "none",
+    fontSize: 14,
+  };
 
   const emptyRango = () => ({ inicio: hoy(), fin: hoy(), diasSemana: [], horas: [], label: "" });
   const [seccion, setSeccion] = useState("calendario");
@@ -120,7 +171,9 @@ export default function Settings({
   const [rangoMsg, setRangoMsg] = useState(null);
   const [guardado, setGuardado] = useState(false);
 
+  const franjas = generarHorarios(configEdit.horaInicio, configEdit.horaFin, configEdit.duracion);
   const gruposBloqueo = useMemo(() => buildBloqueoGroups(bloqueados), [bloqueados]);
+  const totalFranjasBloqueadas = bloqueados?.length || 0;
 
   const hasChanges =
     configEdit.horaInicio !== config.horaInicio ||
@@ -129,15 +182,23 @@ export default function Settings({
     configEdit.diasVista !== config.diasVista ||
     (configEdit.maxReservas ?? 3) !== (config.maxReservas ?? 3);
 
-  const toggleHora = (h) =>
+  const toggleHora = (h) => {
     setRango((r) => ({ ...r, horas: r.horas.includes(h) ? r.horas.filter((x) => x !== h) : [...r.horas, h] }));
+  };
 
-  const toggleDiaSemana = (dia) =>
+  const toggleDiaSemana = (dia) => {
     setRango((r) => ({ ...r, diasSemana: r.diasSemana.includes(dia) ? r.diasSemana.filter((x) => x !== dia) : [...r.diasSemana, dia] }));
+  };
 
   const resetBloqueoForm = () => {
     setRango(emptyRango());
     setEditGroupId(null);
+  };
+
+  const handleGuardar = () => {
+    guardarConfig();
+    setGuardado(true);
+    setTimeout(() => setGuardado(false), 2000);
   };
 
   const aplicarRango = () => {
@@ -187,7 +248,7 @@ export default function Settings({
   const eliminarGrupo = (grupo) => {
     if (!window.confirm("Vols eliminar aquest bloqueig?")) return;
     if (grupo.isLegacy || !eliminarBloqueoGrupo) {
-      setRangoMsg({ tipo: "error", txt: "Aquest bloqueig antic s'actualitzara quan s'apliquin les migracions." });
+      setRangoMsg({ tipo: "error", txt: "Aquest bloqueig antic s'actualitzarà quan s'apliquin les migracions." });
       return;
     }
     eliminarBloqueoGrupo(grupo.groupId);
@@ -200,265 +261,293 @@ export default function Settings({
     resetBloqueoForm();
   };
 
-  const handleGuardar = () => {
-    guardarConfig();
-    setGuardado(true);
-    setTimeout(() => setGuardado(false), 2000);
-  };
+  const pageMaxWidth = seccion === "bloqueos" ? 980 : 760;
 
-  const franjas = generarHorarios(configEdit.horaInicio, configEdit.horaFin, configEdit.duracion);
+  const Card = ({ children, style }) => (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: C.shadow, padding: 20, ...style }}>
+      {children}
+    </div>
+  );
+
+  const renderHeader = (title, desc, right) => (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start", marginBottom: 18 }}>
+      <div>
+        <h3 style={{ margin: 0, color: C.text, fontSize: 16, fontWeight: 700, lineHeight: 1.2 }}>{title}</h3>
+        {desc ? <p style={{ margin: "5px 0 0", color: C.muted, fontSize: 13, lineHeight: 1.4 }}>{desc}</p> : null}
+      </div>
+      {right}
+    </div>
+  );
 
   const renderSaveBar = () => (
-    <>
-      {hasChanges && (
-        <div style={{ background: warnPanel.background, border: `1px solid ${warnPanel.border}`, borderRadius: 8, padding: "8px 14px", marginBottom: 16, fontSize: 12, color: warnPanel.color }}>
+    <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.borderSoft}` }}>
+      {hasChanges ? (
+        <div style={{ marginBottom: 12, background: C.warnBg, color: C.warn, border: `1px solid ${C.warnBorder}`, borderRadius: 8, padding: "9px 12px", fontSize: 12, fontWeight: 700 }}>
           Tens canvis sense desar
         </div>
-      )}
-
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          onClick={handleGuardar}
-          style={{ flex: 1, background: guardado ? "#16a34a" : primary, color: guardado ? "#fff" : (isDark ? "#0f172a" : "#fff"), border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontWeight: 700, fontSize: 14, transition: "background 0.2s" }}
-        >
-          {guardado ? "✓ Desat" : "Desar configuració"}
-        </button>
-        <button
-          onClick={() => setConfigEdit(config)}
-          disabled={!hasChanges}
-          style={{ padding: "11px 18px", background: hasChanges ? surfaceAlt : (isDark ? "#0f172a" : "#f3f4f6"), color: hasChanges ? textMain : textMuted, border: `1.5px solid ${border}`, borderRadius: 10, cursor: hasChanges ? "pointer" : "default", fontWeight: 600, fontSize: 14 }}
-        >
+      ) : null}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <Button C={C} variant="primary" onClick={handleGuardar} style={{ flex: "1 1 180px" }}>
+          {guardado ? "Desat" : "Desar configuració"}
+        </Button>
+        <Button C={C} variant="subtle" disabled={!hasChanges} onClick={() => setConfigEdit(config)}>
           Descartar
-        </button>
+        </Button>
       </div>
-    </>
+    </div>
   );
 
   return (
-    <div style={{ maxWidth: seccion === "bloqueos" ? 1080 : 660, margin: "0 auto" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ color: textMain, margin: "0 0 4px", fontSize: 22, fontWeight: 800 }}>Configuració</h2>
-        <p style={{ margin: 0, color: textMuted, fontSize: 13 }}>Configura el funcionament de la pista</p>
+    <div style={{ maxWidth: pageMaxWidth, margin: "0 auto" }}>
+      <div style={{ marginBottom: 18 }}>
+        <h2 style={{ color: C.text, margin: "0 0 4px", fontSize: 22, fontWeight: 800 }}>Configuració</h2>
+        <p style={{ color: C.muted, margin: 0, fontSize: 13 }}>Gestiona els horaris, els límits i els bloquejos de la pista.</p>
       </div>
 
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
-        <nav style={{ width: 170, flexShrink: 0 }}>
-          {SECCIONES.map((s) => (
+      <div style={{ display: "flex", background: C.surfaceAlt, borderRadius: 10, padding: 3, gap: 2, border: `1px solid ${C.border}`, marginBottom: 16, overflowX: "auto" }}>
+        {SECCIONES.map((s) => {
+          const active = seccion === s.key;
+          return (
             <button
               key={s.key}
               onClick={() => setSeccion(s.key)}
               style={{
-                display: "flex", alignItems: "center", gap: 10, width: "100%",
-                background: seccion === s.key ? primary : "transparent",
-                color: seccion === s.key ? (isDark ? "#0f172a" : "#fff") : textMain,
-                border: "none", borderRadius: 10, padding: "10px 14px",
-                cursor: "pointer", fontWeight: seccion === s.key ? 700 : 500,
-                fontSize: 14, marginBottom: 4, textAlign: "left", transition: "all 0.15s",
+                flex: 1,
+                minWidth: 115,
+                background: active ? C.surface : "transparent",
+                color: active ? C.primary : C.muted,
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 12px",
+                cursor: "pointer",
+                fontWeight: active ? 700 : 500,
+                fontSize: 13,
+                boxShadow: active ? (isDark ? "0 1px 4px rgba(0,0,0,.28)" : "0 1px 4px rgba(0,0,0,.1)") : "none",
               }}
             >
               {s.label}
-              {s.key === "bloqueos" && bloqueados?.length > 0 && (
-                <span style={{ marginLeft: "auto", background: seccion === s.key ? (isDark ? "rgba(15,23,42,.16)" : "rgba(255,255,255,.25)") : dangerPanel.background, color: seccion === s.key ? (isDark ? "#0f172a" : "#fff") : dangerPanel.color, border: `1px solid ${seccion === s.key ? "transparent" : dangerPanel.border}`, borderRadius: 20, fontSize: 11, padding: "1px 7px", fontWeight: 700 }}>
+              {s.key === "bloqueos" && gruposBloqueo.length > 0 ? (
+                <span style={{ marginLeft: 7, background: C.dangerSoft, color: C.danger, border: `1px solid ${C.dangerBorder}`, borderRadius: 999, padding: "1px 6px", fontSize: 11, fontWeight: 700 }}>
                   {gruposBloqueo.length}
                 </span>
-              )}
+              ) : null}
             </button>
-          ))}
-        </nav>
-
-        <div style={{ flex: 1, minWidth: 280, background: surface, borderRadius: 16, padding: "24px 28px", boxShadow: isDark ? cardShadow : "0 2px 12px rgba(0,0,0,.07)", border: `1px solid ${border}` }}>
-          {seccion === "calendario" && (
-            <>
-              <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: primary }}>Configuració del calendari</h3>
-              <Field textColor={textMain} descColor={textMuted} label="Hora d'inici" desc="Primera franja disponible del dia">
-                <input type="time" value={configEdit.horaInicio} onChange={(e) => setConfigEdit((c) => ({ ...c, horaInicio: e.target.value }))} style={inputBase} />
-              </Field>
-              <Field textColor={textMain} descColor={textMuted} label="Hora de fi" desc="Última franja disponible del dia">
-                <input type="time" value={configEdit.horaFin} onChange={(e) => setConfigEdit((c) => ({ ...c, horaFin: e.target.value }))} style={inputBase} />
-              </Field>
-              <Field textColor={textMain} descColor={textMuted} label="Durada de cada franja" desc="Temps per reserva en minuts">
-                <select value={configEdit.duracion} onChange={(e) => setConfigEdit((c) => ({ ...c, duracion: Number(e.target.value) }))} style={selectBase}>
-                  {[30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>{m} minuts</option>)}
-                </select>
-              </Field>
-              <Field textColor={textMain} descColor={textMuted} label="Dies visibles al calendari" desc="Rang de dies mostrats alhora">
-                <select value={configEdit.diasVista} onChange={(e) => setConfigEdit((c) => ({ ...c, diasVista: Number(e.target.value) }))} style={selectBase}>
-                  {[3, 5, 7].map((d) => <option key={d} value={d}>{d} dies</option>)}
-                </select>
-              </Field>
-
-              <div style={{ background: infoPanel.background, border: `1px solid ${infoPanel.border}`, borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: infoPanel.color, display: "flex", gap: 16, flexWrap: "wrap" }}>
-                <span>{configEdit.horaInicio} – {configEdit.horaFin}</span>
-                <span>{configEdit.duracion} min/franja</span>
-                <span>{franjas.length} franges · {configEdit.diasVista} dies</span>
-              </div>
-              {renderSaveBar()}
-            </>
-          )}
-
-          {seccion === "reservas" && (
-            <>
-              <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: primary }}>Política de reserves</h3>
-              <Field textColor={textMain} descColor={textMuted} label="Límit de reserves per usuari" desc="Màxim de reserves actives simultànies permeses">
-                <select value={configEdit.maxReservas ?? 3} onChange={(e) => setConfigEdit((c) => ({ ...c, maxReservas: Number(e.target.value) }))} style={selectBase}>
-                  {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} reserva{n !== 1 ? "s" : ""} màxim</option>)}
-                </select>
-              </Field>
-
-              <div style={{ background: infoPanel.background, border: `1px solid ${infoPanel.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 20, fontSize: 13, color: infoPanel.color }}>
-                <div style={{ fontWeight: 700, color: primary, marginBottom: 6 }}>Resum actual</div>
-                <div>· Cada usuari pot tenir fins a <strong>{configEdit.maxReservas ?? 3}</strong> reserves actives simultànies</div>
-                <div style={{ marginTop: 4 }}>· Les reserves passades no compten per al límit</div>
-              </div>
-              {renderSaveBar()}
-            </>
-          )}
-
-          {seccion === "bloqueos" && (
-            <>
-              <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: primary }}>
-                {editGroupId ? "Modificar bloqueig" : "Bloqueig per rang de dates"}
-              </h3>
-              <p style={{ margin: "0 0 20px", color: textMuted, fontSize: 13 }}>Crea bloquejos amb etiqueta i gestiona'ls des de la llista del costat.</p>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 22, alignItems: "start" }}>
-                <div>
-                  <Field textColor={textMain} descColor={textMuted} label="Etiqueta" desc="Per exemple: classes de pàdel, manteniment o torneig">
-                    <input type="text" value={rango.label} maxLength={60} placeholder="Classes de pàdel" onChange={(e) => setRango((r) => ({ ...r, label: e.target.value }))} style={inputBase} />
-                  </Field>
-
-                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 4 }}>
-                    <div style={{ flex: 1, minWidth: 120 }}>
-                      <Field textColor={textMain} descColor={textMuted} label="Data d'inici" desc="">
-                        <input type="date" value={rango.inicio} min={hoy()} onChange={(e) => setRango((r) => ({ ...r, inicio: e.target.value }))} style={inputBase} />
-                      </Field>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 120 }}>
-                      <Field textColor={textMain} descColor={textMuted} label="Data de fi" desc="">
-                        <input type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
-                      </Field>
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Dies de la setmana</label>
-                      <button onClick={() => setRango((r) => ({ ...r, diasSemana: r.diasSemana.length === TODOS_LOS_DIAS.length ? [] : TODOS_LOS_DIAS }))} style={{ background: "none", border: "none", color: linkColor, fontSize: 12, cursor: "pointer", fontWeight: 600, padding: 0 }}>
-                        {rango.diasSemana.length === TODOS_LOS_DIAS.length ? "Treure'ls tots" : "Seleccionar-los tots"}
-                      </button>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(64px, 1fr))", gap: 6 }}>
-                      {DIAS_SEMANA.map((dia) => {
-                        const sel = rango.diasSemana.includes(dia.key);
-                        return (
-                          <button
-                            key={dia.key}
-                            onClick={() => toggleDiaSemana(dia.key)}
-                            title={dia.label}
-                            style={{ padding: "8px 8px", borderRadius: 8, border: `1.5px solid ${sel ? primary : border}`, background: sel ? primary : surfaceAlt, color: sel ? (isDark ? "#0f172a" : "#fff") : textMain, fontSize: 12, cursor: "pointer", fontWeight: sel ? 700 : 500 }}
-                          >
-                            <span style={{ display: "block", fontSize: 13 }}>{dia.short}</span>
-                            <span style={{ display: "block", fontSize: 11, marginTop: 2 }}>{dia.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <label style={{ fontWeight: 700, color: textMain, fontSize: 14 }}>Franges horàries</label>
-                      <button onClick={() => setRango((r) => ({ ...r, horas: r.horas.length === HORARIOS.length ? [] : [...HORARIOS] }))} style={{ background: "none", border: "none", color: linkColor, fontSize: 12, cursor: "pointer", fontWeight: 600, padding: 0 }}>
-                        {rango.horas.length === HORARIOS.length ? "Treure-les totes" : "Seleccionar-les totes"}
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {HORARIOS.map((h) => {
-                        const sel = rango.horas.includes(h);
-                        return (
-                          <button key={h} onClick={() => toggleHora(h)} style={{ padding: "6px 12px", borderRadius: 8, border: `1.5px solid ${sel ? primary : border}`, background: sel ? primary : surfaceAlt, color: sel ? (isDark ? "#0f172a" : "#fff") : textMain, fontSize: 12, cursor: "pointer", fontWeight: sel ? 700 : 400 }}>
-                            {h}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {rangoMsg && (
-                    <div style={{ background: rangoMsg.tipo === "ok" ? okPanel.background : dangerPanel.background, color: rangoMsg.tipo === "ok" ? okPanel.color : dangerPanel.color, border: `1px solid ${rangoMsg.tipo === "ok" ? okPanel.border : dangerPanel.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13 }}>
-                      {rangoMsg.txt}
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <button onClick={aplicarRango} style={{ flex: 1, background: primary, color: isDark ? "#0f172a" : "#fff", border: "none", borderRadius: 10, padding: "11px", cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-                      {editGroupId ? "Desar canvis" : "Bloquejar rang"}
-                    </button>
-                    {editGroupId && (
-                      <button onClick={resetBloqueoForm} style={{ padding: "11px 14px", background: surfaceAlt, color: textMain, border: `1.5px solid ${border}`, borderRadius: 10, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-                        Cancel·lar
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: textMain }}>Bloquejos actius</div>
-                      <div style={{ fontSize: 12, color: textMuted }}>{gruposBloqueo.length} bloqueig{gruposBloqueo.length !== 1 ? "s" : ""} · {bloqueados?.length || 0} franja{(bloqueados?.length || 0) !== 1 ? "s" : ""}</div>
-                    </div>
-                    {bloqueados?.length > 0 && (
-                      <button onClick={desbloquearTodo} style={{ background: isDark ? "rgba(239,68,68,.2)" : "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "7px 10px", cursor: "pointer", fontWeight: 700, fontSize: 12 }}>
-                        Eliminar tots
-                      </button>
-                    )}
-                  </div>
-
-                  {gruposBloqueo.length === 0 ? (
-                    <div style={{ background: infoPanel.background, border: `1px solid ${infoPanel.border}`, borderRadius: 10, padding: "14px 16px", fontSize: 13, color: infoPanel.color }}>
-                      No hi ha bloquejos actius.
-                    </div>
-                  ) : (
-                    <div style={{ display: "grid", gap: 10, maxHeight: 560, overflow: "auto", paddingRight: 2 }}>
-                      {gruposBloqueo.map((grupo) => {
-                        const diasTxt = grupo.diasSemana.length === TODOS_LOS_DIAS.length
-                          ? "Tots els dies"
-                          : DIAS_SEMANA.filter((d) => grupo.diasSemana.includes(d.key)).map((d) => d.label).join(", ");
-                        return (
-                          <div key={grupo.groupId} style={{ border: `1px solid ${editGroupId === grupo.groupId ? primary : border}`, borderRadius: 10, padding: 12, background: editGroupId === grupo.groupId ? infoPanel.background : surfaceAlt }}>
-                            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                              <div style={{ minWidth: 0 }}>
-                                <div style={{ color: textMain, fontWeight: 800, fontSize: 14, overflowWrap: "anywhere" }}>{grupo.label || "Sense etiqueta"}</div>
-                                <div style={{ color: textMuted, fontSize: 12, marginTop: 2 }}>Del {formatDate(grupo.fechaInicio)} al {formatDate(grupo.fechaFin)}</div>
-                              </div>
-                              <span style={{ flexShrink: 0, border: `1px solid ${dangerPanel.border}`, background: dangerPanel.background, color: dangerPanel.color, borderRadius: 999, padding: "2px 8px", fontSize: 11, fontWeight: 800 }}>
-                                {grupo.items.length}
-                              </span>
-                            </div>
-                            <div style={{ color: textMuted, fontSize: 12, lineHeight: 1.45 }}>
-                              <div>{diasTxt}</div>
-                              <div>{grupo.horas.join(", ")}</div>
-                            </div>
-                            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                              <button onClick={() => editarGrupo(grupo)} style={{ flex: 1, background: surface, color: textMain, border: `1.5px solid ${border}`, borderRadius: 8, padding: "8px 10px", cursor: "pointer", fontWeight: 700, fontSize: 12 }}>
-                                Modificar
-                              </button>
-                              <button onClick={() => eliminarGrupo(grupo)} style={{ flex: 1, background: dangerPanel.background, color: dangerPanel.color, border: `1.5px solid ${dangerPanel.border}`, borderRadius: 8, padding: "8px 10px", cursor: "pointer", fontWeight: 700, fontSize: 12 }}>
-                                Eliminar
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+          );
+        })}
       </div>
+
+      {seccion === "calendario" && (
+        <Card>
+          {renderHeader("Calendari", "Defineix les franges disponibles i la vista del calendari.")}
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14 }}>
+            <Field C={C} label="Hora d'inici" desc="Primera franja disponible">
+              <input type="time" value={configEdit.horaInicio} onChange={(e) => setConfigEdit((c) => ({ ...c, horaInicio: e.target.value }))} style={inputBase} />
+            </Field>
+            <Field C={C} label="Hora de fi" desc="Última franja disponible">
+              <input type="time" value={configEdit.horaFin} onChange={(e) => setConfigEdit((c) => ({ ...c, horaFin: e.target.value }))} style={inputBase} />
+            </Field>
+            <Field C={C} label="Durada" desc="Temps per reserva">
+              <select value={configEdit.duracion} onChange={(e) => setConfigEdit((c) => ({ ...c, duracion: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+                {[30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>{m} minuts</option>)}
+              </select>
+            </Field>
+            <Field C={C} label="Dies visibles" desc="Vista del calendari">
+              <select value={configEdit.diasVista} onChange={(e) => setConfigEdit((c) => ({ ...c, diasVista: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+                {[3, 5, 7].map((d) => <option key={d} value={d}>{d} dies</option>)}
+              </select>
+            </Field>
+          </div>
+
+          <div style={{ background: C.surfaceAlt, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", color: C.muted, fontSize: 13, display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <span><strong style={{ color: C.text }}>{configEdit.horaInicio} - {configEdit.horaFin}</strong></span>
+            <span>{configEdit.duracion} min/franja</span>
+            <span>{franjas.length} franges · {configEdit.diasVista} dies</span>
+          </div>
+
+          {renderSaveBar()}
+        </Card>
+      )}
+
+      {seccion === "reservas" && (
+        <Card>
+          {renderHeader("Política de reserves", "Controla quantes reserves actives pot tenir cada usuari.")}
+
+          <div style={{ maxWidth: 360 }}>
+            <Field C={C} label="Límit de reserves per usuari" desc="Màxim de reserves actives simultànies">
+              <select value={configEdit.maxReservas ?? 3} onChange={(e) => setConfigEdit((c) => ({ ...c, maxReservas: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} reserva{n !== 1 ? "s" : ""} màxim</option>)}
+              </select>
+            </Field>
+          </div>
+
+          <div style={{ background: C.surfaceAlt, border: `1px solid ${C.border}`, borderRadius: 10, padding: "13px 14px", color: C.muted, fontSize: 13, lineHeight: 1.55 }}>
+            <div style={{ color: C.text, fontWeight: 700, marginBottom: 4 }}>Resum actual</div>
+            <div>Cada usuari pot tenir fins a <strong style={{ color: C.text }}>{configEdit.maxReservas ?? 3}</strong> reserves actives simultànies.</div>
+            <div>Les reserves passades no compten per al límit.</div>
+          </div>
+
+          {renderSaveBar()}
+        </Card>
+      )}
+
+      {seccion === "bloqueos" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14, alignItems: "start" }}>
+          <Card>
+            {renderHeader(
+              editGroupId ? "Modificar bloqueig" : "Nou bloqueig",
+              "Selecciona rang, dies, franges i etiqueta.",
+              editGroupId ? <Button C={C} variant="subtle" onClick={resetBloqueoForm}>Cancel·lar</Button> : null
+            )}
+
+            <Field C={C} label="Etiqueta" desc="Per exemple: classes de pàdel, manteniment o torneig">
+              <input type="text" value={rango.label} maxLength={60} placeholder="Classes de pàdel" onChange={(e) => setRango((r) => ({ ...r, label: e.target.value }))} style={inputBase} />
+            </Field>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+              <Field C={C} label="Data d'inici">
+                <input type="date" value={rango.inicio} min={hoy()} onChange={(e) => setRango((r) => ({ ...r, inicio: e.target.value }))} style={inputBase} />
+              </Field>
+              <Field C={C} label="Data de fi">
+                <input type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
+              </Field>
+            </div>
+
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                <div style={{ color: C.text, fontSize: 13, fontWeight: 700 }}>Dies de la setmana</div>
+                <button onClick={() => setRango((r) => ({ ...r, diasSemana: r.diasSemana.length === TODOS_LOS_DIAS.length ? [] : TODOS_LOS_DIAS }))} style={{ background: "none", border: "none", color: C.link, fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+                  {rango.diasSemana.length === TODOS_LOS_DIAS.length ? "Treure'ls tots" : "Seleccionar-los tots"}
+                </button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(50px, 1fr))", gap: 6 }}>
+                {DIAS_SEMANA.map((dia) => {
+                  const selected = rango.diasSemana.includes(dia.key);
+                  return (
+                    <button
+                      key={dia.key}
+                      onClick={() => toggleDiaSemana(dia.key)}
+                      title={dia.label}
+                      style={{
+                        minHeight: 38,
+                        borderRadius: 8,
+                        border: `1.5px solid ${selected ? C.primary : C.border}`,
+                        background: selected ? C.primary : C.surfaceAlt,
+                        color: selected ? C.primaryText : C.text,
+                        cursor: "pointer",
+                        fontWeight: 700,
+                        fontSize: 12,
+                      }}
+                    >
+                      {dia.short}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                <div style={{ color: C.text, fontSize: 13, fontWeight: 700 }}>Franges horàries</div>
+                <button onClick={() => setRango((r) => ({ ...r, horas: r.horas.length === HORARIOS.length ? [] : [...HORARIOS] }))} style={{ background: "none", border: "none", color: C.link, fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0 }}>
+                  {rango.horas.length === HORARIOS.length ? "Treure-les totes" : "Seleccionar-les totes"}
+                </button>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                {HORARIOS.map((h) => {
+                  const selected = rango.horas.includes(h);
+                  return (
+                    <button
+                      key={h}
+                      onClick={() => toggleHora(h)}
+                      style={{
+                        borderRadius: 999,
+                        border: `1.5px solid ${selected ? C.primary : C.border}`,
+                        background: selected ? C.primary : C.surfaceAlt,
+                        color: selected ? C.primaryText : C.text,
+                        padding: "7px 11px",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {rangoMsg ? (
+              <div style={{ background: rangoMsg.tipo === "ok" ? C.okBg : C.dangerSoft, color: rangoMsg.tipo === "ok" ? C.ok : C.danger, border: `1px solid ${rangoMsg.tipo === "ok" ? C.okBorder : C.dangerBorder}`, borderRadius: 8, padding: "10px 12px", marginBottom: 14, fontSize: 13, fontWeight: 700 }}>
+                {rangoMsg.txt}
+              </div>
+            ) : null}
+
+            <Button C={C} variant="primary" onClick={aplicarRango} style={{ width: "100%" }}>
+              {editGroupId ? "Desar canvis" : "Crear bloqueig"}
+            </Button>
+          </Card>
+
+          <Card>
+            {renderHeader(
+              "Bloquejos actius",
+              `${gruposBloqueo.length} bloqueig${gruposBloqueo.length !== 1 ? "s" : ""} · ${totalFranjasBloqueadas} franja${totalFranjasBloqueadas !== 1 ? "s" : ""}`,
+              totalFranjasBloqueadas > 0 ? <Button C={C} variant="danger" onClick={desbloquearTodo}>Eliminar tots</Button> : null
+            )}
+
+            {gruposBloqueo.length === 0 ? (
+              <div style={{ background: C.surfaceAlt, border: `1px solid ${C.border}`, borderRadius: 10, padding: 18, color: C.muted, fontSize: 13, textAlign: "center" }}>
+                No hi ha bloquejos actius.
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: 9, maxHeight: 560, overflow: "auto", paddingRight: 2 }}>
+                {gruposBloqueo.map((grupo) => {
+                  const active = editGroupId === grupo.groupId;
+                  const diasTxt = grupo.diasSemana.length === TODOS_LOS_DIAS.length
+                    ? "Tots els dies"
+                    : DIAS_SEMANA.filter((d) => grupo.diasSemana.includes(d.key)).map((d) => d.label).join(", ");
+                  return (
+                    <div
+                      key={grupo.groupId}
+                      style={{
+                        background: active ? (isDark ? "rgba(74,222,128,.10)" : "#f8faf8") : C.surfaceAlt,
+                        border: `1.5px solid ${active ? C.primary : C.border}`,
+                        borderRadius: 10,
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: C.text, fontWeight: 700, fontSize: 14, overflowWrap: "anywhere" }}>{grupo.label || "Sense etiqueta"}</div>
+                          <div style={{ color: C.muted, fontSize: 12, marginTop: 3 }}>Del {formatDate(grupo.fechaInicio)} al {formatDate(grupo.fechaFin)}</div>
+                        </div>
+                        <span style={{ background: C.dangerSoft, color: C.danger, border: `1px solid ${C.dangerBorder}`, borderRadius: 999, padding: "2px 8px", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                          {grupo.items.length}
+                        </span>
+                      </div>
+
+                      <div style={{ marginTop: 9, color: C.muted, fontSize: 12, lineHeight: 1.45 }}>
+                        <div><strong style={{ color: C.text }}>Dies:</strong> {diasTxt}</div>
+                        <div><strong style={{ color: C.text }}>Hores:</strong> {grupo.horas.join(", ")}</div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: 8, marginTop: 11 }}>
+                        <Button C={C} variant="secondary" onClick={() => editarGrupo(grupo)} style={{ flex: 1 }}>
+                          Modificar
+                        </Button>
+                        <Button C={C} variant="danger" onClick={() => eliminarGrupo(grupo)} style={{ flex: 1 }}>
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

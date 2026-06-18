@@ -137,7 +137,7 @@ export default function Profile({
   };
   var labelStyle = {
     display: "block", fontSize: 11, fontWeight: 700, color: C.muted,
-    textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 5,
+    textTransform: "uppercase", letterSpacing: 0, marginBottom: 5,
   };
 
   function segmentStyle(selected) {
@@ -197,7 +197,7 @@ export default function Profile({
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -0.3 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.text, letterSpacing: 0 }}>
           El meu perfil
         </h2>
       </div>
@@ -245,9 +245,9 @@ export default function Profile({
             {/* Nom + email */}
             <div style={{ flex: 1, minWidth: 140 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
-                <span style={{ fontWeight: 800, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>{session.nombre}</span>
+                <span style={{ fontWeight: 800, fontSize: 22, color: C.text, letterSpacing: 0 }}>{session.nombre}</span>
                 {session.rol === "admin" && (
-                  <span style={{ fontSize: 10, fontWeight: 700, background: C.primary, color: dark ? "#0f172a" : "#fff", borderRadius: 4, padding: "2px 8px", letterSpacing: 0.8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, background: C.primary, color: dark ? "#0f172a" : "#fff", borderRadius: 4, padding: "2px 8px", letterSpacing: 0 }}>
                     ADMIN
                   </span>
                 )}
@@ -277,17 +277,17 @@ export default function Profile({
             {/* Reserves */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px", borderRight: "1px solid " + C.border }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: dark ? "#86efac" : "#1a2e1a", lineHeight: 1 }}>{misReservas.length}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Reserves</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, marginTop: 4 }}>Reserves</div>
             </div>
             {/* Partits */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px", borderRight: "1px solid " + C.border }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: dark ? "#93c5fd" : "#2563eb", lineHeight: 1 }}>{misPartidos.length}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Partits</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, marginTop: 4 }}>Partits</div>
             </div>
             {/* Amics */}
             <div style={{ flex: "1 1 100px", textAlign: "center", padding: "8px 12px" }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: dark ? "#6ee7b7" : "#059669", lineHeight: 1, marginBottom: 2 }}>{numAmics}</div>
-              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.6, marginTop: 4 }}>Amics</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, marginTop: 4 }}>Amics</div>
             </div>
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function Profile({
           marginBottom: 16, overflow: "hidden",
         }}>
           <div style={{ padding: "18px 28px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>Preferències del jugador</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: 0, marginBottom: 16 }}>Preferències del jugador</div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               {manoInfo && (
                 <div style={{
@@ -311,7 +311,7 @@ export default function Profile({
                   <span style={{ fontSize: 28 }}>👋</span>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{manoInfo.label}</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Mà preferida</div>
+                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, marginTop: 2 }}>Mà preferida</div>
                   </div>
                 </div>
               )}
@@ -323,7 +323,7 @@ export default function Profile({
                   <span style={{ fontSize: 28 }}>📍</span>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: C.text }}>{ladoInfo.label}</div>
-                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 2 }}>Posició a la pista</div>
+                    <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0, marginTop: 2 }}>Posició a la pista</div>
                   </div>
                 </div>
               )}
