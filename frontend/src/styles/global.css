@@ -1103,14 +1103,14 @@ select.settings-control-input {
   .settings-control-input {
     min-height: 46px !important;
     padding: 10px 12px !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     text-align: left;
   }
 
   .settings-date-input {
     min-height: 46px !important;
     padding: 10px 12px !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
   }
 }
 
@@ -1220,5 +1220,13 @@ select.settings-control-input {
   .admin-user-role-chip {
     flex: 1 1 0;
     min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
