@@ -58,10 +58,21 @@ function getLocalNowKey() {
   return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
 }
 
-const slotHasStarted = (fecha, hora) => `${fecha}T${hora}` <= getLocalNowKey();
+function dateKeyFromDb(fecha) {
+  if (fecha instanceof Date) return fecha.toISOString().slice(0, 10);
+  return String(fecha || "").slice(0, 10);
+}
+
+function timeKeyFromDb(hora) {
+  return String(hora || "").slice(0, 5);
+}
+
+const slotKey = (fecha, hora) => `${dateKeyFromDb(fecha)}T${timeKeyFromDb(hora)}`;
+const slotHasStarted = (fecha, hora) => slotKey(fecha, hora) <= getLocalNowKey();
 const isValidDate = (fecha) => /^\d{4}-\d{2}-\d{2}$/.test(fecha);
 const isValidTime = (hora) => /^([01]\d|2[0-3]):[0-5]\d$/.test(hora);
 const isPastSlot = (fecha, hora) => slotHasStarted(fecha, hora);
+const activeSlotSql = "(r.fecha::text || 'T' || left(r.hora::text, 5)) > ?";
 
 function cleanLabel(label) {
   return String(label || "").trim().slice(0, 60);
@@ -120,6 +131,16 @@ async function isAllowedSlot(hora) {
 }
 
 async function cancelExpiredOpenMatches() {
+  await db.run(
+    `UPDATE solicituds_partida sp
+     SET estat = 'rebutjada'
+     FROM reservas r
+     WHERE r.id = sp.reserva_id
+       AND sp.estat IN ('pendent', 'invitat')
+       AND (r.fecha::text || 'T' || left(r.hora::text, 5)) <= ?`,
+    [getLocalNowKey()]
+  );
+
   const rows = await db.all(
     `SELECT r.id, r.fecha, r.hora, COUNT(rj.user_id)::int as jugadors_count
      FROM reservas r
@@ -229,8 +250,9 @@ router.get("/solicituds/meues", async (req, res) => {
      JOIN reservas r ON r.id = sp.reserva_id
      JOIN users u ON u.id = r.user_id
      WHERE sp.de_user_id = ? AND sp.estat IN ('pendent', 'invitat') AND r.estado = 'confirmada'
+       AND ${activeSlotSql}
      ORDER BY r.fecha, r.hora`,
-    [req.user.id]
+    [req.user.id, getLocalNowKey()]
   );
   res.json(rows);
 });
@@ -245,8 +267,9 @@ router.get("/solicituds/invitades", async (req, res) => {
      JOIN reservas r ON r.id = sp.reserva_id
      JOIN users u ON u.id = sp.de_user_id
      WHERE r.user_id = ? AND sp.estat = 'invitat' AND r.estado = 'confirmada' AND u.activo = 1
+       AND ${activeSlotSql}
      ORDER BY sp.created_at`,
-    [req.user.id]
+    [req.user.id, getLocalNowKey()]
   );
   res.json(rows);
 });
@@ -261,8 +284,9 @@ router.get("/solicituds/pendent", async (req, res) => {
      JOIN reservas r ON r.id = sp.reserva_id
      JOIN users u ON u.id = sp.de_user_id
      WHERE r.user_id = ? AND sp.estat = 'pendent' AND r.estado = 'confirmada' AND u.activo = 1
+       AND ${activeSlotSql}
      ORDER BY sp.created_at`,
-    [req.user.id]
+    [req.user.id, getLocalNowKey()]
   );
   res.json(rows);
 });
@@ -273,6 +297,10 @@ router.patch("/solicituds/:id", async (req, res) => {
 
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [sp.reserva_id]);
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
+  if (slotHasStarted(r.fecha, r.hora)) {
+    await db.run("UPDATE solicituds_partida SET estat = 'rebutjada' WHERE id = ? AND estat IN ('pendent', 'invitat')", [sp.id]);
+    return res.status(409).json({ error: "La partida ja ha començat" });
+  }
 
   const esOrganitzador = r.user_id === req.user.id;
   const esInvitat = sp.de_user_id === req.user.id && sp.estat === "invitat";
@@ -329,6 +357,7 @@ router.post("/:id/unirse", async (req, res) => {
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
   if (!r.abierto) return res.status(403).json({ error: "Partida privada" });
   if (r.estado !== "confirmada") return res.status(409).json({ error: "Partida no activa" });
+  if (slotHasStarted(r.fecha, r.hora)) return res.status(409).json({ error: "La partida ja ha començat" });
   if (r.user_id === req.user.id) return res.status(409).json({ error: "Ets l'organitzador" });
 
   const jugadors = await getJugadors(r.id);
@@ -388,6 +417,8 @@ router.post("/:id/invitar", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sense permís: no ets l'organitzador" });
+  if (r.estado !== "confirmada") return res.status(409).json({ error: "Partida no activa" });
+  if (slotHasStarted(r.fecha, r.hora)) return res.status(409).json({ error: "La partida ja ha començat" });
 
   const userId = Number(req.body.user_id);
   if (!Number.isInteger(userId)) return res.status(400).json({ error: "Cal indicar user_id" });
@@ -432,6 +463,8 @@ router.patch("/:id/abierto", async (req, res) => {
   const r = await db.get("SELECT * FROM reservas WHERE id = ?", [req.params.id]);
   if (!r) return res.status(404).json({ error: "Reserva no trobada" });
   if (r.user_id !== req.user.id && req.user.rol !== "admin") return res.status(403).json({ error: "Sense permís" });
+  if (r.estado !== "confirmada") return res.status(409).json({ error: "Partida no activa" });
+  if (slotHasStarted(r.fecha, r.hora)) return res.status(409).json({ error: "La partida ja ha començat" });
 
   const { abierto } = req.body;
   await db.run("UPDATE reservas SET abierto = ? WHERE id = ?", [abierto ? 1 : 0, r.id]);
