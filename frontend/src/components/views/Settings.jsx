@@ -110,6 +110,14 @@ function Button({ C, children, onClick, variant = "secondary", disabled, style }
   );
 }
 
+function Card({ children, C, style }) {
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: C.shadow, padding: 20, ...style }}>
+      {children}
+    </div>
+  );
+}
+
 export default function Settings({
   config,
   configEdit,
@@ -263,12 +271,6 @@ export default function Settings({
 
   const pageMaxWidth = seccion === "bloqueos" ? 980 : 760;
 
-  const Card = ({ children, style }) => (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: C.shadow, padding: 20, ...style }}>
-      {children}
-    </div>
-  );
-
   const renderHeader = (title, desc, right) => (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start", marginBottom: 18 }}>
       <div>
@@ -337,7 +339,7 @@ export default function Settings({
       </div>
 
       {seccion === "calendario" && (
-        <Card>
+        <Card C={C}>
           {renderHeader("Calendari", "Defineix les franges disponibles i la vista del calendari.")}
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14 }}>
@@ -370,7 +372,7 @@ export default function Settings({
       )}
 
       {seccion === "reservas" && (
-        <Card>
+        <Card C={C}>
           {renderHeader("Política de reserves", "Controla quantes reserves actives pot tenir cada usuari.")}
 
           <div style={{ maxWidth: 360 }}>
@@ -393,7 +395,7 @@ export default function Settings({
 
       {seccion === "bloqueos" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14, alignItems: "start" }}>
-          <Card>
+          <Card C={C}>
             {renderHeader(
               editGroupId ? "Modificar bloqueig" : "Nou bloqueig",
               "Selecciona rang, dies, franges i etiqueta.",
@@ -489,7 +491,7 @@ export default function Settings({
             </Button>
           </Card>
 
-          <Card>
+          <Card C={C}>
             {renderHeader(
               "Bloquejos actius",
               `${gruposBloqueo.length} bloqueig${gruposBloqueo.length !== 1 ? "s" : ""} · ${totalFranjasBloqueadas} franja${totalFranjasBloqueadas !== 1 ? "s" : ""}`,
