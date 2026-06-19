@@ -342,20 +342,20 @@ export default function Settings({
         <Card C={C}>
           {renderHeader("Calendari", "Defineix les franges disponibles i la vista del calendari.")}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14 }}>
+          <div className="settings-calendar-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14 }}>
             <Field C={C} label="Hora d'inici" desc="Primera franja disponible">
-              <input type="time" value={configEdit.horaInicio} onChange={(e) => setConfigEdit((c) => ({ ...c, horaInicio: e.target.value }))} style={inputBase} />
+              <input className="settings-control-input" type="time" value={configEdit.horaInicio} onChange={(e) => setConfigEdit((c) => ({ ...c, horaInicio: e.target.value }))} style={inputBase} />
             </Field>
             <Field C={C} label="Hora de fi" desc="Última franja disponible">
-              <input type="time" value={configEdit.horaFin} onChange={(e) => setConfigEdit((c) => ({ ...c, horaFin: e.target.value }))} style={inputBase} />
+              <input className="settings-control-input" type="time" value={configEdit.horaFin} onChange={(e) => setConfigEdit((c) => ({ ...c, horaFin: e.target.value }))} style={inputBase} />
             </Field>
             <Field C={C} label="Durada" desc="Temps per reserva">
-              <select value={configEdit.duracion} onChange={(e) => setConfigEdit((c) => ({ ...c, duracion: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+              <select className="settings-control-input" value={configEdit.duracion} onChange={(e) => setConfigEdit((c) => ({ ...c, duracion: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
                 {[30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>{m} minuts</option>)}
               </select>
             </Field>
             <Field C={C} label="Dies visibles" desc="Vista del calendari">
-              <select value={configEdit.diasVista} onChange={(e) => setConfigEdit((c) => ({ ...c, diasVista: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+              <select className="settings-control-input" value={configEdit.diasVista} onChange={(e) => setConfigEdit((c) => ({ ...c, diasVista: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
                 {[3, 5, 7].map((d) => <option key={d} value={d}>{d} dies</option>)}
               </select>
             </Field>
@@ -377,7 +377,7 @@ export default function Settings({
 
           <div style={{ maxWidth: 360 }}>
             <Field C={C} label="Límit de reserves per usuari" desc="Màxim de reserves actives simultànies">
-              <select value={configEdit.maxReservas ?? 3} onChange={(e) => setConfigEdit((c) => ({ ...c, maxReservas: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
+              <select className="settings-control-input" value={configEdit.maxReservas ?? 3} onChange={(e) => setConfigEdit((c) => ({ ...c, maxReservas: Number(e.target.value) }))} style={{ ...inputBase, cursor: "pointer" }}>
                 {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} reserva{n !== 1 ? "s" : ""} màxim</option>)}
               </select>
             </Field>
