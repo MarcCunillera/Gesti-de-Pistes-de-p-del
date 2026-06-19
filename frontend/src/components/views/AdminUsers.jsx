@@ -38,8 +38,7 @@ export default function AdminUsers({
 
   const filtrados = users.filter(
     (u) =>
-      u.nombre.toLowerCase().includes(buscar.toLowerCase()) ||
-      u.email.toLowerCase().includes(buscar.toLowerCase())
+      u.nombre.toLowerCase().includes(buscar.toLowerCase())
   );
 
   const totalPags = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
@@ -87,7 +86,7 @@ export default function AdminUsers({
       >
         <input
           className="admin-users-search"
-          placeholder="Buscar per nom o correu..."
+          placeholder="Buscar per nom..."
           value={buscar}
           onChange={(e) => handleBuscar(e.target.value)}
           style={{
@@ -230,7 +229,7 @@ export default function AdminUsers({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {u.email} · Reserves:{" "}
+                  Reserves:{" "}
                   {
                     reservas.filter(
                       (r) => r.userId === u.id && r.estado === "confirmada"

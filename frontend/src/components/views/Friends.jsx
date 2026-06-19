@@ -180,7 +180,6 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       <Avatar user={a} size={38} onClick={function(e) { e.stopPropagation(); obrirPerfil(a); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{a.nombre}</div>
-                        {a.email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{a.email}</div>}
                       </div>
                     </div>
                     <Btn onClick={function(e) { e.stopPropagation(); eliminarAmic(a.id); }} variant="danger" theme={C} dark={dark}>Eliminar</Btn>
@@ -295,7 +294,6 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                         <Avatar user={userEnviat} size={38} onClick={function() { obrirPerfil(userEnviat); }} />
                         <div>
                           <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{s.a_nombre}</div>
-                          {s.a_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.a_email}</div>}
                         </div>
                       </div>
                       <span style={{ fontSize: 11, color: C.muted, fontWeight: 600, background: C.surfaceAlt, borderRadius: 6, padding: "4px 10px", border: `1px solid ${C.border}` }}>Pendent</span>
@@ -328,7 +326,6 @@ export default function Friends({ session, users, showToast, onSolicitudsChange,
                       <Avatar user={userSolicitant} size={38} onClick={function() { obrirPerfil(userSolicitant); }} />
                       <div>
                         <div style={{ fontWeight: 600, color: C.text, fontSize: 14 }}>{s.de_nombre}</div>
-                        {s.de_email && <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{s.de_email}</div>}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
