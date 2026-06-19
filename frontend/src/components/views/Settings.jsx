@@ -406,12 +406,12 @@ export default function Settings({
               <input type="text" value={rango.label} maxLength={60} placeholder="Classes de pàdel" onChange={(e) => setRango((r) => ({ ...r, label: e.target.value }))} style={inputBase} />
             </Field>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+            <div className="settings-date-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
               <Field C={C} label="Data d'inici">
-                <input type="date" value={rango.inicio} min={hoy()} onChange={(e) => setRango((r) => ({ ...r, inicio: e.target.value }))} style={inputBase} />
+                <input className="settings-date-input" type="date" value={rango.inicio} min={hoy()} onChange={(e) => setRango((r) => ({ ...r, inicio: e.target.value }))} style={inputBase} />
               </Field>
               <Field C={C} label="Data de fi">
-                <input type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
+                <input className="settings-date-input" type="date" value={rango.fin} min={rango.inicio} onChange={(e) => setRango((r) => ({ ...r, fin: e.target.value }))} style={inputBase} />
               </Field>
             </div>
 
