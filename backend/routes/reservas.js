@@ -113,6 +113,31 @@ async function enrichReserva(r) {
   return { ...r, jugadors: await getJugadors(r.id) };
 }
 
+async function getReservasWithJugadors(whereSql, params) {
+  return db.all(
+    `SELECT r.*,
+            COALESCE(
+              json_agg(
+                json_build_object(
+                  'id', u.id,
+                  'nombre', u.nombre,
+                  'avatar', u.avatar,
+                  'avatar_color', u.avatar_color
+                )
+                ORDER BY u.nombre
+              ) FILTER (WHERE u.id IS NOT NULL),
+              '[]'::json
+            ) AS jugadors
+     FROM reservas r
+     LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
+     LEFT JOIN users u ON u.id = rj.user_id
+     ${whereSql}
+     GROUP BY r.id
+     ORDER BY r.fecha, r.hora`,
+    params
+  );
+}
+
 async function getConfigValue(key, fallback) {
   const row = await db.get("SELECT value FROM config WHERE key = ?", [key]);
   return row ? row.value : fallback;
@@ -130,7 +155,16 @@ async function isAllowedSlot(hora) {
   return (slot - inicio) % duracion === 0;
 }
 
+let lastCleanupAt = 0;
+const CLEANUP_INTERVAL_MS = Number(process.env.RESERVAS_CLEANUP_INTERVAL_MS || 60000);
+
 async function cancelExpiredOpenMatches() {
+  const nowMs = Date.now();
+  if (nowMs - lastCleanupAt < CLEANUP_INTERVAL_MS) return 0;
+  lastCleanupAt = nowMs;
+
+  const nowKey = getLocalNowKey();
+
   await db.run(
     `UPDATE solicituds_partida sp
      SET estat = 'rebutjada'
@@ -138,30 +172,31 @@ async function cancelExpiredOpenMatches() {
      WHERE r.id = sp.reserva_id
        AND sp.estat IN ('pendent', 'invitat')
        AND (r.fecha::text || 'T' || left(r.hora::text, 5)) <= ?`,
-    [getLocalNowKey()]
+    [nowKey]
   );
 
-  const rows = await db.all(
-    `SELECT r.id, r.fecha, r.hora, COUNT(rj.user_id)::int as jugadors_count
-     FROM reservas r
-     LEFT JOIN reserva_jugadores rj ON rj.reserva_id = r.id
-     WHERE r.estado = 'confirmada' AND r.abierto = 1
-     GROUP BY r.id, r.fecha, r.hora`
+  const expired = await db.all(
+    `UPDATE reservas r
+     SET estado = 'cancelada', abierto = 0
+     WHERE r.estado = 'confirmada'
+       AND r.abierto = 1
+       AND (r.fecha::text || 'T' || left(r.hora::text, 5)) <= ?
+       AND (
+         SELECT COUNT(*)::int
+         FROM reserva_jugadores rj
+         WHERE rj.reserva_id = r.id
+       ) < 4
+     RETURNING r.id`,
+    [nowKey]
   );
-
-  const expired = rows.filter((r) => slotHasStarted(r.fecha, r.hora) && r.jugadors_count < 4);
 
   if (expired.length === 0) return 0;
 
-  await db.tx(async (trx) => {
-    for (const r of expired) {
-      await trx.run("UPDATE reservas SET estado = 'cancelada', abierto = 0 WHERE id = ?", [r.id]);
-      await trx.run(
-        "UPDATE solicituds_partida SET estat = 'rebutjada' WHERE reserva_id = ? AND estat IN ('pendent', 'invitat')",
-        [r.id]
-      );
-    }
-  });
+  const ids = expired.map((r) => r.id);
+  await db.run(
+    "UPDATE solicituds_partida SET estat = 'rebutjada' WHERE reserva_id = ANY(?) AND estat IN ('pendent', 'invitat')",
+    [ids]
+  );
 
   return expired.length;
 }
@@ -178,13 +213,10 @@ router.use(async (req, res, next) => {
 });
 
 router.get("/all", async (req, res) => {
-  const where = req.user.rol === "admin" ? "" : "WHERE r.estado = 'confirmada'";
-  const rows = await db.all(
-    `SELECT r.* FROM reservas r
-     ${where}
-     ORDER BY r.fecha, r.hora`
-  );
-  res.json(await Promise.all(rows.map(enrichReserva)));
+  const isAdmin = req.user.rol === "admin";
+  const where = isAdmin ? "" : "WHERE r.estado = 'confirmada' AND r.fecha >= ?";
+  const params = isAdmin ? [] : [localDateKey()];
+  res.json(await getReservasWithJugadors(where, params));
 });
 
 router.post("/", async (req, res) => {
