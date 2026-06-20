@@ -241,7 +241,7 @@ export default function App() {
 
     var interval = setInterval(function () {
       if (document.visibilityState === "visible") syncLiveData();
-    }, 60000);
+    }, 30000);
 
     function handleFocus() {
       syncLiveData();
